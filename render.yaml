@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: nimthara-client
+    env: node
+    buildCommand: cd client && npm install && npm run build
+    startCommand: npx serve -s build
+    envVars:
+      - key: REACT_APP_API_BASE_URL
+        value: https://nimthara-server.onrender.com
+    buildFilter:
+      paths:
+        - client/**/*
