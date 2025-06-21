@@ -1,11 +1,5 @@
-# Node modules
-**/node_modules/
 
-# Logs
-*.log
-
-# Environment files
-**/.env
-
-# React build output
+client/node_modules/
+server/node_modules/
 client/build/
+.env
