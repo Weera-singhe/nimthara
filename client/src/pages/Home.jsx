@@ -7,7 +7,6 @@ export default function Welcome() {
       <Header />
       <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
         <h1>Welcome to Nimthara</h1>
-        <p>This is your homepage.</p>
       </div>
     </>
   );

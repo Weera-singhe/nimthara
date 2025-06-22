@@ -1,13 +1,110 @@
+* {
+  box-sizing: border-box;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: medium;
+}
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(255, 255, 255);
+}
+header {
+  border-radius: 10px;
+  background-color: #eaeaea;
+  height: fit-content;
+  box-shadow: 3px 3px 30px 0 rgba(0, 0, 0, 0.8); /*15px  0.6*/
+  margin-bottom: 40px;
+  display: flex;
+  padding: 25px 35px;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+header img {
+  height: 50px;
+}
+nav a {
+  text-decoration: none;
+  align-content: center;
+  margin: 0rem 2rem;
+  color: black;
+}
+nav {
+  margin-left: 5rem;
+  display: flex;
+}
+
+.op-loop {
+  width: 30px;
+}
+.op-check {
+  position: relative;
+  top: 2.5px;
+}
+.boxy {
+  border-radius: 7px;
+  background-color: #d1cabf;
+  box-shadow: 5px 5px 15px 0 rgba(0, 0, 0, 0.7); /*15px   0.3*/
+  margin: 3px 1px;
+  width: fit-content;
+  height: 43px;
+  align-content: center;
+  padding: 0px 15px;
+  display: inline-block;
+}
+.book {
+  padding: 15px;
+  height: fit-content;
+}
+.book input {
+  margin: 3px 15px 3px 3px;
+}
+
+.new-division {
+  /*border: 1px solid black;*/
+  margin: 30px 20px;
+}
+.simple-input {
+  display: inline-block;
+}
+.gap {
+  width: 10px;
+  display: inline-block;
+}
+footer {
+  font-weight: bold;
+  color: white;
+  position: fixed;
+  bottom: 20px;
+  right: 40px;
+}
+.hidden {
+  display: none;
+}
+.hover {
+  background-color: white;
+}
+
+.wid80 {
+  width: 80px;
+}
+.wid60 {
+  width: 60px;
+}
+.wid40 {
+  width: 40px;
+}
+input {
+  border-radius: 3px;
+  border: 1.5px solid black;
+  text-align: center;
+  padding: 0.15rem 0rem;
+}
+select {
+  border-radius: 3px;
+  border: 1.5px solid black;
+}
+button {
+  border-radius: 3px;
+  border: 1.5px solid black;
+}
+select {
+  text-align: center;
+  padding: 0.1rem 0.5rem;
 }

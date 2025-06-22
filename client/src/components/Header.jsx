@@ -1,24 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import reactLogo from "../assests/long_logo.svg";
 
 export default function Header() {
   return (
-    <nav
-      style={{
-        padding: "1rem",
-        backgroundColor: "#f0f0f0",
-        borderBottom: "1px solid #ccc",
-      }}
-    >
-      <Link to="/" style={{ marginRight: "1rem", textDecoration: "none" }}>
-        Home
-      </Link>
-      <Link
-        to="/papers"
-        style={{ marginRight: "1rem", textDecoration: "none" }}
-      >
-        Papers
-      </Link>
-    </nav>
+    <header>
+      <img src={reactLogo} alt="long_logo" />
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/papers">Papers</Link>
+      </nav>
+    </header>
   );
 }
