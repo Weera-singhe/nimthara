@@ -59,9 +59,8 @@ export default function Papers() {
       };
     });
   };
-  function testz() {
-    console.log({ ...newPaper, ...paper_id(newPaper) });
-  }
+  //function testz() {
+  //console.log({ ...newPaper, ...paper_id(newPaper) });}
 
   const handleAddPaper = (e) => {
     e.preventDefault();
@@ -69,15 +68,13 @@ export default function Papers() {
       .post(ADD_PAPER_API_URL, { ...newPaper, ...paper_id(newPaper) })
       .then((res) => {
         setPapers(res.data.names);
-        setNewPaper({
-          type_: 0,
-          gsm: 0,
-          color_: 0,
-          brand_: 0,
-          size_h: 0,
-          size_w: 0,
-          unit_val: 500,
-          unit_: 0,
+        setNewPaper((p) => {
+          return {
+            ...p,
+            gsm: 0,
+            size_h: 0,
+            size_w: 0,
+          };
         });
       })
       .catch((err) => console.error("Error adding paper:", err));
