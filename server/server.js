@@ -31,6 +31,19 @@ function GetIdsNames() {
     });
 }
 
+function GetSelectedPriceRecs(id) {
+  return pool
+    .query(
+      `SELECT TO_CHAR(date, 'YYYY-MM-DD') AS date,price
+    FROM paper_price JOIN papers ON papers.id = paper_price.price_id
+    where price_id = $1 ORDER BY date ASC; `,
+      [id]
+    )
+    .then((result) => {
+      return result.rows;
+    });
+}
+
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -44,16 +57,14 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`✅ Server running on port ${port}`);
-});
 app.get("/papers", async (req, res) => {
   try {
     const { ids, names } = await GetIdsNames();
     const result = await pool.query(`SELECT json_build_object(
     'types',  (SELECT array_agg(type ORDER BY type_id)  FROM types),
     'colors', (SELECT array_agg(color) FROM colors),
-   'brands', (SELECT array_agg(brand) FROM brands),
+   'brands', (SELECT array_agg(brand ORDER BY brand ASC) FROM brands),
+   'brand_ids', (SELECT array_agg(brand_id ORDER BY brand ASC) FROM brands),
    'units', (SELECT array_agg(unit) FROM units)) AS result;`);
     const data = result.rows[0].result;
 
@@ -67,7 +78,6 @@ app.get("/papers", async (req, res) => {
 app.post("/add_new_paper", async (req, res) => {
   const { brand_, color_, gsm, id, size_h, size_w, type_, unit_, unit_val } =
     req.body;
-  console.log(req.body);
   try {
     await pool.query("INSERT INTO papers VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)", [
       id,
@@ -92,4 +102,46 @@ app.post("/add_new_paper", async (req, res) => {
       res.status(500).json({ success: false, message: err.message });
     }
   }
+});
+
+app.get("/quotation", async (req, res) => {
+  try {
+    const { ids, names } = await GetIdsNames();
+
+    res.json({ names });
+  } catch (err) {
+    console.error("Error fetching papers:", err);
+    res.status(500).json({ error: "Failed to fetch papers" });
+  }
+});
+
+app.get("/price", async (req, res) => {
+  try {
+    const { ids, names } = await GetIdsNames();
+    const id = req.query.id;
+    const recs = await GetSelectedPriceRecs(id);
+    res.json({ ids, names, recs });
+  } catch (err) {
+    console.error("Error fetching papers:", err);
+    res.status(500).json({ error: "Failed to fetch papers" });
+  }
+});
+app.post("/rec_new_price", async (req, res) => {
+  const { id, from, price } = req.body;
+
+  try {
+    await pool.query(
+      "INSERT INTO paper_price (price_id, date, price)VALUES ($1,$2,$3)",
+      [id, from, +price]
+    );
+    const recs = await GetSelectedPriceRecs(id);
+    res.status(201).json({ success: true, selectedRecs: recs });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });

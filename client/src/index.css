@@ -3,8 +3,8 @@
   font-family: "Trebuchet MS", sans-serif;
   font-size: medium;
 }
-body {
-  background-color: rgb(223, 231, 237);
+small {
+  font-size: smaller;
 }
 header {
   border-radius: 1rem;
@@ -39,7 +39,7 @@ nav {
 }
 .boxy {
   border-radius: 7px;
-  background-color: #d1cabf;
+  background-color: #e5e9e9;
   box-shadow: 5px 5px 15px 0 rgba(0, 0, 0, 0.7); /*15px   0.3*/
   margin: 3px 1px;
   width: fit-content;
@@ -52,8 +52,9 @@ nav {
   padding: 15px;
   height: fit-content;
 }
+.book select,
 .book input {
-  margin: 3px 15px 3px 3px;
+  margin: 3px 20px 3px 3px;
 }
 
 .new-division {
@@ -107,4 +108,40 @@ button {
 select {
   text-align: center;
   padding: 0.1rem 0.5rem;
+}
+
+.num-box {
+  display: inline-block;
+}
+.num-box div {
+  border: 1.5px solid black;
+  border-radius: 4px;
+  background-color: white;
+  height: 24px;
+  text-align: center;
+  align-content: center;
+}
+b {
+  margin: 0.4rem;
+}
+
+.body1 {
+  background-color: #ffffff;
+  background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png");
+  /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
+}
+body {
+  background-color: #ffffff;
+  background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
+  /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
+}
+.body3 {
+  background-color: #ffffff;
+  background-image: url("https://www.transparenttextures.com/patterns/skulls.png");
+  /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
+}
+.body4 {
+  background-color: #ffffff;
+  background-image: url("https://www.transparenttextures.com/patterns/washi.png");
+  /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }

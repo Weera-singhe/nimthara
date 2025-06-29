@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Header from "../components/Header";
+import Header from "../partials/Header";
 import { PAPERS_API_URL } from "../api/urls";
 import { ADD_PAPER_API_URL } from "../api/urls";
 
@@ -14,7 +14,7 @@ export default function Papers() {
     units: [],
   });
 
-  const [newPaper, setNewPaper] = useState({
+  const [newPaperDetails, setNewPaperDetails] = useState({
     type_: 0,
     gsm: 0,
     color_: 0,
@@ -25,7 +25,7 @@ export default function Papers() {
     unit_: 0,
   });
 
-  function paper_id(np) {
+  function id_of_NewPaper(np) {
     return {
       id:
         String(np.type_).padStart(3, "0") +
@@ -50,9 +50,10 @@ export default function Papers() {
   const change = (e) => {
     const { name, value, max } = e.target;
     const maxVal = isNaN(max) ? 100 : Number(max);
-    const finalVal = value > maxVal || value < 0 ? newPaper[name] : value;
+    const finalVal =
+      value > maxVal || value < 0 ? newPaperDetails[name] : value;
 
-    setNewPaper((p) => {
+    setNewPaperDetails((p) => {
       return {
         ...p,
         [name]: Math.round(finalVal * 10) / 10,
@@ -65,10 +66,13 @@ export default function Papers() {
   const handleAddPaper = (e) => {
     e.preventDefault();
     axios
-      .post(ADD_PAPER_API_URL, { ...newPaper, ...paper_id(newPaper) })
+      .post(ADD_PAPER_API_URL, {
+        ...newPaperDetails,
+        ...id_of_NewPaper(newPaperDetails),
+      })
       .then((res) => {
         setPapers(res.data.names);
-        setNewPaper((p) => {
+        setNewPaperDetails((p) => {
           return {
             ...p,
             gsm: 0,
@@ -85,7 +89,7 @@ export default function Papers() {
       <Header />
       <div>
         <form onSubmit={handleAddPaper}>
-          <select name="type_" value={newPaper.type_} onChange={change}>
+          <select name="type_" value={newPaperDetails.type_} onChange={change}>
             <option value={0}> -type-</option>
             {datas.types.map((i, ii) => (
               <option value={ii + 1} key={ii}>
@@ -93,7 +97,11 @@ export default function Papers() {
               </option>
             ))}
           </select>
-          <select name="color_" value={newPaper.color_} onChange={change}>
+          <select
+            name="color_"
+            value={newPaperDetails.color_}
+            onChange={change}
+          >
             <option value={0}> -color-</option>
             {datas.colors.map((i, ii) => (
               <option value={ii + 1} key={ii}>
@@ -106,7 +114,7 @@ export default function Papers() {
             name="gsm"
             placeholder="gsm"
             className="wid80"
-            value={newPaper.gsm}
+            value={newPaperDetails.gsm}
             max={999.9}
             onChange={change}
           />{" "}
@@ -115,7 +123,7 @@ export default function Papers() {
             name="size_h"
             placeholder="height"
             className="wid60"
-            value={newPaper.size_h}
+            value={newPaperDetails.size_h}
             max={99.9}
             onChange={change}
           />{" "}
@@ -124,19 +132,27 @@ export default function Papers() {
             name="size_w"
             className="wid60"
             placeholder="width"
-            value={newPaper.size_w}
+            value={newPaperDetails.size_w}
             max={99.9}
             onChange={change}
           />
-          <select name="brand_" value={newPaper.brand_} onChange={change}>
+          <select
+            name="brand_"
+            value={newPaperDetails.brand_}
+            onChange={change}
+          >
             <option value={0}> -brand-</option>
-            {datas.brands.map((i, ii) => (
-              <option value={ii + 1} key={ii}>
-                {i}
+            {datas.brands.map((brand, i) => (
+              <option value={datas.brand_ids[i]} key={datas.brand_ids[i]}>
+                {brand}
               </option>
             ))}
           </select>
-          <select name="unit_val" value={newPaper.unit_val} onChange={change}>
+          <select
+            name="unit_val"
+            value={newPaperDetails.unit_val}
+            onChange={change}
+          >
             <option value="500">500</option>
             <option value="250">250</option>
             <option value="125">125</option>
@@ -144,7 +160,7 @@ export default function Papers() {
             <option value="1000">1000</option>
             <option value="1">1</option>
           </select>
-          <select name="unit_" value={newPaper.unit_} onChange={change}>
+          <select name="unit_" value={newPaperDetails.unit_} onChange={change}>
             <option value={0}> -unit-</option>
             {datas.units.map((i, ii) => (
               <option value={ii + 1} key={ii}>
@@ -152,7 +168,10 @@ export default function Papers() {
               </option>
             ))}
           </select>
-          <button type="submit" disabled={Object.values(newPaper).includes(0)}>
+          <button
+            type="submit"
+            disabled={Object.values(newPaperDetails).includes(0)}
+          >
             Add Paper
           </button>
         </form>
