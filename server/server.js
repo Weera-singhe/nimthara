@@ -271,6 +271,18 @@ app.get("/check-auth", (req, res) => {
     res.json({ loggedIn: false, level: 0 });
   }
 });
+app.post("/logout", (req, res) => {
+  req.logout(() => {
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid", {
+        path: "/",
+        sameSite: "none",
+        secure: true,
+      });
+      res.status(200).json({ success: true });
+    });
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
