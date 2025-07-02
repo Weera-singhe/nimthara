@@ -19,11 +19,12 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get(CHECK_AUTH_API_URL)
+      .get(CHECK_AUTH_API_URL, {
+        withCredentials: true,
+      })
       .then((res) => setUser(res.data))
       .catch(() => setUser({ loggedIn: false, level: 0 }));
   }, []);
-
   return (
     <BrowserRouter>
       <Header user={user} setUser={setUser} />

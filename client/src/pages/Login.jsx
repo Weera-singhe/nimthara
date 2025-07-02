@@ -43,11 +43,9 @@ export default function Login({ user, setUser }) {
     setShowing(false);
     try {
       const res = await axios.post(USER_LOGIN_API_URL, loginDetails);
+
       if (res.data.success) {
-        const authRes = await axios.get(CHECK_AUTH_API_URL, {
-          withCredentials: true,
-        });
-        setUser(authRes.data);
+        setUser(res.data.user);
         window.location.href = "/";
       } else {
         alert("Login failed");

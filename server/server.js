@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? ["https://nimthara.com", "https://www.nimthara.com"]
+      ? "https://www.nimthara.com"
       : "http://localhost:3000",
   credentials: true,
 };
@@ -212,15 +212,17 @@ app.post("/userregister", async (req, res) => {
 app.post("/userlogin", (req, res, next) => {
   passport.authenticate("local", (err, user) => {
     if (!user) return res.status(401).json({ success: false });
-
-    req.login(user, () => res.json({ success: true }));
+    req.login(user, () => {
+      res.json({
+        success: true,
+        user: {
+          username: user.username,
+          level: user.level,
+          display_name: user.display_name,
+        },
+      });
+    });
   })(req, res, next);
-});
-
-app.post("/logout", (req, res) => {
-  req.logout(() => {
-    res.json({ success: true, message: "Logged out" });
-  });
 });
 
 passport.use(
