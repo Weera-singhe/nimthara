@@ -14,6 +14,7 @@ header {
   margin-bottom: 3rem;
   display: flex;
   padding: 1.5rem 2.3rem;
+  align-items: center;
 }
 
 header img {
@@ -48,18 +49,37 @@ nav {
   padding: 0px 15px;
   display: inline-block;
 }
+.boxyy {
+  border-radius: 4px;
+  background-color: #e4e4e4;
+  box-shadow: 3px 3px 5px 0 rgba(69, 69, 69, 0.463); /*15px   0.3*/
+  margin: 1px;
+  width: fit-content;
+  height: 43px;
+  align-content: center;
+  padding: 0px 15px;
+  display: inline-block;
+}
 .book {
   padding: 15px;
   height: fit-content;
 }
 .book select,
+.book .num-box,
 .book input {
-  margin: 3px 20px 3px 3px;
+  margin: 4px 20px 4px 4px;
 }
 
 .new-division {
-  /*border: 1px solid black;*/
   margin: 30px 20px;
+}
+.form-box {
+  margin: 30px 20px;
+  padding: 30px;
+  border: 2px solid black;
+  border-radius: 10px;
+  width: fit-content;
+  height: fit-content;
 }
 .simple-input {
   display: inline-block;
@@ -121,10 +141,15 @@ select {
   text-align: center;
   align-content: center;
 }
+.num-box small {
+  color: dimgray;
+}
 b {
   margin: 0.4rem;
 }
-
+.ali-right > div {
+  text-align: right;
+}
 .body1 {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png");

@@ -1,14 +1,11 @@
 import DivChecks from "./Quotation/DivChecks";
 import DivBook from "./Quotation/DivBook";
-import Header from "../partials/Header";
-function AppQts() {
+
+export default function Quotation({ user }) {
   return (
     <>
-      <Header />
       <DivBook />
       <DivChecks />
     </>
   );
 }
-
-export default AppQts;

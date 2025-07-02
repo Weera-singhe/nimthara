@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import NumBox from "../../elements/NumBox";
 import Num from "../../elements/NumInput";
 
 function NumStr(i) {
@@ -9,7 +8,7 @@ function NumStr(i) {
   });
 }
 
-function OpLines({ name, calTotal, allPapers = [] }) {
+function OpLines({ name, calTotal, allPapers = [], latestPrices = [] }) {
   const arr =
     name === "Plates"
       ? { v1: 2400, v2: 1, v3: 0, v4: 0, v5: 0, v6: 0, v7: 0 }
@@ -17,6 +16,8 @@ function OpLines({ name, calTotal, allPapers = [] }) {
       ? { v1: 0, v2: 0, v3: 500, v4: 0, v5: 1, v6: 0, v7: 1 }
       : name === "Print"
       ? { v1: 2000, v2: 1, v3: 1, v4: 1, v5: 1, v6: 1, v7: 1 }
+      : name === "Cutting" || name === "Padding"
+      ? { v1: 0, v2: 1, v3: 0, v4: 0, v5: 0, v6: 0, v7: 0 }
       : { v1: 0, v2: 0, v3: 0, v4: 0, v5: 0, v6: 0, v7: 0 };
   const [v, setVal] = useState(arr);
 
@@ -32,16 +33,14 @@ function OpLines({ name, calTotal, allPapers = [] }) {
   const minSum =
     name === "Print"
       ? 2000 * v.v4
-      : name === "Padding"
-      ? 1000
-      : name === "Delivery"
+      : name === "Padding" || name === "Delivery" || name === "Cutting"
       ? 1000
       : 0;
 
   const sum =
     name === "Artwork" || name === "Other" || name === "Delivery"
       ? v.v1
-      : name === "Plates" || name === "Padding"
+      : name === "Plates" || name === "Padding" || name === "Cutting"
       ? v.v1 * v.v2
       : name === "Papers"
       ? (v.v2 / v.v3) * (v.v4 / v.v5 + v.v6 / v.v7) || 0
@@ -67,16 +66,16 @@ function OpLines({ name, calTotal, allPapers = [] }) {
         </div>
       )}
       <div className="boxy" style={{ width: "70%" }}>
-        {(name === "Artwork" || name == "Other" || name == "Delivery") && (
+        {(name === "Artwork" || name === "Other" || name === "Delivery") && (
           <>
-            <NumBox width={80} changed={changed} name={"v1"} />
+            <Num width={80} changed={changed} name={"v1"} />
           </>
         )}
         {name === "Plates" && (
           <>
             <select name="v1" onChange={changed}>
               <option value={2400}>Plate 24x36</option>
-              <option value={2000}>Plate 20x30</option>
+              <option value={2200}>Plate 20x30</option>
             </select>
             <small> LKR {Number(v.v1).toLocaleString()} </small>
             <b> x </b>
@@ -98,7 +97,7 @@ function OpLines({ name, calTotal, allPapers = [] }) {
             >
               <option value={0}></option>
               {allPapers.map((x, i) => (
-                <option key={i} value={i * 1000}>
+                <option key={i} value={latestPrices[i]}>
                   {x}
                 </option>
               ))}
@@ -115,16 +114,17 @@ function OpLines({ name, calTotal, allPapers = [] }) {
               name={"v2"}
               color={v.v1 !== v.v2 ? "red" : "black"}
               setTo={v.v2}
-              min={0}
             />
             <b> / </b>
             <select name="v3" onChange={changed}>
               <option value={500}>500</option>
               <option value={100}>100</option>
+              <option value={250}>250</option>
               <option value={1000}>1000</option>
+              <option value={1}>1</option>
             </select>
             <b> x ( </b>
-            <NumBox width={100} changed={changed} name={"v4"} /> <b> / </b>
+            <Num width={100} changed={changed} name={"v4"} /> <b> / </b>
             <input
               type="number"
               className="wid40"
@@ -133,7 +133,7 @@ function OpLines({ name, calTotal, allPapers = [] }) {
               defaultValue={1}
             />
             <b> + </b>
-            <NumBox width={70} changed={changed} name={"v6"} />
+            <Num width={70} changed={changed} name={"v6"} />
             <b> / </b>
             <input
               type="number"
@@ -147,7 +147,7 @@ function OpLines({ name, calTotal, allPapers = [] }) {
         )}
         {name === "Print" && (
           <>
-            <NumBox width={80} changed={changed} name={"v1"} defVal={2000} />
+            <Num width={80} changed={changed} name={"v1"} defVal={2000} />
 
             <b> / </b>
             <input
@@ -166,10 +166,11 @@ function OpLines({ name, calTotal, allPapers = [] }) {
               defaultValue={1}
             />
             <b>
-              <small>
-                <small> = impressions : </small> {(v.v1 / v.v2) * v.v3}
-              </small>
+              <small>=</small>
             </b>
+            <small>
+              <small> impressions : </small> {(v.v1 / v.v2) * v.v3}
+            </small>
 
             <b> x </b>
             <input
@@ -190,11 +191,11 @@ function OpLines({ name, calTotal, allPapers = [] }) {
             </select>
           </>
         )}
-        {name == "Padding" && (
+        {(name === "Padding" || name === "Cutting") && (
           <>
-            <NumBox width={90} changed={changed} name={"v1"} />
+            <Num width={90} changed={changed} name={"v1"} />
             <b>x</b>
-            <NumBox width={60} changed={changed} name={"v2"} />
+            <Num width={60} changed={changed} name={"v2"} defVal={1} />
           </>
         )}
       </div>

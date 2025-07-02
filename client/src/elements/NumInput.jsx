@@ -1,59 +1,75 @@
 import React, { useEffect, useState } from "react";
 
+function fixValue(val, min, max, deci) {
+  const num = Number(val) || 0;
+  const limited = Math.min(Math.max(num, min), max);
+  const decii = 10 ** deci;
+  return Math.round(limited * decii) / decii;
+}
+
 function NumInput({
   name,
-  defVal = "",
-  min,
-  max,
+  defVal = 0,
+  min = 0,
+  max = Infinity,
   setTo,
   changed,
-  width,
-  color,
+  width = 100,
+  color = "black",
+  deci = 2,
+  label,
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [fixedVal, setFixedVal] = useState(defVal || "");
+  const [value, setValue] = useState(() => fixValue(defVal, min, max, deci));
 
   function handleBlurOrEnter(e) {
-    if (e.type === "blur" || e.key === "Enter") setIsEditing(false);
-  }
-
-  function handleChange(v) {
-    const value = Number(v);
-    const maxV = max ?? value;
-    const minV = min ?? value;
-
-    const fixed = Math.max(minV, Math.min(maxV, value));
-    setFixedVal(fixed);
-
-    if (typeof changed === "function") {
-      changed({ target: { name, value: +fixed.toFixed(2) } });
+    if (e.type === "blur" || e.key === "Enter") {
+      setIsEditing(false);
     }
   }
 
+  function handleChange(e) {
+    const raw = e.target.value;
+    const fixed = fixValue(raw, min, max, deci);
+    setValue(fixed);
+    changed?.({ target: { name, value: fixed } });
+  }
+
   useEffect(() => {
-    if (setTo !== undefined) handleChange(setTo);
-  }, [setTo]);
+    if (setTo !== undefined) {
+      const fixed = fixValue(setTo, min, max, deci);
+      setValue(fixed);
+    }
+  }, [setTo, min, max, deci]);
 
   return (
-    <div className="num-box">
+    <div className="num-box" style={{ position: "relative" }}>
       <div
         onClick={() => setIsEditing(true)}
         style={{ width: `${width}px`, color }}
       >
-        {fixedVal.toLocaleString(undefined, {
-          maximumFractionDigits: 2,
-        })}
+        {value === 0 && label !== undefined ? (
+          <small> {label}</small>
+        ) : (
+          value.toLocaleString(undefined, {
+            maximumFractionDigits: deci,
+          })
+        )}
       </div>
 
       {isEditing && (
         <input
           type="number"
           autoFocus
-          defaultValue={fixedVal}
-          onChange={(e) => handleChange(e.target.value)}
+          defaultValue={value}
+          onChange={handleChange}
           onBlur={handleBlurOrEnter}
           onKeyDown={handleBlurOrEnter}
-          style={{ position: "absolute", width: `${width + 15}px` }}
+          style={{
+            position: "absolute",
+            width: `${width + 15}px`,
+            left: 0,
+          }}
         />
       )}
     </div>

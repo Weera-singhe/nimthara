@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Header from "../partials/Header";
-import { PAPERS_API_URL } from "../api/urls";
-import { ADD_PAPER_API_URL } from "../api/urls";
+import Num from "../elements/NumInput";
+import { PAPERS_API_URL, ADD_PAPER_API_URL } from "../api/urls";
+import { Link } from "react-router-dom";
 
-export default function Papers() {
-  const [papers, setPapers] = useState([]);
+export default function Papers({ user }) {
+  const [loadedPapers, loadPapers] = useState({
+    ids: [],
+    names: [],
+    latestPrices: [],
+  });
 
   const [datas, setDatas] = useState({
     types: [],
@@ -25,7 +29,54 @@ export default function Papers() {
     unit_: 0,
   });
 
-  function id_of_NewPaper(np) {
+  useEffect(() => {
+    axios
+      .get(PAPERS_API_URL)
+      .then((res) => {
+        loadPapers({
+          ids: res.data.ids,
+          names: res.data.names,
+          latestPrices: res.data.latestPrices,
+        });
+        setDatas(res.data.data);
+      })
+      .catch((err) => console.error("Error fetching papers:", err));
+  }, []);
+
+  const change = (e) => {
+    const { name, value } = e.target;
+    setNewPaperDetails((p) => {
+      return {
+        ...p,
+        [name]: Number(value),
+      };
+    });
+  };
+
+  const handleAddPaper = (e) => {
+    e.preventDefault();
+    setNewPaperDetails((p) => {
+      return {
+        ...p,
+        gsm: 0,
+        size_h: 0,
+        size_w: 0,
+      };
+    });
+    axios
+      .post(ADD_PAPER_API_URL, {
+        ...newPaperDetails,
+        ...createID(newPaperDetails),
+      })
+      .then((res) => {
+        loadPapers({
+          names: res.data.names,
+          latestPrices: res.data.latestPrices,
+        });
+      })
+      .catch((err) => console.error("Error adding paper:", err));
+  };
+  function createID(np) {
     return {
       id:
         String(np.type_).padStart(3, "0") +
@@ -37,150 +88,129 @@ export default function Papers() {
     };
   }
 
-  useEffect(() => {
-    axios
-      .get(PAPERS_API_URL)
-      .then((res) => {
-        setPapers(res.data.names);
-        setDatas(res.data.data);
-      })
-      .catch((err) => console.error("Error fetching papers:", err));
-  }, []);
-
-  const change = (e) => {
-    const { name, value, max } = e.target;
-    const maxVal = isNaN(max) ? 100 : Number(max);
-    const finalVal =
-      value > maxVal || value < 0 ? newPaperDetails[name] : value;
-
-    setNewPaperDetails((p) => {
-      return {
-        ...p,
-        [name]: Math.round(finalVal * 10) / 10,
-      };
-    });
-  };
-  //function testz() {
-  //console.log({ ...newPaper, ...paper_id(newPaper) });}
-
-  const handleAddPaper = (e) => {
-    e.preventDefault();
-    axios
-      .post(ADD_PAPER_API_URL, {
-        ...newPaperDetails,
-        ...id_of_NewPaper(newPaperDetails),
-      })
-      .then((res) => {
-        setPapers(res.data.names);
-        setNewPaperDetails((p) => {
-          return {
-            ...p,
-            gsm: 0,
-            size_h: 0,
-            size_w: 0,
-          };
-        });
-      })
-      .catch((err) => console.error("Error adding paper:", err));
-  };
-
   return (
     <>
-      <Header />
-      <div>
-        <form onSubmit={handleAddPaper}>
-          <select name="type_" value={newPaperDetails.type_} onChange={change}>
-            <option value={0}> -type-</option>
-            {datas.types.map((i, ii) => (
-              <option value={ii + 1} key={ii}>
-                {i}
-              </option>
-            ))}
-          </select>
-          <select
-            name="color_"
-            value={newPaperDetails.color_}
-            onChange={change}
-          >
-            <option value={0}> -color-</option>
-            {datas.colors.map((i, ii) => (
-              <option value={ii + 1} key={ii}>
-                {i}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            name="gsm"
-            placeholder="gsm"
-            className="wid80"
-            value={newPaperDetails.gsm}
-            max={999.9}
-            onChange={change}
-          />{" "}
-          <input
-            type="number"
-            name="size_h"
-            placeholder="height"
-            className="wid60"
-            value={newPaperDetails.size_h}
-            max={99.9}
-            onChange={change}
-          />{" "}
-          <input
-            type="number"
-            name="size_w"
-            className="wid60"
-            placeholder="width"
-            value={newPaperDetails.size_w}
-            max={99.9}
-            onChange={change}
-          />
-          <select
-            name="brand_"
-            value={newPaperDetails.brand_}
-            onChange={change}
-          >
-            <option value={0}> -brand-</option>
-            {datas.brands.map((brand, i) => (
-              <option value={datas.brand_ids[i]} key={datas.brand_ids[i]}>
-                {brand}
-              </option>
-            ))}
-          </select>
-          <select
-            name="unit_val"
-            value={newPaperDetails.unit_val}
-            onChange={change}
-          >
-            <option value="500">500</option>
-            <option value="250">250</option>
-            <option value="125">125</option>
-            <option value="100">100</option>
-            <option value="1000">1000</option>
-            <option value="1">1</option>
-          </select>
-          <select name="unit_" value={newPaperDetails.unit_} onChange={change}>
-            <option value={0}> -unit-</option>
-            {datas.units.map((i, ii) => (
-              <option value={ii + 1} key={ii}>
-                {i}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            disabled={Object.values(newPaperDetails).includes(0)}
-          >
-            Add Paper
-          </button>
-        </form>
-
-        <ul>
-          {papers.map((paper, i) => (
-            <li key={i}>{paper}</li>
-          ))}
-        </ul>
+      <div className="new-division">
+        {" "}
+        {user.loggedIn && user.level > 1 && (
+          <div className="boxy book">
+            <form onSubmit={handleAddPaper}>
+              <select
+                name="type_"
+                value={newPaperDetails.type_}
+                onChange={change}
+              >
+                <option value={0}> -type-</option>
+                {datas.types.map((i, ii) => (
+                  <option value={ii + 1} key={ii}>
+                    {i}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="color_"
+                value={newPaperDetails.color_}
+                onChange={change}
+              >
+                <option value={0}> -color-</option>
+                {datas.colors.map((i, ii) => (
+                  <option value={ii + 1} key={ii}>
+                    {i}
+                  </option>
+                ))}
+              </select>
+              <Num
+                deci={1}
+                width={80}
+                min={0}
+                max={999.9}
+                name="gsm"
+                setTo={newPaperDetails.gsm}
+                changed={change}
+                label="gsm"
+              />
+              <Num
+                deci={1}
+                width={60}
+                min={0}
+                max={99.9}
+                name="size_h"
+                setTo={newPaperDetails.size_h}
+                changed={change}
+                label="height"
+              />{" "}
+              <Num
+                deci={1}
+                width={60}
+                min={0}
+                max={99.9}
+                name="size_w"
+                setTo={newPaperDetails.size_w}
+                changed={change}
+                label="width"
+              />
+              <select
+                name="brand_"
+                value={newPaperDetails.brand_}
+                onChange={change}
+              >
+                <option value={0}> -brand-</option>
+                {datas.brands.map((brand, i) => (
+                  <option value={datas.brand_ids[i]} key={datas.brand_ids[i]}>
+                    {brand}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="unit_val"
+                value={newPaperDetails.unit_val}
+                onChange={change}
+              >
+                <option value="500">500</option>
+                <option value="250">250</option>
+                <option value="125">125</option>
+                <option value="100">100</option>
+                <option value="1000">1000</option>
+                <option value="1">1</option>
+              </select>
+              <select
+                name="unit_"
+                value={newPaperDetails.unit_}
+                onChange={change}
+              >
+                <option value={0}> -unit-</option>
+                {datas.units.map((i, ii) => (
+                  <option value={ii + 1} key={ii}>
+                    {i}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                disabled={Object.values(newPaperDetails).includes(0)}
+              >
+                Add Paper
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+      <div className="new-division">
+        {loadedPapers.names.map((paper, i) => (
+          <div key={i}>
+            <div className="boxyy" style={{ width: "40%" }}>
+              {paper}{" "}
+            </div>
+            <div className="boxyy" style={{ width: "10%", textAlign: "right" }}>
+              <Link to={`/price?id=${loadedPapers.ids[i]}`}>
+                {loadedPapers.latestPrices[i].toLocaleString("en-LK", {
+                  style: "currency",
+                  currency: "LKR",
+                })}
+              </Link>
+            </div>
+          </div>
+        ))}
       </div>
     </>
   );

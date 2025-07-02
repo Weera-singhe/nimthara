@@ -25,18 +25,24 @@ const options = [
   },
   {
     key: 5,
-    name: "Padding",
+    name: "Cutting",
     def: 1,
     max: 3,
   },
   {
     key: 6,
+    name: "Padding",
+    def: 1,
+    max: 3,
+  },
+  {
+    key: 7,
     name: "Delivery",
     def: 1,
     max: 1,
   },
   {
-    key: 7,
+    key: 8,
     name: "Other",
     def: 0,
     max: 10,

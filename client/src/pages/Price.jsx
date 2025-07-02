@@ -1,89 +1,87 @@
 import React, { useEffect, useState } from "react";
-import Header from "../partials/Header";
 import InputSimple from "../elements/InputSimple";
 import Num from "../elements/NumInput";
 import axios from "axios";
-import { Price_API_URL } from "../api/urls";
-import { ADD_Price_API_URL } from "../api/urls";
-export default function Price() {
+import { Price_API_URL, ADD_Price_API_URL } from "../api/urls";
+import { useLocation } from "react-router-dom";
+
+export default function Price({ user }) {
   const [newRecordDetails, setnewRecordDetails] = useState({
     id: "",
     from: 0,
     price: 0,
   });
+
   const [allPapers, setAllPapers] = useState([]);
   const [allIds, setAllIds] = useState([]);
   const [selectedRecs, setSelectedRecs] = useState([]);
   const [isDisabled, changeDisabbled] = useState(true);
 
+  const location = useLocation();
+
   function changed(e) {
-    const { name, value, type } = e.target;
-    const finalVal =
-      value < 0 && name === "price"
-        ? 0
-        : name === "price"
-        ? parseFloat(value).toFixed(2)
-        : value;
+    const { name, value } = e.target;
+    const finalVal = name === "price" ? Number(value) : value;
     setnewRecordDetails((p) => {
       return {
         ...p,
         [name]: finalVal,
       };
     });
-    type === "select-one" && changeSelectedPaper(value);
+    name === "id" && changeSelectedPaper(value);
   }
+
+  const changeSelectedPaper = (id) => {
+    changeDisabbled(true);
+    axios
+      .get(`${Price_API_URL}?id=${id}`)
+      .then((res) => setSelectedRecs(res.data.recs))
+      .catch((err) => console.error("Error fetching selected paper recs:", err))
+      .finally(() => {
+        id !== "" && changeDisabbled(false);
+      });
+  };
+  const newPriceRecord = (e) => {
+    e.preventDefault();
+    if (!user.loggedIn) {
+      window.location.href = "/login";
+      return;
+    }
+
+    changeDisabbled(true);
+    axios
+      .post(ADD_Price_API_URL, newRecordDetails)
+      .then((res) => {
+        setSelectedRecs(res.data.recs);
+        setnewRecordDetails((p) => ({ ...p, price: 0 }));
+      })
+      .catch((err) => console.error("Error adding paper:", err))
+      .finally(() => changeDisabbled(false));
+  };
+
   useEffect(() => {
     axios
       .get(Price_API_URL)
       .then((res) => {
         setAllPapers(res.data.names);
         setAllIds(res.data.ids);
+
+        const params = new URLSearchParams(location.search);
+        const selectedId = params.get("id");
+        if (selectedId) {
+          setnewRecordDetails((p) => ({ ...p, id: selectedId }));
+          changeSelectedPaper(selectedId);
+        }
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, []);
-
-  const newPriceRecord = (e) => {
-    e.preventDefault();
-    changeDisabbled(true);
-    axios
-      .post(ADD_Price_API_URL, newRecordDetails)
-      .then((res) => {
-        setSelectedRecs(res.data.selectedRecs);
-        setnewRecordDetails((p) => ({
-          ...p,
-          price: 0,
-        }));
-      })
-      .catch((err) => {
-        console.error("Error adding paper:", err);
-      })
-      .finally(() => {
-        changeDisabbled(false);
-      });
-  };
-
-  const changeSelectedPaper = (id) => {
-    changeDisabbled(true);
-    axios
-      .get(`${Price_API_URL}?id=${id}`)
-      .then((res) => {
-        setSelectedRecs(res.data.recs);
-      })
-      .catch((err) => {
-        console.error("Error fetching selected paper recs:", err);
-      })
-      .finally(() => {
-        if (id !== "") changeDisabbled(false);
-      });
-  };
+  }, [location.search]);
 
   return (
     <>
-      <Header />
       <div className="new-division">
         <div className="boxy book">
           <form onSubmit={newPriceRecord}>
-            <select onChange={changed} name="id">
+            <select onChange={changed} name="id" value={newRecordDetails.id}>
               <option value={""}></option>
               {allPapers.map((pp, i) => (
                 <option key={i} value={allIds[i]}>
@@ -99,7 +97,7 @@ export default function Price() {
               changed={changed}
               min={0}
               max={500000}
-              defVal="0"
+              deci={2}
               setTo={newRecordDetails.price}
             />
             <button
@@ -115,10 +113,10 @@ export default function Price() {
       <ul>
         {selectedRecs.map((i, ii) => (
           <li key={ii}>
-            {i.date} = LKR{" "}
-            {Number(i.price).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
+            {i.date_} ={" "}
+            {i.price.toLocaleString("en-LK", {
+              style: "currency",
+              currency: "LKR",
             })}
           </li>
         ))}
