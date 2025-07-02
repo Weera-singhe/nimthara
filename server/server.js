@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? "https://nimthara.com"
+      ? ["https://nimthara.com", "https://www.nimthara.com"]
       : "http://localhost:3000",
   credentials: true,
 };
@@ -25,7 +25,11 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 3 },
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 3,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    },
   })
 );
 
