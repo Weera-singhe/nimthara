@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import reactLogo from "../assests/long_logo.png";
 import { LOGOUT_API_URL } from "../api/urls";
+axios.defaults.withCredentials = true;
 
 export default function Header({ user, setUser }) {
   const location = useLocation();
