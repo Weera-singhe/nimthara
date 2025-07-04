@@ -43,12 +43,12 @@ export default function Price({ user }) {
   };
   const newPriceRecord = (e) => {
     e.preventDefault();
+    changeDisabbled(true);
+
     if (!user.loggedIn) {
       window.location.href = "/login";
       return;
     }
-
-    changeDisabbled(true);
     axios
       .post(ADD_Price_API_URL, newRecordDetails)
       .then((res) => {

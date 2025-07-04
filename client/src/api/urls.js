@@ -11,3 +11,5 @@ export const USER_LOGIN_API_URL = `${API_BASE_URL}/userlogin`;
 export const USER_REGISTER_API_URL = `${API_BASE_URL}/userregister`;
 export const LOGIN_API_URL = `${API_BASE_URL}/login`;
 export const LOGOUT_API_URL = `${API_BASE_URL}/logout`;
+export const CUS_API_URL = `${API_BASE_URL}/cus`;
+export const ADD_CUS_API_URL = `${API_BASE_URL}/add_new_cus`;

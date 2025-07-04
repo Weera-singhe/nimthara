@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Papers from "./pages/Papers";
 import Price from "./pages/Price";
 import Stock from "./pages/Stock";
+import Customers from "./pages/Customers";
 import Quotation from "./pages/Quotation";
 import Login from "./pages/Login";
 import Header from "./partials/Header";
@@ -36,6 +37,7 @@ const App = () => {
         />
         <Route path="/price" element={<Price user={user} />} />
         <Route path="/stock" element={<Stock user={user} />} />
+        <Route path="/cus" element={<Customers user={user} />} />
         <Route path="/quotation" element={<Quotation user={user} />} />
         <Route
           path="/login"

@@ -29,7 +29,7 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60 * 3,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
@@ -82,6 +82,15 @@ function GetLatestPrice() {
       pp ON p.id = pp.price_id ORDER BY p.id ASC;`
     )
     .then((result) => result.rows.map((i) => i.price));
+}
+function GetCustomers() {
+  return pool
+    .query(
+      "SELECT *, TO_CHAR(reg_till, 'YYYY-MM-DD') AS reg_till_ FROM customers ORDER BY customer_name ASC"
+    )
+    .then((result) => {
+      return result.rows;
+    });
 }
 
 app.get("/", async (req, res) => {
@@ -183,6 +192,46 @@ app.post("/rec_new_price", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+app.get("/cus", async (req, res) => {
+  try {
+    const cus = await GetCustomers();
+    res.json(cus);
+  } catch (err) {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+app.post("/add_new_cus", async (req, res) => {
+  const {
+    id,
+    customer_name,
+    cus_name_short,
+    cus_name_other,
+    reg_must,
+    reg_till_,
+  } = req.body;
+  console.log(req.body);
+  try {
+    if (id) {
+      await pool.query(
+        `UPDATE customers SET customer_name = $1, cus_name_short = $2, cus_name_other = $3,
+         reg_must = $4, reg_till = $5 WHERE id = $6`,
+        [customer_name, cus_name_short, cus_name_other, reg_must, reg_till_, id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO customers (customer_name, cus_name_short, cus_name_other, reg_must, reg_till)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [customer_name, cus_name_short, cus_name_other, reg_must, reg_till_]
+      );
+    }
+    const cus = await GetCustomers();
+    res.status(201).json({ success: true, cus });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.post("/userregister", async (req, res) => {
   const { display_name, regname, pwr } = req.body;
 
