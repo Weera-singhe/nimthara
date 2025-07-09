@@ -18,6 +18,7 @@ function NumInput({
   color = "black",
   deci = 2,
   label,
+  plain = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(() => fixValue(defVal, min, max, deci));
@@ -50,10 +51,10 @@ function NumInput({
       >
         {value === 0 && label !== undefined ? (
           <small> {label}</small>
+        ) : plain ? (
+          String(value)
         ) : (
-          value.toLocaleString(undefined, {
-            maximumFractionDigits: deci,
-          })
+          value.toLocaleString()
         )}
       </div>
 
@@ -61,6 +62,7 @@ function NumInput({
         <input
           type="number"
           autoFocus
+          onFocus={(e) => e.target.select()}
           defaultValue={value}
           onChange={handleChange}
           onBlur={handleBlurOrEnter}
@@ -69,6 +71,7 @@ function NumInput({
             position: "absolute",
             width: `${width + 15}px`,
             left: 0,
+            zIndex: 1,
           }}
         />
       )}

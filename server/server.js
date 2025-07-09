@@ -42,30 +42,33 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-function GetIdsNames() {
+function GetSpecsEachPaper() {
   return pool
     .query(
-      `SELECT p.id, p.gsm,t.type, p.size_h, p.size_w, b.brand, c.color
-      FROM papers p JOIN types  t ON p.type_  = t.type_id
-      JOIN brands b ON p.brand_ = b.brand_id JOIN colors c ON p.color_ = c.color_id
-      ORDER BY p.id ASC`
+      `SELECT id, CONCAT(p_type, ' ', gsm, 'gsm ', size_h, 'x', size_w, ' ', p_brand, ' ', p_color) AS name,
+      p_unit AS unit, unit_val FROM paper_specs_ ORDER BY id ASC;`
     )
-    .then((result) => {
-      const ids = result.rows.map((i) => i.id);
-      const names = result.rows.map(
-        (i) =>
-          `${i.type} ${i.gsm}gsm ${i.size_h}x${i.size_w} ${i.brand} ${i.color}`
-      );
-      return { ids, names };
-    });
+    .then((result) => result.rows);
+}
+function GetAllSpecs() {
+  return pool
+    .query(
+      `WITH type_list AS (SELECT p_type, MIN(id) AS min_id FROM paper_specs WHERE p_type IS NOT NULL GROUP BY p_type),
+      color_list AS (SELECT p_color, MIN(id) AS min_id FROM paper_specs WHERE p_color IS NOT NULL GROUP BY p_color)
+      SELECT json_build_object(
+      'types',  (SELECT array_agg(p_type ORDER BY min_id) FROM type_list),
+      'colors', (SELECT array_agg(p_color ORDER BY min_id) FROM color_list),
+      'brands', (SELECT array_agg(DISTINCT p_brand ORDER BY p_brand)FROM paper_specs WHERE p_brand IS NOT NULL),
+      'brand_ids', (SELECT array_agg(id ORDER BY p_brand)FROM paper_specs WHERE p_brand IS NOT NULL),
+      'units', (SELECT array_agg(DISTINCT p_unit ORDER BY p_unit) FROM paper_specs WHERE p_unit IS NOT NULL)) AS result`
+    )
+    .then((res) => res.rows[0].result);
 }
 
 function GetPrices(id) {
   return pool
     .query(
-      `SELECT TO_CHAR(date, 'YYYY-MM-DD') AS date_ , price
-     FROM paper_price
-     WHERE price_id = $1 ORDER BY date DESC`,
+      `SELECT TO_CHAR(date, 'YYYY-MM-DD') AS date_ , price FROM paper_price WHERE price_id = $1 ORDER BY date DESC`,
       [id]
     )
     .then((result) => {
@@ -76,12 +79,31 @@ function GetPrices(id) {
 function GetLatestPrice() {
   return pool
     .query(
-      `SELECT COALESCE(pp.price, 0) AS price
-       FROM papers p LEFT JOIN (SELECT DISTINCT ON (price_id)
-      price_id,price FROM paper_price ORDER BY price_id, date DESC)
-      pp ON p.id = pp.price_id ORDER BY p.id ASC;`
+      `SELECT (SELECT price FROM paper_price pp WHERE pp.price_id = p.id
+     ORDER BY date DESC, price_rec DESC LIMIT 1) AS price FROM papers p ORDER BY p.id;`
     )
     .then((result) => result.rows.map((i) => i.price));
+}
+
+async function GetDatePrice(id, date) {
+  const result = await pool.query(
+    `SELECT price FROM paper_price WHERE price_id = $1
+     AND date <= $2 ORDER BY date DESC, price_rec DESC LIMIT 1`,
+    [id, date]
+  );
+
+  return result.rows[0]?.price ?? null;
+}
+
+function GetStocks(id) {
+  return pool
+    .query(
+      `SELECT *, TO_CHAR(date, 'YYYY-MM-DD') AS date_ FROM paper_stock WHERE stock_id = $1 ORDER BY date`,
+      [id]
+    )
+    .then((result) => {
+      return result.rows;
+    });
 }
 function GetCustomers() {
   return pool
@@ -91,6 +113,23 @@ function GetCustomers() {
     .then((result) => {
       return result.rows;
     });
+}
+function GetClients() {
+  return pool
+    .query("SELECT * FROM gts_clients ORDER BY client_name ASC")
+    .then((result) => {
+      return result.rows;
+    });
+}
+
+async function GetEachNLatestP() {
+  const eachPaper = await GetSpecsEachPaper();
+  const latestPrices = await GetLatestPrice();
+
+  return eachPaper.map((p, i) => ({
+    ...p,
+    latest_price: latestPrices[i] ?? 0,
+  }));
 }
 
 app.get("/", async (req, res) => {
@@ -108,17 +147,10 @@ app.get("/", async (req, res) => {
 
 app.get("/papers", async (req, res) => {
   try {
-    const { ids, names } = await GetIdsNames();
-    const result = await pool.query(`SELECT json_build_object(
-    'types',  (SELECT array_agg(type ORDER BY type_id)  FROM types),
-    'colors', (SELECT array_agg(color) FROM colors),
-   'brands', (SELECT array_agg(brand ORDER BY brand ASC) FROM brands),
-   'brand_ids', (SELECT array_agg(brand_id ORDER BY brand ASC) FROM brands),
-   'units', (SELECT array_agg(unit) FROM units)) AS result;`);
-    const data = result.rows[0].result;
-    const latestPrices = await GetLatestPrice();
+    const papers = await GetEachNLatestP();
+    const data = await GetAllSpecs();
 
-    res.json({ ids, names, data, latestPrices });
+    res.json({ papers, data });
   } catch (err) {
     console.error("Error fetching papers:", err);
     res.status(500).json({ error: "Failed to fetch papers" });
@@ -131,17 +163,18 @@ app.post("/add_new_paper", async (req, res) => {
   try {
     await pool.query("INSERT INTO papers VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)", [
       id,
-      +type_,
-      +color_,
-      +gsm,
-      +size_h,
-      +size_w,
-      +brand_,
-      +unit_val,
-      +unit_,
+      type_,
+      color_,
+      gsm,
+      size_h,
+      size_w,
+      brand_,
+      unit_val,
+      unit_,
     ]);
-    const { ids, names } = await GetIdsNames();
-    res.status(201).json({ success: true, names: names });
+
+    const papers = await GetEachNLatestP();
+    res.status(201).json({ success: true, papers });
   } catch (err) {
     console.error("DB Error:", err.message);
     if (err.code === "23505") {
@@ -156,10 +189,9 @@ app.post("/add_new_paper", async (req, res) => {
 
 app.get("/quotation", async (req, res) => {
   try {
-    const { ids, names } = await GetIdsNames();
-    const latestPrices = await GetLatestPrice();
+    const papers = await GetEachNLatestP();
 
-    res.json({ names, latestPrices });
+    res.json({ papers });
   } catch (err) {
     console.error("Error fetching papers:", err);
     res.status(500).json({ error: "Failed to fetch papers" });
@@ -168,10 +200,10 @@ app.get("/quotation", async (req, res) => {
 
 app.get("/price", async (req, res) => {
   try {
-    const { ids, names } = await GetIdsNames();
+    const eachpaper = await GetSpecsEachPaper();
     const id = req.query.id;
     const recs = await GetPrices(id);
-    res.json({ ids, names, recs });
+    res.json({ eachpaper, recs });
   } catch (err) {
     console.error("Error fetching papers:", err);
     res.status(500).json({ error: "Failed to fetch papers" });
@@ -192,6 +224,42 @@ app.post("/rec_new_price", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+app.get("/stock", async (req, res) => {
+  try {
+    const { id, date } = req.query;
+
+    const recs = await GetStocks(id);
+    const papers = await GetEachNLatestP();
+    const c = await GetClients();
+    const booksResult = await pool.query("SELECT * FROM gts_books ORDER by id");
+    const books = booksResult.rows;
+
+    const priceForDate =
+      id && date ? await GetDatePrice(id, `${date} 23:59:59`) : null;
+
+    res.json({ papers, recs, c, books, priceForDate });
+  } catch (err) {
+    console.error("Error fetching papers:", err);
+    res.status(500).json({ error: "Failed to fetch papers" });
+  }
+});
+
+app.post("/rec_new_stock", async (req, res) => {
+  const { change, date, des, direction, invoice_id, rec_id } = req.body;
+
+  try {
+    // await pool.query(
+    //   "INSERT INTO paper_stock (stock_id, date, des,change,invoice_id)VALUES ($1,$2,$3,$4,$5)",
+    //    [rec_id, date, des, change * direction, invoice_id]
+    //  );
+    const recs = await GetStocks(rec_id);
+    res.status(201).json({ success: true, recs });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.get("/cus", async (req, res) => {
   try {
     const cus = await GetCustomers();
@@ -209,7 +277,6 @@ app.post("/add_new_cus", async (req, res) => {
     reg_must,
     reg_till_,
   } = req.body;
-  console.log(req.body);
   try {
     if (id) {
       await pool.query(
@@ -226,6 +293,39 @@ app.post("/add_new_cus", async (req, res) => {
     }
     const cus = await GetCustomers();
     res.status(201).json({ success: true, cus });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get("/gts/clients", async (req, res) => {
+  try {
+    const c = await GetClients();
+    res.json(c);
+  } catch (err) {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
+app.post("/gts/add_new_clients", async (req, res) => {
+  const { id, client_name, is_buyer, is_supplier, has_vat, vat_id } = req.body;
+  try {
+    if (id) {
+      await pool.query(
+        `UPDATE gts_clients SET client_name = $1, is_buyer = $2, is_supplier = $3,
+         has_vat = $4, vat_id = $5 WHERE id = $6`,
+        [client_name, is_buyer, is_supplier, has_vat, vat_id, id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO gts_clients (client_name, is_buyer, is_supplier, has_vat,vat_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [client_name, is_buyer, is_supplier, has_vat, vat_id]
+      );
+    }
+    const c = await GetClients();
+    res.status(201).json({ success: true, c });
   } catch (err) {
     console.error("DB Error:", err.message);
     res.status(500).json({ success: false, message: err.message });

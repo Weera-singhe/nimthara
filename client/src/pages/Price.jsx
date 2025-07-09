@@ -1,120 +1,122 @@
 import React, { useEffect, useState } from "react";
-import InputSimple from "../elements/InputSimple";
 import Num from "../elements/NumInput";
 import axios from "axios";
 import { Price_API_URL, ADD_Price_API_URL } from "../api/urls";
 import { useLocation } from "react-router-dom";
 
 export default function Price({ user }) {
-  const [newRecordDetails, setnewRecordDetails] = useState({
-    id: "",
-    from: 0,
-    price: 0,
-  });
-
-  const [allPapers, setAllPapers] = useState([]);
-  const [allIds, setAllIds] = useState([]);
+  const [newRec, setNewRec] = useState({ id: "", from: "", price: 0 });
+  const [loadedPapers, loadPapers] = useState([]);
   const [selectedRecs, setSelectedRecs] = useState([]);
-  const [isDisabled, changeDisabbled] = useState(true);
+  const [selectedUnits, setSelectedUnits] = useState([]);
+  const [serverLoading, isSeverLoading] = useState(false);
 
   const location = useLocation();
 
-  function changed(e) {
-    const { name, value } = e.target;
-    const finalVal = name === "price" ? Number(value) : value;
-    setnewRecordDetails((p) => {
-      return {
-        ...p,
-        [name]: finalVal,
-      };
-    });
-    name === "id" && changeSelectedPaper(value);
-  }
+  const changedNum = ({ target: { name, value } }) =>
+    setNewRec((p) => ({ ...p, [name]: Number(value) }));
+  const changedStr = ({ target: { name, value } }) =>
+    setNewRec((p) => ({ ...p, [name]: value.trim() }));
+  //const changedCheck = ({ target: { name, checked } }) =>
+  // setNewRec((p) => ({ ...p, [name]: checked }));
 
-  const changeSelectedPaper = (id) => {
-    changeDisabbled(true);
+  const changeSelected = (id) => {
+    isSeverLoading(true);
+    const paper = loadedPapers.find((p) => p.id === id);
+
     axios
       .get(`${Price_API_URL}?id=${id}`)
-      .then((res) => setSelectedRecs(res.data.recs))
-      .catch((err) => console.error("Error fetching selected paper recs:", err))
-      .finally(() => {
-        id !== "" && changeDisabbled(false);
-      });
-  };
-  const newPriceRecord = (e) => {
-    e.preventDefault();
-    changeDisabbled(true);
-
-    if (!user.loggedIn) {
-      window.location.href = "/login";
-      return;
-    }
-    axios
-      .post(ADD_Price_API_URL, newRecordDetails)
       .then((res) => {
         setSelectedRecs(res.data.recs);
-        setnewRecordDetails((p) => ({ ...p, price: 0 }));
+        setSelectedUnits(paper ? paper.unit_val + " " + paper.unit : "");
       })
-      .catch((err) => console.error("Error adding paper:", err))
-      .finally(() => changeDisabbled(false));
+      .finally(() => isSeverLoading(false));
+  };
+
+  const newPriceRecord = (e) => {
+    e.preventDefault();
+    isSeverLoading(true);
+
+    if (!user.loggedIn) return (window.location.href = "/login");
+
+    axios
+      .post(ADD_Price_API_URL, newRec)
+      .then((res) => {
+        setSelectedRecs(res.data.recs);
+        setNewRec((p) => ({ ...p, price: 0 }));
+      })
+      .finally(() => isSeverLoading(false));
   };
 
   useEffect(() => {
-    axios
-      .get(Price_API_URL)
-      .then((res) => {
-        setAllPapers(res.data.names);
-        setAllIds(res.data.ids);
-
-        const params = new URLSearchParams(location.search);
-        const selectedId = params.get("id");
-        if (selectedId) {
-          setnewRecordDetails((p) => ({ ...p, id: selectedId }));
-          changeSelectedPaper(selectedId);
-        }
-      })
-      .catch((err) => console.error("Error fetching papers:", err));
+    axios.get(Price_API_URL).then((res) => {
+      loadPapers(res.data.eachpaper);
+      const id = new URLSearchParams(location.search).get("id");
+      if (id) {
+        setNewRec((p) => ({ ...p, id }));
+        changeSelected(id);
+      } else {
+        isSeverLoading(false);
+      }
+    });
   }, [location.search]);
+
+  const fromDate = new Date(newRec.from);
+  const disableBtn =
+    serverLoading ||
+    !newRec.id ||
+    !newRec.price ||
+    isNaN(fromDate) ||
+    fromDate.getFullYear() < 2020;
 
   return (
     <>
       <div className="new-division">
-        <div className="boxy book">
+        <div className="boxyy book">
           <form onSubmit={newPriceRecord}>
-            <select onChange={changed} name="id" value={newRecordDetails.id}>
-              <option value={""}></option>
-              {allPapers.map((pp, i) => (
-                <option key={i} value={allIds[i]}>
-                  {pp}
+            <select
+              name="id"
+              value={newRec.id}
+              onChange={(e) => {
+                changedStr(e);
+                changeSelected(e.target.value);
+              }}
+            >
+              <option></option>
+              {loadedPapers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
                 </option>
               ))}
             </select>
-            <InputSimple name="from" type="datetime-local" onChange={changed} />
+            <label>effects from : </label>
+            <input name="from" type="datetime-local" onChange={changedStr} />
             LKR{" "}
             <Num
               width={100}
               name="price"
-              changed={changed}
+              changed={changedNum}
               min={0}
               max={500000}
               deci={2}
-              setTo={newRecordDetails.price}
+              setTo={newRec.price}
             />
             <button
-              disabled={isDisabled}
+              disabled={disableBtn}
               type="submit"
               style={{ marginLeft: "1em" }}
             >
               Add New Price Record
             </button>
+            <b> {selectedUnits}</b>
           </form>
         </div>
       </div>
       <ul>
-        {selectedRecs.map((i, ii) => (
-          <li key={ii}>
-            {i.date_} ={" "}
-            {i.price.toLocaleString("en-LK", {
+        {selectedRecs.map((r, i) => (
+          <li key={i}>
+            {r.date_} ={" "}
+            {r.price.toLocaleString("en-LK", {
               style: "currency",
               currency: "LKR",
             })}

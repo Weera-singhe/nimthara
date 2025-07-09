@@ -5,11 +5,7 @@ import { PAPERS_API_URL, ADD_PAPER_API_URL } from "../api/urls";
 import { Link } from "react-router-dom";
 
 export default function Papers({ user }) {
-  const [loadedPapers, loadPapers] = useState({
-    ids: [],
-    names: [],
-    latestPrices: [],
-  });
+  const [loadedPapers, loadPapers] = useState([]);
 
   const [datas, setDatas] = useState({
     types: [],
@@ -18,7 +14,7 @@ export default function Papers({ user }) {
     units: [],
   });
 
-  const [newPaperDetails, setNewPaperDetails] = useState({
+  const [addingForm, setAddingForm] = useState({
     type_: 0,
     gsm: 0,
     color_: 0,
@@ -33,19 +29,16 @@ export default function Papers({ user }) {
     axios
       .get(PAPERS_API_URL)
       .then((res) => {
-        loadPapers({
-          ids: res.data.ids,
-          names: res.data.names,
-          latestPrices: res.data.latestPrices,
-        });
+        loadPapers(res.data.papers);
         setDatas(res.data.data);
+        console.log(res.data.papers);
       })
       .catch((err) => console.error("Error fetching papers:", err));
   }, []);
 
   const change = (e) => {
     const { name, value } = e.target;
-    setNewPaperDetails((p) => {
+    setAddingForm((p) => {
       return {
         ...p,
         [name]: Number(value),
@@ -55,7 +48,9 @@ export default function Papers({ user }) {
 
   const handleAddPaper = (e) => {
     e.preventDefault();
-    setNewPaperDetails((p) => {
+    if (!user.loggedIn) return (window.location.href = "/login");
+    if (user.level < 2) return (window.location.href = "/");
+    setAddingForm((p) => {
       return {
         ...p,
         gsm: 0,
@@ -65,14 +60,11 @@ export default function Papers({ user }) {
     });
     axios
       .post(ADD_PAPER_API_URL, {
-        ...newPaperDetails,
-        ...createID(newPaperDetails),
+        ...addingForm,
+        ...createID(addingForm),
       })
       .then((res) => {
-        loadPapers({
-          names: res.data.names,
-          latestPrices: res.data.latestPrices,
-        });
+        loadPapers(res.data.papers);
       })
       .catch((err) => console.error("Error adding paper:", err));
   };
@@ -95,11 +87,7 @@ export default function Papers({ user }) {
         {user.loggedIn && user.level > 1 && (
           <div className="boxy book">
             <form onSubmit={handleAddPaper}>
-              <select
-                name="type_"
-                value={newPaperDetails.type_}
-                onChange={change}
-              >
+              <select name="type_" value={addingForm.type_} onChange={change}>
                 <option value={0}> -type-</option>
                 {datas.types.map((i, ii) => (
                   <option value={ii + 1} key={ii}>
@@ -107,11 +95,7 @@ export default function Papers({ user }) {
                   </option>
                 ))}
               </select>
-              <select
-                name="color_"
-                value={newPaperDetails.color_}
-                onChange={change}
-              >
+              <select name="color_" value={addingForm.color_} onChange={change}>
                 <option value={0}> -color-</option>
                 {datas.colors.map((i, ii) => (
                   <option value={ii + 1} key={ii}>
@@ -125,7 +109,7 @@ export default function Papers({ user }) {
                 min={0}
                 max={999.9}
                 name="gsm"
-                setTo={newPaperDetails.gsm}
+                setTo={addingForm.gsm}
                 changed={change}
                 label="gsm"
               />
@@ -135,7 +119,7 @@ export default function Papers({ user }) {
                 min={0}
                 max={99.9}
                 name="size_h"
-                setTo={newPaperDetails.size_h}
+                setTo={addingForm.size_h}
                 changed={change}
                 label="height"
               />{" "}
@@ -145,15 +129,11 @@ export default function Papers({ user }) {
                 min={0}
                 max={99.9}
                 name="size_w"
-                setTo={newPaperDetails.size_w}
+                setTo={addingForm.size_w}
                 changed={change}
                 label="width"
               />
-              <select
-                name="brand_"
-                value={newPaperDetails.brand_}
-                onChange={change}
-              >
+              <select name="brand_" value={addingForm.brand_} onChange={change}>
                 <option value={0}> -brand-</option>
                 {datas.brands.map((brand, i) => (
                   <option value={datas.brand_ids[i]} key={datas.brand_ids[i]}>
@@ -163,7 +143,7 @@ export default function Papers({ user }) {
               </select>
               <select
                 name="unit_val"
-                value={newPaperDetails.unit_val}
+                value={addingForm.unit_val}
                 onChange={change}
               >
                 <option value="500">500</option>
@@ -173,11 +153,7 @@ export default function Papers({ user }) {
                 <option value="1000">1000</option>
                 <option value="1">1</option>
               </select>
-              <select
-                name="unit_"
-                value={newPaperDetails.unit_}
-                onChange={change}
-              >
+              <select name="unit_" value={addingForm.unit_} onChange={change}>
                 <option value={0}> -unit-</option>
                 {datas.units.map((i, ii) => (
                   <option value={ii + 1} key={ii}>
@@ -187,7 +163,7 @@ export default function Papers({ user }) {
               </select>
               <button
                 type="submit"
-                disabled={Object.values(newPaperDetails).includes(0)}
+                disabled={Object.values(addingForm).includes(0)}
               >
                 Add Paper
               </button>
@@ -196,17 +172,19 @@ export default function Papers({ user }) {
         )}
       </div>
       <div className="new-division">
-        {loadedPapers.names.map((paper, i) => (
-          <div key={i}>
+        {loadedPapers.map((paper) => (
+          <div key={paper.id}>
             <div className="boxyy" style={{ width: "40%" }}>
-              {paper}{" "}
+              {paper.name}
             </div>
             <div className="boxyy" style={{ width: "10%", textAlign: "right" }}>
-              <Link to={`/price?id=${loadedPapers.ids[i]}`}>
-                {loadedPapers.latestPrices[i].toLocaleString("en-LK", {
-                  style: "currency",
-                  currency: "LKR",
-                })}
+              <Link to={`/price?id=${paper.id}`}>
+                {typeof paper.latest_price === "number"
+                  ? paper.latest_price.toLocaleString("en-LK", {
+                      style: "currency",
+                      currency: "LKR",
+                    })
+                  : "-"}
               </Link>
             </div>
           </div>

@@ -8,7 +8,7 @@ function NumStr(i) {
   });
 }
 
-function OpLines({ name, calTotal, allPapers = [], latestPrices = [] }) {
+function OpLines({ name, calTotal, allPapers = [] }) {
   const arr =
     name === "Plates"
       ? { v1: 2400, v2: 1, v3: 0, v4: 0, v5: 0, v6: 0, v7: 0 }
@@ -96,9 +96,9 @@ function OpLines({ name, calTotal, allPapers = [], latestPrices = [] }) {
               style={{ width: "30%", fontSize: "smaller" }}
             >
               <option value={0}></option>
-              {allPapers.map((x, i) => (
-                <option key={i} value={latestPrices[i]}>
-                  {x}
+              {allPapers.map((p, i) => (
+                <option key={i} value={p.latest_price}>
+                  {p.name}
                 </option>
               ))}
             </select>

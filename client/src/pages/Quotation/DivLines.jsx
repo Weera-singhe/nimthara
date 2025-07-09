@@ -20,7 +20,8 @@ function DivLines({ selected = [] }) {
     axios
       .get(QTS_API_URL)
       .then((res) => {
-        setPaperData(res.data);
+        setPaperData(res.data.papers);
+        console.log(res.data.papers);
       })
       .catch((err) => console.error("Error fetching papers:", err));
   }, []);
@@ -64,8 +65,7 @@ function DivLines({ selected = [] }) {
             name={opt.name}
             iii={ii}
             calTotal={(v) => updateSum(currentIndex, v)}
-            allPapers={paperData.names}
-            latestPrices={paperData.latestPrices}
+            allPapers={paperData}
           />
         </div>
       );
@@ -86,9 +86,11 @@ function DivLines({ selected = [] }) {
           <div className="boxy" style={{ width: "10%" }}>
             {NumStr(total)}
           </div>
-        </div>{" "}
+        </div>
+      </div>
+      <div className="new-division">
         <div className="ali-right">
-          <div className="boxy" style={{ width: "30%", marginLeft: "50.25%" }}>
+          <div className="boxy" style={{ width: "30%" }}>
             Total +{" "}
             <Num width={120} changed={profitValChanged} setTo={profit} />
             <b> ||</b>{" "}
@@ -99,12 +101,19 @@ function DivLines({ selected = [] }) {
             />
             <b>%</b>
           </div>
+          <div className="boxy" style={{ width: "15%" }}>
+            unit : <Num defVal={1} changed={unitsChanged} />
+          </div>
+
           <div className="boxy" style={{ width: "10%" }}>
             <b>{NumStr(total + profit)}</b>
           </div>
+          <div className="boxy" style={{ width: "7%" }}>
+            <b>{NumStr((total + profit) / units)}</b>
+          </div>
         </div>{" "}
         <div className="ali-right">
-          <div className="boxy" style={{ width: "15%", marginLeft: "65.25%" }}>
+          <div className="boxy" style={{ width: "13%", marginLeft: "32.25%" }}>
             +tax :{" "}
             <Num
               defVal={18}
@@ -118,28 +127,8 @@ function DivLines({ selected = [] }) {
           <div className="boxy" style={{ width: "10%" }}>
             <b>{NumStr((total + profit) * (1 + tax / 100))}</b>
           </div>
-        </div>{" "}
-        <div className="ali-right">
-          <div className="boxy" style={{ width: "15%", marginLeft: "65.25%" }}>
-            unit : <Num defVal={1} changed={unitsChanged} />
-          </div>
-          <div className="boxy" style={{ width: "10%" }}>
-            <b>{NumStr((total + profit) / units)}</b>
-          </div>
-        </div>
-        <div className="ali-right">
-          <div className="boxy" style={{ width: "15%", marginLeft: "65.25%" }}>
-            +tax :{" "}
-            <Num
-              defVal={18}
-              max={100}
-              width={40}
-              changed={taxChanged}
-              setTo={tax}
-            />{" "}
-            <b>%</b>
-          </div>
-          <div className="boxy" style={{ width: "10%" }}>
+
+          <div className="boxy" style={{ width: "7%" }}>
             <b>{NumStr(((total + profit) / units) * (1 + tax / 100))}</b>
           </div>
         </div>

@@ -23,6 +23,7 @@ export default function Header({ user, setUser }) {
     { path: "/price", label: "Price" },
     { path: "/stock", label: "Stock" },
     { path: "/cus", label: "Customers" },
+    { path: "/gts/clients", label: "Clients" },
     { path: "/quotation", label: "Quotation" },
   ];
 
