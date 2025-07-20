@@ -60,6 +60,22 @@ nav {
   display: inline-block;
   font-size: smaller;
 }
+.framed {
+  border-radius: 3px;
+  border: 1.5px solid black;
+  margin: 1%;
+  width: 98%;
+  height: fit-content;
+  align-content: center;
+  padding: 10px 25px;
+}
+
+.framed input,
+.framed select,
+.framed .needgap {
+  margin-right: 2em;
+}
+
 .book {
   padding: 15px;
   height: fit-content;

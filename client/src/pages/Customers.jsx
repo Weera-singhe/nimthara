@@ -19,30 +19,31 @@ export default function Customers({ user }) {
       .finally(isSeverLoading(false));
   }, []);
 
-  const changedStr = ({ target: { name, value } }) =>
-    setFormData((p) => ({ ...p, [name]: value.trimStart().toUpperCase() }));
-  const changedCheck = ({ target: { name, checked } }) =>
-    setFormData((p) => ({
-      ...p,
-      [name]: checked,
-      ...(!checked ? { reg_till_: null } : {}),
-    }));
+  const handleChange =
+    (setFunc) =>
+    ({ target: { name, value } }) =>
+      setFunc((prev) => ({ ...prev, [name]: value.trimStart().toUpperCase() }));
 
-  const changedStrEdit = ({ target: { name, value } }) =>
-    setEditFormData((p) => ({ ...p, [name]: value.trimStart().toUpperCase() }));
-  const changedCheckEdit = ({ target: { name, checked } }) =>
-    setEditFormData((p) => ({
-      ...p,
-      [name]: checked,
-      ...(!checked ? { reg_till_: null } : {}),
-    }));
+  const handleCheckbox =
+    (setFunc) =>
+    ({ target: { name, checked } }) =>
+      setFunc((prev) => ({
+        ...prev,
+        [name]: checked,
+        ...(checked ? {} : { reg_till_: null }),
+      }));
+
+  const changedStr = handleChange(setFormData);
+  const changedCheck = handleCheckbox(setFormData);
+  const changedStrEdit = handleChange(setEditFormData);
+  const changedCheckEdit = handleCheckbox(setEditFormData);
 
   const changeCustomersDB = (e, data) => {
     e.preventDefault();
     isSeverLoading(true);
 
-    const lvl = data.id ? 3 : 2;
-    if (!user.loggedIn || user.level < lvl) {
+    const requiredLevel = data.id ? 3 : 2;
+    if (!user.loggedIn || user.level < requiredLevel) {
       window.location.href = "/login";
       return;
     }
@@ -131,6 +132,7 @@ export default function Customers({ user }) {
         </form>
       </div>
 
+      {/* Customer List */}
       <div className="new-division">
         {customers.map((c) => (
           <div key={c.id}>
@@ -152,6 +154,7 @@ export default function Customers({ user }) {
         ))}
       </div>
 
+      {/* Edit Popup */}
       {editedFormData && (
         <div className="backdrop" onClick={() => setEditFormData(null)}>
           <div className="boxyy" onClick={(e) => e.stopPropagation()}>

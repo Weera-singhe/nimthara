@@ -37,6 +37,21 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+//CLOUD      /////////////////////////////////////////
+
+const cloudinary = require("cloudinary").v2;
+const multer = require("multer");
+const fs = require("fs/promises");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+const upload = multer({ dest: "temp_uploads/" });
+
+//SQL FUNCTIONS      //////////////////////////////////
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -132,6 +147,17 @@ async function GetEachNLatestP() {
   }));
 }
 
+//OTHER FUNCTIONS      ////////////////////////////////////////
+
+function getDateYYMMDD() {
+  const d = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
+  );
+  return d.toISOString().slice(2, 10).replace(/-/g, "");
+}
+
+//HOME      ////////////////////////////////////////////////////
+
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -144,6 +170,8 @@ app.get("/", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+//PAPER      /////////////////////////////////////
 
 app.get("/papers", async (req, res) => {
   try {
@@ -187,6 +215,8 @@ app.post("/add_new_paper", async (req, res) => {
   }
 });
 
+//JOBS      /////////////////////////////
+
 app.get("/quotation", async (req, res) => {
   try {
     const papers = await GetEachNLatestP();
@@ -197,6 +227,157 @@ app.get("/quotation", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch papers" });
   }
 });
+
+app.get("/jobs", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT *,TO_CHAR(date_entered, 'YYMMDD') AS date_entered FROM jobs ORDER BY id DESC"
+    );
+    const jobs = result.rows;
+    const cus = await GetCustomers();
+    res.json({ jobs, cus });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
+});
+
+app.get("/jobs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cus = await GetCustomers();
+
+    if (id === "add") {
+      return res.json({ cus });
+    }
+
+    const result1 = await pool.query(
+      `SELECT *, TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(date_entered, 'YYMMDD') AS date_entered
+       FROM jobs WHERE id = $1`,
+      [id]
+    );
+    const result2 = await pool.query(
+      `SELECT * FROM jobs_each WHERE id_main = $1`,
+      [id]
+    );
+    const result3 = await pool.query(
+      `SELECT * FROM jobs_each WHERE id_main = 0 AND id_each=0`
+    );
+
+    const result4 = await pool.query(
+      `SELECT json_build_object('loop_count',(SELECT json_object_agg(name,def_loop_count)FROM jobs_qts),'v',
+      (SELECT json_object_agg(name || '_' || (i - 1) || '_' || (j - 1),val)FROM jobs_qts,generate_series(1, max)
+      AS i,LATERAL unnest(def_v) WITH ORDINALITY AS a(val, j)),'notes_other',(SELECT json_object_agg(
+      'Other_' || i, '')FROM generate_series(0,(SELECT max FROM jobs_qts WHERE name = 'Other')-1)AS i))AS result;`
+    );
+    const result5 = await pool.query(`SELECT * FROM jobs_qts ORDER BY id ASC `);
+
+    const job_details = result1.rows[0];
+    const comp_defs = result4.rows[0].result;
+    const qts_componants = result5.rows;
+    console.log(result2.rows);
+
+    const row2 = result2.rows[0];
+    const jobs_each = row2 ? { ...row2, profit: Number(row2.profit) || 0 } : {};
+
+    const def_jobs_each = {
+      ...result3.rows[0],
+      profit: Number(result3.rows[0].profit),
+    };
+
+    const allPapers = await GetEachNLatestP();
+    res.json({
+      job_details,
+      cus,
+      jobs_each,
+      def_jobs_each,
+      comp_defs,
+      qts_componants,
+      allPapers,
+    });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).send("Error");
+  }
+});
+
+app.post("/jobs/div1", async (req, res) => {
+  try {
+    const { id, customer, reference, deadline, total_jobs } = req.body;
+    console.log(req.body);
+
+    let load_this_id;
+
+    if (id) {
+      await pool.query(
+        "UPDATE jobs SET customer = $1,reference=$2, deadline = $3,total_jobs=$4 WHERE id = $5",
+        [customer, reference, deadline, total_jobs, id]
+      );
+      load_this_id = id;
+    } else {
+      const result = await pool.query(
+        "INSERT INTO jobs (customer,reference, deadline,total_jobs) VALUES ($1, $2,$3,$4) RETURNING id",
+        [customer, reference, deadline, total_jobs]
+      );
+      load_this_id = result.rows[0].id;
+    }
+    res.status(200).json({ success: true, load_this_id });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+app.post("/jobs/div3", async (req, res) => {
+  try {
+    const {
+      id_main,
+      id_each,
+      item_count,
+      unit_count,
+      loop_count,
+      v,
+      notes_other,
+      profit,
+    } = req.body;
+    console.log(req.body);
+
+    const upd = await pool.query(
+      `UPDATE jobs_each SET item_count = $1,unit_count = $2, loop_count=$3, v=$4,notes_other=$5,profit=$6 WHERE id_main  = $7 AND id_each  = $8 RETURNING *`,
+      [
+        item_count,
+        unit_count,
+        loop_count,
+        v,
+        notes_other,
+        profit,
+        id_main,
+        id_each,
+      ]
+    );
+
+    if (upd.rowCount === 0) {
+      await pool.query(
+        `INSERT INTO jobs_each (id_main, id_each, item_count, unit_count,loop_count,v,notes_other,profit)VALUES ($1, $2, $3, $4,$5,$6,$7,$8)`,
+        [
+          id_main,
+          id_each,
+          item_count,
+          unit_count,
+          loop_count,
+          v,
+          notes_other,
+          profit,
+        ]
+      );
+    }
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+
+//PRICE       //////////////////////////////////////////
 
 app.get("/price", async (req, res) => {
   try {
@@ -224,6 +405,9 @@ app.post("/rec_new_price", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+//STOCK      //////////////////////////
+
 app.get("/stock", async (req, res) => {
   try {
     const { id, date } = req.query;
@@ -259,6 +443,8 @@ app.post("/rec_new_stock", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+//CUSTOMERS      /////////////////////////////////////
 
 app.get("/cus", async (req, res) => {
   try {
@@ -299,6 +485,8 @@ app.post("/add_new_cus", async (req, res) => {
   }
 });
 
+//CLIENTS      /////////////////////////
+
 app.get("/gts/clients", async (req, res) => {
   try {
     const c = await GetClients();
@@ -331,6 +519,8 @@ app.post("/gts/add_new_clients", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+//LOGIN and REGISTER      ///////////////////////////
 
 app.post("/userregister", async (req, res) => {
   const { display_name, regname, pwr } = req.body;
@@ -374,6 +564,21 @@ app.post("/userlogin", (req, res, next) => {
     });
   })(req, res, next);
 });
+
+app.post("/logout", (req, res) => {
+  req.logout(() => {
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid", {
+        path: "/",
+        sameSite: "none",
+        secure: true,
+      });
+      res.status(200).json({ success: true });
+    });
+  });
+});
+
+//CACHEE and COOKIES      ///////////////////
 
 passport.use(
   new LocalStrategy(async (username, password, done) => {
@@ -420,18 +625,75 @@ app.get("/check-auth", (req, res) => {
     res.json({ loggedIn: false, level: 0 });
   }
 });
-app.post("/logout", (req, res) => {
-  req.logout(() => {
-    req.session.destroy(() => {
-      res.clearCookie("connect.sid", {
-        path: "/",
-        sameSite: "none",
-        secure: true,
-      });
-      res.status(200).json({ success: true });
-    });
-  });
+
+//
+//UPLOAD      //////////////////////////////////////////////////////
+
+app.post("/upload/:id", upload.array("files"), async (req, res) => {
+  const { id } = req.params;
+  const folderName = req.body.folder_name || "doc";
+  const prefix = req.body.prefix + "_" || "";
+  console.log(req.body);
+  console.log(req.files);
+
+  try {
+    await Promise.all(
+      req.files.map(async (file) => {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          folder: folderName,
+          resource_type: "auto",
+          public_id: `${prefix}${file.originalname}_${Date.now()}`,
+        });
+
+        await fs.unlink(file.path);
+
+        await pool.query(
+          "INSERT INTO uploaded_docs (id, filename, url, public_id, format) VALUES ($1, $2, $3, $4, $5)",
+          [
+            id,
+            prefix + file.originalname.replace(/\.[^/.]+$/, ""),
+            uploadResult.secure_url,
+            uploadResult.public_id,
+            uploadResult.format,
+          ]
+        );
+      })
+    );
+
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "upload failed" });
+  }
 });
+
+app.get("/upload/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT filename, url AS secure_url, public_id, format FROM uploaded_docs WHERE id = $1",
+      [id]
+    );
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ error: "fetch failed" });
+  }
+});
+
+app.delete("/upload/:public_id", async (req, res) => {
+  const { public_id } = req.params;
+  try {
+    await cloudinary.uploader.destroy(public_id);
+    await pool.query("DELETE FROM uploaded_docs WHERE public_id = $1", [
+      public_id,
+    ]);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "delete failed" });
+  }
+});
+
+//
+//PORT      ////////////////////////////////////////////////
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

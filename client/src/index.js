@@ -6,10 +6,12 @@ import Papers from "./pages/Papers";
 import Price from "./pages/Price";
 import Stock from "./pages/Stock";
 import Customers from "./pages/Customers";
-import Quotation from "./pages/Quotation";
 import Login from "./pages/Login";
 import ClientsGTS from "./pages/ClientsGTS";
 import Header from "./partials/Header";
+import Jobs from "./pages/Jobs";
+import Job from "./pages/Job";
+
 import { CHECK_AUTH_API_URL } from "./api/urls";
 import axios from "axios";
 import "./index.css";
@@ -39,8 +41,11 @@ const App = () => {
         <Route path="/price" element={<Price user={user} />} />
         <Route path="/stock" element={<Stock user={user} />} />
         <Route path="/cus" element={<Customers user={user} />} />
-        <Route path="/quotation" element={<Quotation user={user} />} />
         <Route path="/gts/clients" element={<ClientsGTS user={user} />} />
+
+        <Route path="jobs" element={<Jobs />} />
+        <Route path="jobs/add" element={<Job user={user} />} />
+        <Route path="jobs/:id" element={<Job user={user} />} />
 
         <Route
           path="/login"
