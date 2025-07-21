@@ -43,7 +43,7 @@ const App = () => {
         <Route path="/cus" element={<Customers user={user} />} />
         <Route path="/gts/clients" element={<ClientsGTS user={user} />} />
 
-        <Route path="jobs" element={<Jobs />} />
+        <Route path="jobs" element={<Jobs user={user} />} />
         <Route path="jobs/add" element={<Job user={user} />} />
         <Route path="jobs/:id" element={<Job user={user} />} />
 

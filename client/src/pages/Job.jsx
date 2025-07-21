@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { JOBS_API_URL, JOB_ADD_API_URL } from "../api/urls";
 import Docs from "../elements/Docs";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import JobDiv1 from "./Job/JobDiv1";
 import JobDiv3 from "./Job/JobDiv3";
+import JobDiv4 from "./Job/JobDiv4";
+import useCurrentTime from "../elements/useCurrentTime";
 
 const defDiv1 = {
   customer: 0,
   deadline: "",
   reference: "",
-  date_entered: "000000",
+  created_at: "000000",
   total_jobs: 1,
 };
 
-export default function Job() {
+export default function Job({ user }) {
   const max_eachJobs = 50;
   const [detailsDiv1, setDetailsDiv1] = useState(defDiv1);
   const [initialDetailsDiv1, setInitialDetailsDiv1] = useState(defDiv1);
@@ -28,9 +30,13 @@ export default function Job() {
   const [qtsComponants, setQtsComponants] = useState(true);
 
   const [allPapers, setAllPapers] = useState([]);
+  const [allUsernames, setAllUsernames] = useState([]);
+  const [showQTS, setShowQTS] = useState(false);
 
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const currentTime = useCurrentTime();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,18 +46,31 @@ export default function Job() {
             withCredentials: true,
           });
           setAllPapers(data.allPapers);
-          const jobDetails = data.job_details;
-          setDetailsDiv1(jobDetails);
-          setInitialDetailsDiv1(jobDetails);
-
           setQtsComponants(data.qts_componants);
+          loadAllCustomers(data.cus);
+          setAllUsernames(data.usernames);
+
+          const savedJobsMap = Object.fromEntries(
+            data.jobs_each.map((job) => [job.id_each, job])
+          );
+
+          const latestJob = [...data.jobs_each].sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          )[0];
+
+          const latestQtTime = latestJob?.created_at_;
+          const latestQtBy = latestJob?.created_by;
+
+          const jobDetails = data.job_details;
+          setDetailsDiv1({ ...jobDetails, latestQtTime, latestQtBy });
+          setInitialDetailsDiv1({
+            ...jobDetails,
+            latestQtTime,
+            latestQtBy,
+          });
 
           const def_jobs_each = data.def_jobs_each;
           const comp_defs = data.comp_defs;
-
-          const savedJobsMap = {
-            [data.jobs_each.id_each]: data.jobs_each,
-          };
 
           const filled = Array.from({ length: max_eachJobs }, (_, idx) => {
             const savedJob = savedJobsMap[idx + 1] || {};
@@ -66,8 +85,6 @@ export default function Job() {
 
           setDetailsDiv3(filled);
           setInitialDetailsDiv3(filled);
-
-          loadAllCustomers(data.cus);
         } else {
           const { data } = await axios.get(JOB_ADD_API_URL, {
             withCredentials: true,
@@ -83,12 +100,14 @@ export default function Job() {
       }
     };
     fetchData();
-    console.log("id changed");
   }, [id]);
 
   useEffect(() => {
     console.log(detailsDiv3);
   }, [detailsDiv3]);
+  useEffect(() => {
+    console.log(detailsDiv1);
+  }, [detailsDiv1]);
 
   function handleChangeStr(e, i, ii, arrayy) {
     const { name, value } = e.target;
@@ -174,7 +193,11 @@ export default function Job() {
     isDiv1Loading(true);
     isDiv3Loading(true);
 
-    const exprt = id ? { ...detailsDiv1, id } : { ...detailsDiv1 };
+    const exprt = {
+      ...detailsDiv1,
+      user_id: user.id,
+      ...(id && { id }),
+    };
     setInitialDetailsDiv1(detailsDiv1);
 
     axios
@@ -192,7 +215,7 @@ export default function Job() {
     isDiv1Loading(true);
     isDiv3Loading(true);
 
-    const exprt = { ...detailsDiv3[indexOfDiv3] };
+    const exprt = { ...detailsDiv3[indexOfDiv3], user_id: user.id };
     console.log(exprt);
 
     setInitialDetailsDiv3((p) =>
@@ -213,9 +236,16 @@ export default function Job() {
 
   //displayID
   const displayID =
-    detailsDiv1.date_entered && id
-      ? `${detailsDiv1.date_entered}_${id.toString().padStart(4, "0")}`
+    detailsDiv1.created_at && id
+      ? `${detailsDiv1.created_at}_${id.toString().padStart(4, "0")}`
       : "loading...";
+
+  const submit1Disabled =
+    JSON.stringify(detailsDiv1) === JSON.stringify(initialDetailsDiv1) ||
+    (id ? user.level_jobs < 3 : user.level_jobs < 2) ||
+    div1Loading ||
+    div3Loading ||
+    detailsDiv1.customer === 0;
 
   return (
     <>
@@ -230,36 +260,61 @@ export default function Job() {
         {div1Loading ? (
           "loading..."
         ) : (
-          <JobDiv1
-            id={id}
-            jobDetails={detailsDiv1}
-            allCustomers={allCustomers}
-            handleChangeStr={(e) => handleChangeStr(e, 1, 0)}
-            handleChangeNum={(e) => handleChangeNum(e, 1, 0)}
-            handleSubmit={handleSubmitDiv1}
-            hasChanged={
-              JSON.stringify(detailsDiv1) !== JSON.stringify(initialDetailsDiv1)
-            }
-            max_eachJobs={max_eachJobs}
-          />
+          <>
+            <JobDiv1
+              id={id}
+              jobDetails={detailsDiv1}
+              allCustomers={allCustomers}
+              handleChangeStr={(e) => handleChangeStr(e, 1, 0)}
+              handleChangeNum={(e) => handleChangeNum(e, 1, 0)}
+              handleSubmit={handleSubmitDiv1}
+              submit_disabled={submit1Disabled}
+              max_eachJobs={max_eachJobs}
+            />
+            {!id && user.level_jobs >= 2 && (
+              <>
+                <br />
+                <span>
+                  {" "}
+                  submitted by
+                  <b>{user.display_name}</b>on
+                  <b> {currentTime}</b>
+                </span>
+              </>
+            )}
+          </>
         )}
       </div>
 
       {/*DIV_2_/////////////////////////*/}
-      <div className="framed">
-        <h3>Related Documents</h3>
-        {id && (
+
+      {id && (
+        <div className="framed">
+          <h3>Related Documents</h3>
           <Docs
             id={id}
-            upload_locked={false}
-            delete_locked={false}
+            upload_locked={user.level_jobs < 2}
+            view_locked={user.level_jobs < 2}
+            delete_locked={user.level_jobs < 3}
             folder_name={"jobs"}
+            prefix={displayID}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/*DIV_3_/////////////////////////*/}
+      {id && (
+        <div className="framed" style={{ width: "fitContent" }}>
+          <Link
+            onClick={() => setShowQTS((p) => !p)}
+            style={{ cursor: "pointer" }}
+          >
+            {showQTS ? "Hide Quotations" : "Show Quotations"}
+          </Link>
+        </div>
+      )}
       {id &&
+        showQTS &&
         Array.from({ length: detailsDiv1.total_jobs }, (_, indexOfDiv3) => (
           <div key={indexOfDiv3} className="framed">
             {div3Loading ? (
@@ -292,6 +347,21 @@ export default function Job() {
             )}
           </div>
         ))}
+
+      {/*DIV_4_/////////////////////////*/}
+      {id && (
+        <div className="framed">
+          <h3>Job Status ...</h3>
+          {div1Loading || div3Loading ? (
+            "loading...."
+          ) : (
+            <JobDiv4
+              allUsernames={allUsernames || []}
+              detailsDiv1={detailsDiv1 || []}
+            />
+          )}
+        </div>
+      )}
     </>
   );
 }

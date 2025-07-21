@@ -217,21 +217,10 @@ app.post("/add_new_paper", async (req, res) => {
 
 //JOBS      /////////////////////////////
 
-app.get("/quotation", async (req, res) => {
-  try {
-    const papers = await GetEachNLatestP();
-
-    res.json({ papers });
-  } catch (err) {
-    console.error("Error fetching papers:", err);
-    res.status(500).json({ error: "Failed to fetch papers" });
-  }
-});
-
 app.get("/jobs", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT *,TO_CHAR(date_entered, 'YYMMDD') AS date_entered FROM jobs ORDER BY id DESC"
+      "SELECT *,TO_CHAR(created_at, 'YYMMDD') AS created_at FROM jobs ORDER BY id DESC"
     );
     const jobs = result.rows;
     const cus = await GetCustomers();
@@ -251,12 +240,12 @@ app.get("/jobs/:id", async (req, res) => {
     }
 
     const result1 = await pool.query(
-      `SELECT *, TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(date_entered, 'YYMMDD') AS date_entered
+      `SELECT *, TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(created_at, 'YYMMDD') AS created_at,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_
        FROM jobs WHERE id = $1`,
       [id]
     );
     const result2 = await pool.query(
-      `SELECT * FROM jobs_each WHERE id_main = $1`,
+      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs_each WHERE id_main = $1`,
       [id]
     );
     const result3 = await pool.query(
@@ -270,19 +259,23 @@ app.get("/jobs/:id", async (req, res) => {
       'Other_' || i, '')FROM generate_series(0,(SELECT max FROM jobs_qts WHERE name = 'Other')-1)AS i))AS result;`
     );
     const result5 = await pool.query(`SELECT * FROM jobs_qts ORDER BY id ASC `);
+    const result6 = await pool.query(`SELECT * FROM users ORDER BY id ASC `);
 
     const job_details = result1.rows[0];
     const comp_defs = result4.rows[0].result;
     const qts_componants = result5.rows;
-    console.log(result2.rows);
-
-    const row2 = result2.rows[0];
-    const jobs_each = row2 ? { ...row2, profit: Number(row2.profit) || 0 } : {};
+    const jobs_each = (result2.rows || []).map((row) => ({
+      ...row,
+      profit: Number(row.profit) || 0,
+    }));
 
     const def_jobs_each = {
       ...result3.rows[0],
       profit: Number(result3.rows[0].profit),
     };
+    console.log(jobs_each);
+
+    const usernames = result6.rows.map((r) => r.username);
 
     const allPapers = await GetEachNLatestP();
     res.json({
@@ -293,6 +286,7 @@ app.get("/jobs/:id", async (req, res) => {
       comp_defs,
       qts_componants,
       allPapers,
+      usernames,
     });
   } catch (err) {
     console.error("Error:", err.message);
@@ -302,7 +296,7 @@ app.get("/jobs/:id", async (req, res) => {
 
 app.post("/jobs/div1", async (req, res) => {
   try {
-    const { id, customer, reference, deadline, total_jobs } = req.body;
+    const { id, customer, reference, deadline, total_jobs, user_id } = req.body;
     console.log(req.body);
 
     let load_this_id;
@@ -315,8 +309,8 @@ app.post("/jobs/div1", async (req, res) => {
       load_this_id = id;
     } else {
       const result = await pool.query(
-        "INSERT INTO jobs (customer,reference, deadline,total_jobs) VALUES ($1, $2,$3,$4) RETURNING id",
-        [customer, reference, deadline, total_jobs]
+        "INSERT INTO jobs (customer,reference, deadline,total_jobs,created_by) VALUES ($1, $2,$3,$4,$5) RETURNING id",
+        [customer, reference, deadline, total_jobs, user_id]
       );
       load_this_id = result.rows[0].id;
     }
@@ -337,6 +331,7 @@ app.post("/jobs/div3", async (req, res) => {
       v,
       notes_other,
       profit,
+      user_id,
     } = req.body;
     console.log(req.body);
 
@@ -356,7 +351,7 @@ app.post("/jobs/div3", async (req, res) => {
 
     if (upd.rowCount === 0) {
       await pool.query(
-        `INSERT INTO jobs_each (id_main, id_each, item_count, unit_count,loop_count,v,notes_other,profit)VALUES ($1, $2, $3, $4,$5,$6,$7,$8)`,
+        `INSERT INTO jobs_each (id_main, id_each, item_count, unit_count,loop_count,v,notes_other,profit,created_by)VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9)`,
         [
           id_main,
           id_each,
@@ -366,6 +361,7 @@ app.post("/jobs/div3", async (req, res) => {
           v,
           notes_other,
           profit,
+          user_id,
         ]
       );
     }
@@ -555,11 +551,7 @@ app.post("/userlogin", (req, res, next) => {
     req.login(user, () => {
       res.json({
         success: true,
-        user: {
-          username: user.username,
-          level: user.level,
-          display_name: user.display_name,
-        },
+        user: user,
       });
     });
   })(req, res, next);
@@ -617,12 +609,10 @@ app.get("/check-auth", (req, res) => {
   if (req.isAuthenticated()) {
     res.json({
       loggedIn: true,
-      username: req.user.username,
-      level: req.user.level,
-      display_name: req.user.display_name,
+      ...req.user,
     });
   } else {
-    res.json({ loggedIn: false, level: 0 });
+    res.json({ loggedIn: false, level: 0, level_jobs: 0 });
   }
 });
 

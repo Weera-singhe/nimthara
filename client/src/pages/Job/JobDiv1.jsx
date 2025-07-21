@@ -8,7 +8,7 @@ export default function JobDiv1({
   handleChangeStr,
   handleChangeNum,
   handleSubmit,
-  hasChanged,
+  submit_disabled,
   max_eachJobs,
 }) {
   return (
@@ -54,10 +54,12 @@ export default function JobDiv1({
           deci={0}
         />
 
-        <br />
-        <br />
-        {hasChanged && (
-          <button type="submit">{id ? "Update" : "Submit"}</button>
+        {!submit_disabled && (
+          <>
+            <br />
+            <br />
+            <button type="submit">{id ? "Update" : "Submit"}</button>
+          </>
         )}
       </form>
     </div>

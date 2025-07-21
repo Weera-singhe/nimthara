@@ -6,6 +6,7 @@ export default function Docs({
   id,
   upload_locked = false,
   delete_locked = false,
+  view_locked = false,
   folder_name,
   prefix,
 }) {
@@ -34,7 +35,7 @@ export default function Docs({
   }, [id]);
 
   const uploadFiles = async () => {
-    if (!files.length) return;
+    if (!files.length || upload_locked) return;
 
     const formData = new FormData();
     files.forEach((f) => formData.append("files", f));
@@ -90,31 +91,36 @@ export default function Docs({
           </button>
         </div>
       )}
-
-      <ul>
-        {uploadedFiles.map((file) => (
-          <li key={file.public_id}>
-            <span>
-              {file.format === "pdf" && "📄"}
-              {["jpg", "jpeg", "png"].includes(file.format) && "🖼️"}
-              {file.format === "docx" && "📃"}
-            </span>{" "}
-            <a href={file.secure_url} target="_blank" rel="noopener noreferrer">
-              <small>
-                <b>{file.filename}</b>
-              </small>
-            </a>
-            {!delete_locked && (
-              <button
-                onClick={() => deleteFile(encodeURIComponent(file.public_id))}
-                disabled={deleting}
+      {!view_locked && (
+        <ul>
+          {uploadedFiles.map((file) => (
+            <li key={file.public_id}>
+              <span>
+                {file.format === "pdf" && "📄"}
+                {["jpg", "jpeg", "png"].includes(file.format) && "🖼️"}
+                {file.format === "docx" && "📃"}
+              </span>{" "}
+              <a
+                href={file.secure_url}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Delete
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+                <small>
+                  <b>{file.filename}</b>
+                </small>
+              </a>
+              {!delete_locked && (
+                <button
+                  onClick={() => deleteFile(encodeURIComponent(file.public_id))}
+                  disabled={deleting}
+                >
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -26,7 +26,7 @@ export default function Jobbs() {
           return (
             <li key={j.id}>
               <Link to={`/jobs/${j.id}`}>
-                {`${j.date_entered}_ ${String(j.id).padStart(4, "0")}`}{" "}
+                {`${j.created_at}_ ${String(j.id).padStart(4, "0")}`}{" "}
                 {cus?.customer_name || ""}
               </Link>
             </li>
