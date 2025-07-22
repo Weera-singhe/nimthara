@@ -50,24 +50,22 @@ export default function Job({ user }) {
           loadAllCustomers(data.cus);
           setAllUsernames(data.usernames);
 
+          /////////////////////////////////
+
           const savedJobsMap = Object.fromEntries(
-            data.jobs_each.map((job) => [job.id_each, job])
+            data.saved_jobs.map((job) => [job.id_each, job])
           );
 
-          const latestJob = [...data.jobs_each].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          )[0];
-
-          const latestQtTime = latestJob?.created_at_;
-          const latestQtBy = latestJob?.created_by;
+          // const latestJob = [...data.saved_jobs].sort(
+          //   (a, b) => new Date(b.created_at) - new Date(a.created_at) )[0];
+          // const latestQtTime = latestJob?.created_at_;
+          // const latestQtBy = latestJob?.created_by;
 
           const jobDetails = data.job_details;
-          setDetailsDiv1({ ...jobDetails, latestQtTime, latestQtBy });
-          setInitialDetailsDiv1({
-            ...jobDetails,
-            latestQtTime,
-            latestQtBy,
-          });
+          setDetailsDiv1(jobDetails);
+          setInitialDetailsDiv1(jobDetails);
+
+          ///////////////////////////////
 
           const def_jobs_each = data.def_jobs_each;
           const comp_defs = data.comp_defs;
@@ -100,7 +98,7 @@ export default function Job({ user }) {
       }
     };
     fetchData();
-  }, [id]);
+  }, []);
 
   useEffect(() => {
     console.log(detailsDiv3);

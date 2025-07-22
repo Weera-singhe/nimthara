@@ -13,9 +13,7 @@ export default function JobDiv4({ allUsernames, detailsDiv1 }) {
         </li>
         <li>
           Submitted Estimation -
-          <small>{` by ${allUsernames[detailsDiv1.latestQtBy - 1] || "?"} on ${
-            detailsDiv1.latestQtTime || "?"
-          }`}</small>
+          <small>{` by ???????????????????????????`}</small>
         </li>
         <li>
           Submitted To Customer

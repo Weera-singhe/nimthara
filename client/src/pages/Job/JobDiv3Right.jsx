@@ -5,12 +5,13 @@ export function calcCalResult(name, v, compID, min_cal_res) {
   if (compID === "Artwork" || compID === "Delivery") {
     calResult = v?.[name + "_0"];
   } else if (compID === "Plates") {
-    calResult = v?.[name + "_0"] * v?.[name + "_1"];
+    calResult =
+      v?.[name + "_0"] * v?.[name + "_1"] * v?.[name + "_2"] * v?.[name + "_3"];
   } else if (compID === "Paper") {
     calResult =
       (v?.[name + "_1"] / v?.[name + "_2"]) *
       Math.ceil(
-        v?.[name + "_3"] / v?.[name + "_4"] +
+        (v?.[name + "_3"] * v?.[name + "_7"]) / v?.[name + "_4"] +
           v?.[name + "_5"] / v?.[name + "_6"]
       );
   } else if (compID === "Print") {

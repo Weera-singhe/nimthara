@@ -82,7 +82,7 @@ export default function JobDiv3({
             }).map((_, comp_repeat_index) => (
               <div key={comp_repeat_index}>
                 {/* ///////LEFT//////// */}
-                <div className="boxyy" style={{ width: "7%" }}>
+                <div className="boxyy" style={{ width: "5%" }}>
                   {comp.name === "Other" ? (
                     <input
                       type="text"
@@ -99,7 +99,7 @@ export default function JobDiv3({
                 </div>
 
                 {/* ///////MIDDLE//////// */}
-                <div className="boxyy" style={{ width: "75%" }}>
+                <div className="boxyy" style={{ width: "80%" }}>
                   <JobDiv3Mid
                     name={`${comp.name}_${comp_repeat_index}`}
                     changed={(e) => handleChangeNum(e, "v")}
@@ -112,7 +112,7 @@ export default function JobDiv3({
                 </div>
 
                 {/* ///////RIGHT//////// */}
-                <div className="boxyy" style={{ width: "13%" }}>
+                <div className="boxyy" style={{ width: "10%" }}>
                   <JobDiv3Right
                     name={`${comp.name}_${comp_repeat_index}`}
                     v={jobDetails.v}

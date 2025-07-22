@@ -245,7 +245,7 @@ app.get("/jobs/:id", async (req, res) => {
       [id]
     );
     const result2 = await pool.query(
-      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs_each WHERE id_main = $1`,
+      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
       [id]
     );
     const result3 = await pool.query(
@@ -264,7 +264,7 @@ app.get("/jobs/:id", async (req, res) => {
     const job_details = result1.rows[0];
     const comp_defs = result4.rows[0].result;
     const qts_componants = result5.rows;
-    const jobs_each = (result2.rows || []).map((row) => ({
+    const saved_jobs = (result2.rows || []).map((row) => ({
       ...row,
       profit: Number(row.profit) || 0,
     }));
@@ -273,7 +273,6 @@ app.get("/jobs/:id", async (req, res) => {
       ...result3.rows[0],
       profit: Number(result3.rows[0].profit),
     };
-    console.log(jobs_each);
 
     const usernames = result6.rows.map((r) => r.username);
 
@@ -281,7 +280,7 @@ app.get("/jobs/:id", async (req, res) => {
     res.json({
       job_details,
       cus,
-      jobs_each,
+      saved_jobs,
       def_jobs_each,
       comp_defs,
       qts_componants,

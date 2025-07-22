@@ -30,6 +30,7 @@ export default function JobDiv3Mid({
             value={v?.[name + "_0"] || 0}
           >
             <option value={0}></option>
+            <option value={1810}>Web</option>
             <option value={2400}>Plate 24x36</option>
             <option value={2200}>Plate 20x30</option>
           </select>
@@ -45,6 +46,24 @@ export default function JobDiv3Mid({
             name={name + "_1"}
             changed={changed}
             setTo={v?.[name + "_1"] || 0}
+            min={1}
+            deci={0}
+          />{" "}
+          <b> x </b>
+          <Num
+            width={40}
+            name={name + "_2"}
+            changed={changed}
+            setTo={v?.[name + "_2"] || 0}
+            min={1}
+            deci={0}
+          />{" "}
+          <b> x </b>
+          <Num
+            width={40}
+            name={name + "_3"}
+            changed={changed}
+            setTo={v?.[name + "_3"] || 0}
             min={1}
             deci={0}
           />
@@ -99,13 +118,20 @@ export default function JobDiv3Mid({
             <option value={1000}>1000</option>
             <option value={1}>1</option>
           </select>
-          <b>x</b>
-          <b>(</b>
+          <b> x (</b>
           <Num
-            width={40}
+            width={80}
             name={name + "_3"}
             changed={changed}
             setTo={v?.[name + "_3"] || 0}
+            deci={0}
+          />{" "}
+          <b> * </b>
+          <Num
+            width={40}
+            name={name + "_7"}
+            changed={changed}
+            setTo={v?.[name + "_7"] || 0}
             deci={0}
           />{" "}
           <b> / </b>
@@ -119,7 +145,7 @@ export default function JobDiv3Mid({
           />
           <b> + </b>
           <Num
-            width={40}
+            width={60}
             name={name + "_5"}
             changed={changed}
             setTo={v?.[name + "_5"] || 0}

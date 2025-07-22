@@ -71,7 +71,6 @@ nav {
 }
 
 .framed input,
-.framed select,
 .framed .needgap {
   margin-right: 2em;
 }
@@ -136,14 +135,11 @@ input {
 select {
   border-radius: 3px;
   border: 1.5px solid black;
+  text-align: center;
 }
 button {
   border-radius: 3px;
   border: 1.5px solid black;
-}
-select {
-  text-align: center;
-  padding: 0.1rem 0.5rem;
 }
 
 .num-box {
@@ -161,7 +157,7 @@ select {
   color: dimgray;
 }
 b {
-  margin: 0.5rem;
+  margin: 0.3rem;
 }
 .ali-right > div {
   text-align: right;
