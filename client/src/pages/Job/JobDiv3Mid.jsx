@@ -4,6 +4,7 @@ import Num from "../../elements/NumInput";
 export default function JobDiv3Mid({
   name,
   changed,
+  changedStr,
   v,
   comp_repeat_index,
   compID,
@@ -31,6 +32,7 @@ export default function JobDiv3Mid({
           >
             <option value={0}></option>
             <option value={1810}>Web</option>
+            <option value={2530}>SORSZ special</option>
             <option value={2400}>Plate 24x36</option>
             <option value={2200}>Plate 20x30</option>
           </select>
@@ -69,100 +71,126 @@ export default function JobDiv3Mid({
           />
         </>
       )}
-      {compID === "Paper" && (
-        <>
-          <select
-            name={name + "_0"}
-            value={v?.[name + "_0"]}
-            onChange={changed}
-            style={{ width: "30%", fontSize: "smaller" }}
-          >
-            <option value={0}></option>
-            {allPapers.map((p, i) => (
-              <option key={i} value={p.latest_price}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <span>
-            {v?.[name + "_0"].toLocaleString("en-LK", {
-              style: "currency",
-              currency: "LKR",
-            })}
-          </span>{" "}
-          <button
-            type="button"
-            name={name + "_1"}
-            value={v?.[name + "_0"]}
-            onClick={changed}
-          >
-            &#8594;
-          </button>
-          <Num
-            width={80}
-            changed={changed}
-            name={name + "_1"}
-            color={v?.[name + "_0"] !== v?.[name + "_1"] ? "red" : "black"}
-            setTo={v?.[name + "_1"] || 0}
-            deci={2}
-          />
-          <b> / </b>
-          <select
-            name={name + "_2"}
-            value={v?.[name + "_2"]}
-            onChange={changed}
-          >
-            <option value={500}>500</option>
-            <option value={100}>100</option>
-            <option value={250}>250</option>
-            <option value={1000}>1000</option>
-            <option value={1}>1</option>
-          </select>
-          <b> x (</b>
-          <Num
-            width={80}
-            name={name + "_3"}
-            changed={changed}
-            setTo={v?.[name + "_3"] || 0}
-            deci={0}
-          />{" "}
-          <b> * </b>
-          <Num
-            width={40}
-            name={name + "_7"}
-            changed={changed}
-            setTo={v?.[name + "_7"] || 0}
-            deci={0}
-          />{" "}
-          <b> / </b>
-          <Num
-            width={40}
-            name={name + "_4"}
-            changed={changed}
-            setTo={v?.[name + "_4"] || 0}
-            min={1}
-            deci={0}
-          />
-          <b> + </b>
-          <Num
-            width={60}
-            name={name + "_5"}
-            changed={changed}
-            setTo={v?.[name + "_5"] || 0}
-            deci={0}
-          />
-          <b> / </b>
-          <Num
-            width={40}
-            name={name + "_6"}
-            changed={changed}
-            setTo={v?.[name + "_6"] || 0}
-            min={1}
-            deci={0}
-          />
-          <b> ) </b>
-        </>
-      )}
+      {compID === "Paper" &&
+        (() => {
+          const selectedPaper = allPapers.find(
+            (p) => p.id === v?.[name + "_0"]
+          );
+          const latest_price = selectedPaper?.latest_price || 0;
+          const input_price = v?.[name + "_1"] || 0;
+          const the_unit_val = selectedPaper?.unit_val || 0;
+          const input_unit_val = v?.[name + "_2"] || 1;
+
+          return (
+            <>
+              <select
+                name={name + "_0"}
+                value={v?.[name + "_0"]}
+                onChange={changedStr}
+                style={{ width: "30%", fontSize: "smaller" }}
+              >
+                <option value={0}></option>
+                {allPapers.map((p, i) => (
+                  <option key={i} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <span>
+                {latest_price.toLocaleString("en-LK", {
+                  style: "currency",
+                  currency: "LKR",
+                })}
+              </span>{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!selectedPaper) return;
+                  changed({
+                    target: {
+                      name: name + "_1",
+                      value: latest_price,
+                    },
+                  });
+                  changed({
+                    target: {
+                      name: name + "_2",
+                      value: the_unit_val,
+                    },
+                  });
+                }}
+              >
+                &#8594;
+              </button>
+              <Num
+                width={80}
+                changed={changed}
+                name={name + "_1"}
+                color={latest_price !== input_price ? "red" : "black"}
+                setTo={input_price}
+                deci={2}
+              />
+              <b> / </b>
+              <select
+                name={name + "_2"}
+                value={v?.[name + "_2"]}
+                onChange={changed}
+                style={{
+                  color: the_unit_val !== input_unit_val ? "red" : "black",
+                }}
+              >
+                <option value={500}>500</option>
+                <option value={100}>100</option>
+                <option value={250}>250</option>
+                <option value={1000}>1000</option>
+                <option value={1}>1</option>
+              </select>
+              <b> x (</b>
+              <Num
+                width={80}
+                name={name + "_3"}
+                changed={changed}
+                setTo={v?.[name + "_3"] || 0}
+                deci={0}
+              />
+              <b> * </b>
+              <Num
+                width={40}
+                name={name + "_7"}
+                changed={changed}
+                setTo={v?.[name + "_7"] || 0}
+                deci={0}
+              />
+              <b> / </b>
+              <Num
+                width={40}
+                name={name + "_4"}
+                changed={changed}
+                setTo={v?.[name + "_4"] || 0}
+                min={1}
+                deci={0}
+              />
+              <b> + </b>
+              <Num
+                width={60}
+                name={name + "_5"}
+                changed={changed}
+                setTo={v?.[name + "_5"] || 0}
+                deci={0}
+              />
+              <b> / </b>
+              <Num
+                width={40}
+                name={name + "_6"}
+                changed={changed}
+                setTo={v?.[name + "_6"] || 0}
+                min={1}
+                deci={0}
+              />
+              <b> ) </b>
+            </>
+          );
+        })()}
       {compID === "Print" && (
         <>
           <Num
@@ -207,7 +235,7 @@ export default function JobDiv3Mid({
             changed={changed}
             setTo={v?.[name + "_3"] || 0}
             min={1}
-            deci={0}
+            deci={2}
           />
           <b> x </b>
           <select
@@ -280,16 +308,7 @@ export default function JobDiv3Mid({
             setTo={v?.[name + "_0"] || 0}
             deci={2}
             min={-Infinity}
-          />
-          <b> / </b>
-          <Num
-            width={60}
-            name={name + "_1"}
-            changed={changed}
-            setTo={v?.[name + "_1"] || 0}
-            min={1}
-            deci={2}
-          />
+          />{" "}
           <b> * </b>
           <Num
             width={80}
@@ -299,13 +318,40 @@ export default function JobDiv3Mid({
             deci={2}
             min={-Infinity}
           />
+          <b> * </b>{" "}
+          <Num
+            width={60}
+            name={name + "_4"}
+            changed={changed}
+            setTo={v?.[name + "_4"] || 0}
+            min={0.01}
+            deci={2}
+          />{" "}
+          <b> * </b>{" "}
+          <Num
+            width={60}
+            name={name + "_5"}
+            changed={changed}
+            setTo={v?.[name + "_5"] || 0}
+            min={0.01}
+            deci={2}
+          />
+          <b> / </b>
+          <Num
+            width={60}
+            name={name + "_1"}
+            changed={changed}
+            setTo={v?.[name + "_1"] || 0}
+            min={0.01}
+            deci={2}
+          />
           <b> / </b>
           <Num
             width={60}
             name={name + "_3"}
             changed={changed}
             setTo={v?.[name + "_3"] || 0}
-            min={1}
+            min={0.01}
             deci={2}
           />
         </>

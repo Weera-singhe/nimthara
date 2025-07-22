@@ -32,6 +32,9 @@ export default function Job({ user }) {
   const [allPapers, setAllPapers] = useState([]);
   const [allUsernames, setAllUsernames] = useState([]);
   const [showQTS, setShowQTS] = useState(false);
+  const [showQTSList, setShowQTSList] = useState(
+    Array(detailsDiv1.total_jobs).fill(true)
+  );
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,6 +49,7 @@ export default function Job({ user }) {
             withCredentials: true,
           });
           setAllPapers(data.allPapers);
+          console.log(data.allPapers);
           setQtsComponants(data.qts_componants);
           loadAllCustomers(data.cus);
           setAllUsernames(data.usernames);
@@ -55,11 +59,6 @@ export default function Job({ user }) {
           const savedJobsMap = Object.fromEntries(
             data.saved_jobs.map((job) => [job.id_each, job])
           );
-
-          // const latestJob = [...data.saved_jobs].sort(
-          //   (a, b) => new Date(b.created_at) - new Date(a.created_at) )[0];
-          // const latestQtTime = latestJob?.created_at_;
-          // const latestQtBy = latestJob?.created_by;
 
           const jobDetails = data.job_details;
           setDetailsDiv1(jobDetails);
@@ -99,6 +98,9 @@ export default function Job({ user }) {
     };
     fetchData();
   }, []);
+  useEffect(() => {
+    setShowQTSList(Array(detailsDiv1.total_jobs).fill(true));
+  }, [detailsDiv1.total_jobs]);
 
   useEffect(() => {
     console.log(detailsDiv3);
@@ -304,10 +306,18 @@ export default function Job({ user }) {
       {id && (
         <div className="framed" style={{ width: "fitContent" }}>
           <Link
-            onClick={() => setShowQTS((p) => !p)}
-            style={{ cursor: "pointer" }}
+            onClick={() => {
+              if (user.level_jobs >= 3) {
+                setShowQTS((p) => !p);
+              }
+            }}
+            style={{
+              cursor: user.level_jobs > 2 ? "pointer" : "not-allowed",
+              color: user.level_jobs > 2 ? "blue" : "gray",
+              textDecoration: "underline",
+            }}
           >
-            {showQTS ? "Hide Quotations" : "Show Quotations"}
+            {showQTS ? "Hide All Quotations" : "Show All Quotations"}
           </Link>
         </div>
       )}
@@ -340,6 +350,12 @@ export default function Job({ user }) {
                     JSON.stringify(initialDetailsDiv3[[indexOfDiv3]])
                   }
                   allPapers={allPapers || []}
+                  showQTS_={showQTSList[indexOfDiv3]}
+                  setShowQTS_={(newVal) =>
+                    setShowQTSList((prev) =>
+                      prev.map((val, i) => (i === indexOfDiv3 ? newVal : val))
+                    )
+                  }
                 />
               </>
             )}

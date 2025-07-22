@@ -31,7 +31,11 @@ export function calcCalResult(name, v, compID, min_cal_res) {
     calResult = v?.[name + "_0"] + v?.[name + "_1"] * v?.[name + "_2"];
   } else if (compID === "Other") {
     calResult =
-      ((v?.[name + "_0"] / v?.[name + "_1"]) * v?.[name + "_2"]) /
+      (v?.[name + "_0"] *
+        v?.[name + "_2"] *
+        v?.[name + "_4"] *
+        v?.[name + "_5"]) /
+      v?.[name + "_1"] /
       v?.[name + "_3"];
   }
   const isBelowMin = calResult <= min_cal_res;
