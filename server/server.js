@@ -257,6 +257,10 @@ app.get("/jobs/:id", async (req, res) => {
       `SELECT * FROM jobs_each WHERE id_main = 0 AND id_each=0`
     );
     console.log("d");
+    const resultx = await pool.query(
+      `SELECT * FROM jobs_each WHERE id_main = 26 AND id_each=51`
+    );
+    console.log(resultx.rows);
 
     const result4 = await pool.query(
       `SELECT json_build_object('loop_count',(SELECT json_object_agg(name,def_loop_count)FROM jobs_qts),'v',

@@ -17,7 +17,7 @@ const defDiv1 = {
 };
 
 export default function Job({ user }) {
-  const max_eachJobs = 50;
+  const max_eachJobs = 400;
   const [detailsDiv1, setDetailsDiv1] = useState(defDiv1);
   const [initialDetailsDiv1, setInitialDetailsDiv1] = useState(defDiv1);
 
@@ -49,7 +49,7 @@ export default function Job({ user }) {
             withCredentials: true,
           });
           setAllPapers(data.allPapers);
-          console.log(data.allPapers);
+          //  console.log(data.allPapers);
           setQtsComponants(data.qts_componants);
           loadAllCustomers(data.cus);
           setAllUsernames(data.usernames);
@@ -102,12 +102,9 @@ export default function Job({ user }) {
     setShowQTSList(Array(detailsDiv1.total_jobs).fill(true));
   }, [detailsDiv1.total_jobs]);
 
-  useEffect(() => {
-    console.log(detailsDiv3);
-  }, [detailsDiv3]);
-  useEffect(() => {
-    console.log(detailsDiv1);
-  }, [detailsDiv1]);
+  // useEffect(() => {
+  //   console.log(detailsDiv3[0]);
+  // }, [detailsDiv3]);
 
   function handleChangeStr(e, i, ii, arrayy) {
     const { name, value } = e.target;
@@ -216,7 +213,7 @@ export default function Job({ user }) {
     isDiv3Loading(true);
 
     const exprt = { ...detailsDiv3[indexOfDiv3], user_id: user.id };
-    console.log(exprt);
+    // console.log(exprt);
 
     setInitialDetailsDiv3((p) =>
       p.map((slot, index) =>
