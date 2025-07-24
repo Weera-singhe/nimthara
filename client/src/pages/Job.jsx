@@ -31,7 +31,7 @@ export default function Job({ user }) {
 
   const [allPapers, setAllPapers] = useState([]);
   const [allUsernames, setAllUsernames] = useState([]);
-  const [showQTS, setShowQTS] = useState(true);
+  const [showQTS, setShowQTS] = useState(false);
   const [showQTSList, setShowQTSList] = useState(
     Array(detailsDiv1.total_jobs).fill(true)
   );
@@ -331,9 +331,12 @@ export default function Job({ user }) {
         </div>
       )}
       {id &&
-        showQTS &&
         Array.from({ length: detailsDiv1.total_jobs }, (_, indexOfDiv3) => (
-          <div key={indexOfDiv3} className="framed">
+          <div
+            key={indexOfDiv3}
+            className="framed"
+            style={{ display: showQTS ? "block" : "none" }}
+          >
             {div3Loading ? (
               "loading..."
             ) : (

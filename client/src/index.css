@@ -6,28 +6,41 @@ small {
   font-size: smaller;
 }
 header {
-  border-radius: 1rem;
+  border-radius: 20px;
   background-color: #eaeaea;
   height: fit-content;
-  box-shadow: 0.1rem 0.1rem 2rem 0 rgba(0, 0, 0, 0.8); /*15px  0.6*/
+  box-shadow: 0.1rem 0.1rem 2rem 0 rgba(127, 127, 127, 0.8); /*15px  0.6*/
   margin-bottom: 3rem;
   display: flex;
-  padding: 1.5rem 2.3rem;
+  padding: 1.2% 2%;
   align-items: center;
 }
 
 header img {
-  height: 3rem;
-}
-nav a {
-  text-decoration: none;
-  align-content: center;
-  margin: 0rem 2rem;
-  color: black;
+  width: 25%;
 }
 nav {
-  margin-left: 5rem;
+  margin-left: 5%;
   display: flex;
+  flex: 1;
+}
+nav a {
+  font-size: 1vw;
+  margin-left: 4%;
+  text-decoration: none;
+  align-content: center;
+  color: black;
+}
+
+.log_area {
+  font-size: 1vw;
+  text-decoration: none;
+  align-items: center;
+  color: rgb(116, 36, 36);
+  margin-left: auto;
+}
+.log_area button {
+  font-size: 1vw;
 }
 
 .op-loop {

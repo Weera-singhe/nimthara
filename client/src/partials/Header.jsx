@@ -40,7 +40,6 @@ export default function Header({ user, setUser }) {
             to={path}
             style={{
               fontWeight: location.pathname === path ? "bolder" : "lighter",
-              marginRight: "1rem",
               textDecoration: "none",
             }}
           >
@@ -49,9 +48,8 @@ export default function Header({ user, setUser }) {
         ))}
 
         {user.loggedIn && (
-          <div style={{ marginLeft: "10rem" }}>
+          <div className="log_area">
             <b>
-              {" "}
               <b>{user.display_name}</b>
             </b>
 

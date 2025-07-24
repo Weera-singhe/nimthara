@@ -19,31 +19,102 @@ export default function JobDiv4({
         <li>
           Submitted Estimation -
           <small>
-            {` by ???????????????????????????`}
-            <ul>
-              {allTotalPrices.map((price, i) => (
-                <li key={i}>
-                  <b>#{i + 1}</b>
-                  <small style={{ marginLeft: "4%" }}>Total Price:</small>
-                  <b>
-                    {price.toLocaleString("en-LK", {
+            {allTotalPrices.map((price, i) => (
+              <div
+                key={i}
+                style={{ border: "0.1px solid #a2a2a2", fontSize: "1.2vw" }}
+              >
+                <div
+                  style={{
+                    width: "5%",
+                    display: "inline-block",
+                  }}
+                >
+                  {"#" + (i + 1)}
+                </div>{" "}
+                <div
+                  style={{
+                    width: "15%",
+                    textAlign: "right",
+                    display: "inline-block",
+                  }}
+                >
+                  {price.toLocaleString("en-LK", {
+                    style: "currency",
+                    currency: "LKR",
+                  })}
+                </div>
+                <div
+                  style={{
+                    width: "15%",
+                    textAlign: "right",
+                    display: "inline-block",
+                  }}
+                >
+                  {(price / detailsDiv3[i]?.unit_count).toLocaleString(
+                    "en-LK",
+                    {
                       style: "currency",
                       currency: "LKR",
-                    })}
-                  </b>
-                  <small style={{ marginLeft: "4%" }}>unit price:</small>
-                  <b>
-                    {(price / detailsDiv3[i]?.unit_count).toLocaleString(
-                      "en-LK",
-                      {
-                        style: "currency",
-                        currency: "LKR",
-                      }
-                    )}
-                  </b>
-                </li>
-              ))}
-            </ul>
+                    }
+                  )}
+                </div>
+                <div
+                  style={{
+                    width: "15%",
+                    textAlign: "right",
+                    display: "inline-block",
+                  }}
+                >
+                  {(
+                    price /
+                    detailsDiv3[i]?.unit_count /
+                    detailsDiv3[i]?.v.Paper_0_7
+                  ).toLocaleString("en-LK", {
+                    style: "currency",
+                    currency: "LKR",
+                  })}
+                </div>{" "}
+                <div
+                  style={{
+                    width: "10%",
+                    textAlign: "right",
+                    display: "inline-block",
+                  }}
+                >
+                  {detailsDiv3[i]?.v.Paper_0_7.toLocaleString()}
+                </div>{" "}
+                <div
+                  style={{
+                    width: "15%",
+                    textAlign: "right",
+                    display: "inline-block",
+                  }}
+                >
+                  {detailsDiv3[i]?.unit_count.toLocaleString()}
+                </div>{" "}
+                <div
+                  style={{
+                    width: "15%",
+                    textAlign: "right",
+                    display: "inline-block",
+                  }}
+                >
+                  {" "}
+                  {detailsDiv3[i]?.v.Paper_1_1 === 4000 ? "crown" : "other"}
+                  <b>-</b>
+                  {detailsDiv3[i]?.v.Paper_0_1 === 3325
+                    ? "B"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 3800
+                    ? "A"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 5060
+                    ? "A"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 4425
+                    ? "B"
+                    : "x"}
+                </div>
+              </div>
+            ))}
           </small>
         </li>
         <li>
