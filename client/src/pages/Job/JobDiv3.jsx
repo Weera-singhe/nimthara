@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import Num from "../../elements/NumInput";
 import JobDiv3Mid from "./JobDiv3Mid";
 import JobDiv3Right, { calcCalResult } from "./JobDiv3Right";
@@ -13,6 +13,7 @@ export default function JobDiv3({
   allPapers,
   showQTS_,
   setShowQTS_,
+  reportTotalPrice,
 }) {
   let totalSum = 0;
 
@@ -35,6 +36,10 @@ export default function JobDiv3({
   const total_price = unit_price * jobDetails.unit_count;
   const unit_vat = unit_price * 1.18;
   const total_vat = total_price * 1.18;
+
+  useEffect(() => {
+    reportTotalPrice?.(total_price);
+  }, [total_price]);
 
   return (
     <div>

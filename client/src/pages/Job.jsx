@@ -31,10 +31,11 @@ export default function Job({ user }) {
 
   const [allPapers, setAllPapers] = useState([]);
   const [allUsernames, setAllUsernames] = useState([]);
-  const [showQTS, setShowQTS] = useState(false);
+  const [showQTS, setShowQTS] = useState(true);
   const [showQTSList, setShowQTSList] = useState(
     Array(detailsDiv1.total_jobs).fill(true)
   );
+  const [allTotalPrices, setAllTotalPrices] = useState([]); ///////////////////
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function Job({ user }) {
             withCredentials: true,
           });
           setAllPapers(data.allPapers);
-          //  console.log(data.allPapers);
+          console.log(data.allPapers);
           setQtsComponants(data.qts_componants);
           loadAllCustomers(data.cus);
           setAllUsernames(data.usernames);
@@ -102,9 +103,9 @@ export default function Job({ user }) {
     setShowQTSList(Array(detailsDiv1.total_jobs).fill(true));
   }, [detailsDiv1.total_jobs]);
 
-  // useEffect(() => {
-  //   console.log(detailsDiv3[0]);
-  // }, [detailsDiv3]);
+  useEffect(() => {
+    console.log(detailsDiv3);
+  }, [detailsDiv3]);
 
   function handleChangeStr(e, i, ii, arrayy) {
     const { name, value } = e.target;
@@ -213,7 +214,7 @@ export default function Job({ user }) {
     isDiv3Loading(true);
 
     const exprt = { ...detailsDiv3[indexOfDiv3], user_id: user.id };
-    // console.log(exprt);
+    console.log(exprt);
 
     setInitialDetailsDiv3((p) =>
       p.map((slot, index) =>
@@ -230,6 +231,17 @@ export default function Job({ user }) {
         isDiv3Loading(false);
       });
   }
+  /////////////////////////////
+
+  function updateTotalPrice(index, price) {
+    setAllTotalPrices((prev) => {
+      const updated = [...prev];
+      updated[index] = price;
+      return updated;
+    });
+  }
+
+  ////////////////////////////
 
   //displayID
   const displayID =
@@ -353,6 +365,9 @@ export default function Job({ user }) {
                       prev.map((val, i) => (i === indexOfDiv3 ? newVal : val))
                     )
                   }
+                  reportTotalPrice={(price) =>
+                    updateTotalPrice(indexOfDiv3, price)
+                  }
                 />
               </>
             )}
@@ -369,6 +384,8 @@ export default function Job({ user }) {
             <JobDiv4
               allUsernames={allUsernames || []}
               detailsDiv1={detailsDiv1 || []}
+              detailsDiv3={detailsDiv3 || []}
+              allTotalPrices={allTotalPrices || []}
             />
           )}
         </div>

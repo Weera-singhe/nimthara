@@ -238,29 +238,21 @@ app.get("/jobs/:id", async (req, res) => {
     if (id === "add") {
       return res.json({ cus });
     }
-    console.log("a");
 
     const result1 = await pool.query(
       `SELECT *, TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(created_at, 'YYMMDD') AS created_at,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_
        FROM jobs WHERE id = $1`,
       [id]
     );
-    console.log("b");
 
     const result2 = await pool.query(
       `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
       [id]
     );
-    console.log("c");
 
     const result3 = await pool.query(
       `SELECT * FROM jobs_each WHERE id_main = 0 AND id_each=0`
     );
-    console.log("d");
-    const resultx = await pool.query(
-      `SELECT * FROM jobs_each WHERE id_main = 26 AND id_each=51`
-    );
-    console.log(resultx.rows);
 
     const result4 = await pool.query(
       `SELECT json_build_object('loop_count',(SELECT json_object_agg(name,def_loop_count)FROM jobs_qts),'v',
@@ -268,7 +260,6 @@ app.get("/jobs/:id", async (req, res) => {
       AS i,LATERAL unnest(def_v) WITH ORDINALITY AS a(val, j)),'notes_other',(SELECT json_object_agg(
       'Other_' || i, '')FROM generate_series(0,(SELECT max FROM jobs_qts WHERE name = 'Other')-1)AS i))AS result;`
     );
-    console.log("e");
 
     const result5 = await pool.query(`SELECT * FROM jobs_qts ORDER BY id ASC `);
     const result6 = await pool.query(`SELECT * FROM users ORDER BY id ASC `);

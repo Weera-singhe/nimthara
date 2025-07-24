@@ -37,7 +37,7 @@ export default function JobDiv3Mid({
             <option value={2200}>Plate 20x30</option>
           </select>
           <b>
-            {v?.[name + "_0"].toLocaleString("en-LK", {
+            {v?.[name + "_0"]?.toLocaleString("en-LK", {
               style: "currency",
               currency: "LKR",
             })}
