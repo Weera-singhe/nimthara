@@ -250,6 +250,7 @@ export default function JobDiv3Mid({
             <option value={0.5}> 0.5</option>
             <option value={0.25}> 0.25</option>
             <option value={0.125}> 0.125</option>
+            <option value={3}>3</option>
           </select>
         </>
       )}
