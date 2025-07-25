@@ -22,7 +22,7 @@ export default function JobDiv4({
             {allTotalPrices.map((price, i) => (
               <div
                 key={i}
-                style={{ border: "0.1px solid #a2a2a2", fontSize: "1.2vw" }}
+                style={{ border: "0.1px solid #a2a2a2", fontSize: "1.4vw" }}
               >
                 <div
                   style={{
@@ -34,7 +34,7 @@ export default function JobDiv4({
                 </div>{" "}
                 <div
                   style={{
-                    width: "15%",
+                    width: "20%",
                     textAlign: "right",
                     display: "inline-block",
                   }}
