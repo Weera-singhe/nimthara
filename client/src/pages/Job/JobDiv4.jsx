@@ -22,7 +22,7 @@ export default function JobDiv4({
             {allTotalPrices.map((price, i) => (
               <div
                 key={i}
-                style={{ border: "0.1px solid #a2a2a2", fontSize: "1.4vw" }}
+                style={{ border: "0.1px solid #a2a2a2", fontSize: "2vw" }}
               >
                 <div
                   style={{
@@ -39,9 +39,9 @@ export default function JobDiv4({
                     display: "inline-block",
                   }}
                 >
-                  {price.toLocaleString("en-LK", {
-                    style: "currency",
-                    currency: "LKR",
+                  {price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </div>
                 <div
@@ -52,10 +52,10 @@ export default function JobDiv4({
                   }}
                 >
                   {(price / detailsDiv3[i]?.unit_count).toLocaleString(
-                    "en-LK",
+                    undefined,
                     {
-                      style: "currency",
-                      currency: "LKR",
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     }
                   )}
                 </div>
@@ -70,9 +70,9 @@ export default function JobDiv4({
                     price /
                     detailsDiv3[i]?.unit_count /
                     detailsDiv3[i]?.v.Paper_0_7
-                  ).toLocaleString("en-LK", {
-                    style: "currency",
-                    currency: "LKR",
+                  ).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </div>{" "}
                 <div
