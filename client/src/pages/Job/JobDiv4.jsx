@@ -101,16 +101,24 @@ export default function JobDiv4({
                   }}
                 >
                   {" "}
-                  {detailsDiv3[i]?.v.Paper_1_1 === 4000 ? "crown" : "other"}
+                  {detailsDiv3[i]?.v.Paper_1_1 === 4720
+                    ? "crown"
+                    : detailsDiv3[i]?.v.Paper_1_1 === 3070
+                    ? "demy"
+                    : "none"}
                   <b>-</b>
-                  {detailsDiv3[i]?.v.Paper_0_1 === 3325
+                  {detailsDiv3[i]?.v.Paper_0_1 === 3925
                     ? "B"
-                    : detailsDiv3[i]?.v.Paper_0_1 === 3800
-                    ? "A"
-                    : detailsDiv3[i]?.v.Paper_0_1 === 5060
-                    ? "A"
-                    : detailsDiv3[i]?.v.Paper_0_1 === 4425
+                    : detailsDiv3[i]?.v.Paper_0_1 === 5220
                     ? "B"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 5330
+                    ? "B"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 4485
+                    ? "A"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 5970
+                    ? "A"
+                    : detailsDiv3[i]?.v.Paper_0_1 === 6465
+                    ? "A"
                     : "x"}
                 </div>
               </div>
