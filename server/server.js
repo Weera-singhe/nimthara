@@ -233,60 +233,77 @@ app.get("/jobs", async (req, res) => {
 app.get("/jobs/:id", async (req, res) => {
   try {
     const { id } = req.params;
+
     const cus = await GetCustomers();
 
     if (id === "add") {
       return res.json({ cus });
     }
 
-    const result1 = await pool.query(
-      `SELECT *, TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(created_at, 'YYMMDD') AS created_at,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_
-       FROM jobs WHERE id = $1`,
+    //   continue if no a add ...........
+    //
+    const {
+      rows: [mainJobData],
+    } = await pool.query(
+      `SELECT *,TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(created_at, 'YYMMDD') AS created_at,
+      TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs WHERE id = $1`,
       [id]
     );
-
-    const result2 = await pool.query(
-      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
+    //
+    const { rows: getSavedJobs } = await pool.query(
+      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
       [id]
     );
-
-    const result3 = await pool.query(
-      `SELECT * FROM jobs_each WHERE id_main = 0 AND id_each=0`
-    );
-
-    const result4 = await pool.query(
-      `SELECT json_build_object('loop_count',(SELECT json_object_agg(name,def_loop_count)FROM jobs_qts),'v',
-      (SELECT json_object_agg(name || '_' || (i - 1) || '_' || (j - 1),val)FROM jobs_qts,generate_series(1, max)
-      AS i,LATERAL unnest(def_v) WITH ORDINALITY AS a(val, j)),'notes_other',(SELECT json_object_agg(
-      'Other_' || i, '')FROM generate_series(0,(SELECT max FROM jobs_qts WHERE name = 'Other')-1)AS i))AS result;`
-    );
-
-    const result5 = await pool.query(`SELECT * FROM jobs_qts ORDER BY id ASC `);
-    const result6 = await pool.query(`SELECT * FROM users ORDER BY id ASC `);
-
-    const job_details = result1.rows[0];
-    const comp_defs = result4.rows[0].result;
-    const qts_componants = result5.rows;
-    const saved_jobs = (result2.rows || []).map((row) => ({
+    const savedEachJob = getSavedJobs.map((row) => ({
       ...row,
       profit: Number(row.profit) || 0,
     }));
 
-    const def_jobs_each = {
-      ...result3.rows[0],
-      profit: Number(result3.rows[0].profit),
-    };
+    //
+    const getQtsComp = await pool.query(
+      `SELECT * FROM jobs_qts ORDER BY id ASC `
+    );
+    const qtsComps = getQtsComp.rows;
 
-    const usernames = result6.rows.map((r) => r.username);
+    const loop_count = {};
+    const v = {};
+    const notes_other = {};
 
+    for (const row of qtsComps) {
+      const { name, def_loop_count, def_v, max } = row;
+      loop_count[name] = def_loop_count;
+
+      for (let i = 0; i < max; i++) {
+        for (let j = 0; j < def_v.length; j++) {
+          const key = `${name}_${i}_${j}`;
+          v[key] = def_v[j];
+        }
+      }
+
+      if (name === "Other") {
+        for (let i = 0; i < max; i++) {
+          notes_other[`Other_${i}`] = "";
+        }
+      }
+    }
+    const qtsDefsEachJob = { loop_count, v, notes_other };
+
+    //
+    const usernames = (
+      await pool.query(
+        `SELECT INITCAP(username) AS username FROM users ORDER BY id ASC`
+      )
+    ).rows.map((r) => r.username);
+    //
     const allPapers = await GetEachNLatestP();
+
+    ////////
     res.json({
-      job_details,
       cus,
-      saved_jobs,
-      def_jobs_each,
-      comp_defs,
-      qts_componants,
+      mainJobData,
+      savedEachJob,
+      qtsDefsEachJob,
+      qtsComps,
       allPapers,
       usernames,
     });
@@ -322,7 +339,7 @@ app.post("/jobs/div1", async (req, res) => {
     res.status(500).send("Error saving job");
   }
 });
-app.post("/jobs/div3", async (req, res) => {
+app.post("/jobs/div2", async (req, res) => {
   try {
     const {
       id_main,
@@ -334,11 +351,13 @@ app.post("/jobs/div3", async (req, res) => {
       notes_other,
       profit,
       user_id,
+      deployed,
     } = req.body;
-    console.log(req.body);
+    console.log(req.body.deployed);
 
     const upd = await pool.query(
-      `UPDATE jobs_each SET item_count = $1,unit_count = $2, loop_count=$3, v=$4,notes_other=$5,profit=$6 WHERE id_main  = $7 AND id_each  = $8 RETURNING *`,
+      `UPDATE jobs_each SET item_count = $1,unit_count = $2, loop_count=$3, v=$4,notes_other=$5,profit=$6,last_edit_by=$7,last_edit_at=NOW(),deployed=$8 WHERE id_main  = $9 AND id_each  = $10
+      RETURNING *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_ `,
       [
         item_count,
         unit_count,
@@ -346,14 +365,17 @@ app.post("/jobs/div3", async (req, res) => {
         v,
         notes_other,
         profit,
+        user_id,
+        deployed,
         id_main,
         id_each,
       ]
     );
 
     if (upd.rowCount === 0) {
-      await pool.query(
-        `INSERT INTO jobs_each (id_main, id_each, item_count, unit_count,loop_count,v,notes_other,profit,created_by)VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9)`,
+      const insert_result = await pool.query(
+        `INSERT INTO jobs_each (id_main, id_each, item_count, unit_count,loop_count,v,notes_other,profit,created_by,last_edit_by,last_edit_at)VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$9,NOW())
+        RETURNING *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_ `,
         [
           id_main,
           id_each,
@@ -366,9 +388,10 @@ app.post("/jobs/div3", async (req, res) => {
           user_id,
         ]
       );
+      res.status(200).json(insert_result.rows[0]);
+    } else {
+      res.status(200).json(upd.rows[0]);
     }
-
-    res.status(200).json({ success: true });
   } catch (err) {
     console.error("DB Error:", err.message);
     res.status(500).send("Error saving job");

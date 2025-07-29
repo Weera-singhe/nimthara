@@ -4,13 +4,19 @@ import Num from "../../elements/NumInput";
 export default function JobDiv1({
   id,
   jobDetails,
+  setDetails,
   allCustomers,
-  handleChangeStr,
-  handleChangeNum,
   handleSubmit,
   submit_disabled,
-  max_eachJobs,
 }) {
+  function strChanged(e) {
+    const { name, value } = e.target;
+    setDetails((p) => ({ ...p, [name]: value }));
+  }
+  function NumChanged(e) {
+    const { name, value } = e.target;
+    setDetails((p) => ({ ...p, [name]: Number(value) }));
+  }
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -18,7 +24,7 @@ export default function JobDiv1({
         <select
           name="customer"
           value={jobDetails.customer}
-          onChange={handleChangeNum}
+          onChange={NumChanged}
         >
           <option value={0}></option>
           {allCustomers.map((c) => (
@@ -32,7 +38,7 @@ export default function JobDiv1({
         <input
           name="reference"
           value={jobDetails.reference || ""}
-          onChange={handleChangeStr}
+          onChange={strChanged}
         />
 
         <label>Deadline: </label>
@@ -40,16 +46,16 @@ export default function JobDiv1({
           type="datetime-local"
           name="deadline"
           value={jobDetails.deadline || ""}
-          onChange={handleChangeStr}
+          onChange={strChanged}
         />
 
         <label>Total Jobs: </label>
         <Num
           name={"total_jobs"}
           min={1}
-          max={max_eachJobs}
+          max={500}
           setTo={jobDetails.total_jobs}
-          changed={handleChangeNum}
+          changed={NumChanged}
           width={100}
           deci={0}
         />

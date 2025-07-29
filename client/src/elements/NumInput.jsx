@@ -79,4 +79,4 @@ function NumInput({
   );
 }
 
-export default NumInput;
+export default React.memo(NumInput);

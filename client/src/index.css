@@ -1,23 +1,24 @@
 * {
   box-sizing: border-box;
-  font-family: "Trebuchet MS", sans-serif;
+  font-family: Roboto, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
+    Oxygen;
 }
 small {
   font-size: smaller;
 }
 header {
-  border-radius: 20px;
-  background-color: #eaeaea;
+  border-radius: 0.9vw;
+  background-color: #ffffff;
   height: fit-content;
-  box-shadow: 0.1rem 0.1rem 2rem 0 rgba(127, 127, 127, 0.8); /*15px  0.6*/
-  margin-bottom: 3rem;
+  box-shadow: 0.2rem 0.2rem 1rem 0 rgba(0, 0, 0, 0.3); /*15px  0.6*/
+  margin-bottom: 3%;
   display: flex;
-  padding: 1.2% 2%;
+  padding: 1.5% 2%;
   align-items: center;
 }
 
 header img {
-  width: 25%;
+  width: 35%;
 }
 nav {
   margin-left: 5%;
@@ -25,7 +26,7 @@ nav {
   flex: 1;
 }
 nav a {
-  font-size: 1vw;
+  font-size: 1.2vw;
   margin-left: 4%;
   text-decoration: none;
   align-content: center;
@@ -152,7 +153,7 @@ select {
 }
 button {
   border-radius: 3px;
-  border: 1.5px solid black;
+  border: 0.01em solid black;
 }
 
 .num-box {
@@ -171,6 +172,15 @@ button {
 }
 b {
   margin: 0.3rem;
+  font-weight: 450;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 580;
 }
 .ali-right > div {
   text-align: right;
@@ -191,23 +201,22 @@ b {
   align-items: center;
   z-index: 999;
 }
-
-.body1 {
+.bodyxx {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png");
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
-body {
+.bodyv {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
-.body3 {
+.bodyz {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/skulls.png");
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
-.body4 {
+.bodyb {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/washi.png");
   /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */

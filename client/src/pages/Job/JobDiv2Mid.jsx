@@ -1,19 +1,17 @@
 import React from "react";
 import Num from "../../elements/NumInput";
+import { toLKR } from "../../elements/cal";
 
-export default function JobDiv3Mid({
+export default function JobDiv2Mid({
   name,
   changed,
   changedStr,
   v,
-  comp_repeat_index,
   compID,
-  qts_componants,
   allPapers,
 }) {
   return (
     <>
-      {" "}
       {(compID === "Artwork" || compID === "Delivery") && (
         <Num
           width={80}
@@ -36,12 +34,7 @@ export default function JobDiv3Mid({
             <option value={2400}>Plate 24x36</option>
             <option value={2200}>Plate 20x30</option>
           </select>
-          <b>
-            {v?.[name + "_0"]?.toLocaleString("en-LK", {
-              style: "currency",
-              currency: "LKR",
-            })}
-          </b>
+          <b>{toLKR(v?.[name + "_0"])}</b>
           <b> x </b>
           <Num
             width={40}
@@ -96,12 +89,9 @@ export default function JobDiv3Mid({
                   </option>
                 ))}
               </select>
-              <span>
-                {latest_price.toLocaleString("en-LK", {
-                  style: "currency",
-                  currency: "LKR",
-                })}
-              </span>{" "}
+              <small>
+                <b>{toLKR(latest_price)}</b>
+              </small>
               <button
                 type="button"
                 onClick={() => {
@@ -223,7 +213,9 @@ export default function JobDiv3Mid({
             <small>=</small>
           </b>
           <small>
-            <small> impressions : </small>{" "}
+            <small>
+              <b> impressions : </b>
+            </small>
             {Math.round(
               (v?.[name + "_0"] / v?.[name + "_1"]) * v?.[name + "_2"]
             )}

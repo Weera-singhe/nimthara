@@ -4,9 +4,9 @@ import { UPLOAD_API_URL } from "../api/urls";
 
 export default function Docs({
   id,
-  upload_locked = false,
-  delete_locked = false,
-  view_locked = false,
+  can_upload = true,
+  can_delete = true,
+  can_view = true,
   folder_name,
   prefix,
 }) {
@@ -35,7 +35,7 @@ export default function Docs({
   }, [id]);
 
   const uploadFiles = async () => {
-    if (!files.length || upload_locked) return;
+    if (!files.length || !can_upload) return;
 
     const formData = new FormData();
     files.forEach((f) => formData.append("files", f));
@@ -59,7 +59,7 @@ export default function Docs({
   };
 
   const deleteFile = async (public_id) => {
-    if (delete_locked) return;
+    if (!can_delete) return;
 
     try {
       setDeleting(true);
@@ -77,7 +77,7 @@ export default function Docs({
 
   return (
     <div className="docs-container">
-      {!upload_locked && (
+      {can_upload && (
         <div>
           <input
             type="file"
@@ -91,7 +91,7 @@ export default function Docs({
           </button>
         </div>
       )}
-      {!view_locked && (
+      {can_view && (
         <ul>
           {uploadedFiles.map((file) => (
             <li key={file.public_id}>
@@ -109,7 +109,7 @@ export default function Docs({
                   <b>{file.filename}</b>
                 </small>
               </a>
-              {!delete_locked && (
+              {can_delete && (
                 <button
                   onClick={() => deleteFile(encodeURIComponent(file.public_id))}
                   disabled={deleting}
