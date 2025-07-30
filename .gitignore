@@ -4,3 +4,4 @@ server/node_modules/
 client/build/
 .env
 client/.env
+/server/temp_uploads/

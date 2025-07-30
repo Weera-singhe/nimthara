@@ -48,7 +48,8 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({ dest: "/tmp" });
+
+const upload = multer({ dest: "temp_uploads" });
 
 //SQL FUNCTIONS      //////////////////////////////////
 
@@ -737,7 +738,7 @@ app.get("/upload/:id", async (req, res) => {
   }
 });
 
-app.delete("/upload/:public_id", async (req, res) => {
+app.delete("/upload/:public_id(*)", async (req, res) => {
   const { public_id } = req.params;
   try {
     await cloudinary.uploader.destroy(public_id);
