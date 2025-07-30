@@ -738,16 +738,17 @@ app.get("/upload/:id", async (req, res) => {
   }
 });
 
-app.delete("/upload/:public_id(*)", async (req, res) => {
-  const { public_id } = req.params;
+app.delete("/upload/:encoded_id", async (req, res) => {
+  const public_id = decodeURIComponent(req.params.encoded_id);
   try {
     await cloudinary.uploader.destroy(public_id);
     await pool.query("DELETE FROM uploaded_docs WHERE public_id = $1", [
       public_id,
     ]);
     res.json({ success: true });
-  } catch {
-    res.status(500).json({ error: "delete failed" });
+  } catch (err) {
+    console.error("Delete failed:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
