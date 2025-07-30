@@ -6,9 +6,9 @@ import axios from "axios";
 import JobDiv1 from "./Job/JobDiv1";
 import JobDiv2 from "./Job/JobDiv2";
 import JobDiv3 from "./Job/JobDiv3";
-import JobDiv3Xtra from "./Job/JobDiv3Xtra";
+//import JobDiv3Xtra from "./Job/JobDiv3Xtra";
 import useCurrentTime from "../elements/useCurrentTime";
-import { SumEachRowTotal } from "../elements/cal.js";
+import { SumsEachQuot } from "../elements/cal.js";
 
 const defDiv1 = {
   customer: 0,
@@ -20,7 +20,9 @@ const defDiv1 = {
 export default function Job({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const currentTime = useCurrentTime();
+  const currentTime = useCurrentTime([]);
+
+  const [savedJobsDB, setSavedJobs] = useState();
 
   const [div1DataTemp, setDiv1DataTemp] = useState(defDiv1);
   const [div1dataDB, setDiv1DataDB] = useState(defDiv1);
@@ -56,6 +58,7 @@ export default function Job({ user }) {
         const savedJobsMap = Object.fromEntries(
           savedEachJob.map((job) => [job.id_each, job])
         );
+        setSavedJobs(savedJobsMap);
 
         const filled = Array.from({ length: totalJobs }, (_, i) => ({
           id_main: Number(id),
@@ -87,7 +90,6 @@ export default function Job({ user }) {
     fetchData();
   }, [fetchData]);
 
-  // useEffect(() => { console.log(detailsDiv1); }, [detailsDiv1]);
   useEffect(() => {
     console.log(div2DataDB);
   }, [div2DataDB]);
@@ -130,9 +132,7 @@ export default function Job({ user }) {
   }
 
   const allTotalPrices = useMemo(() => {
-    return div2DataDB.map((d2) =>
-      SumEachRowTotal(qtsComponants, d2.v, d2.loop_count)
-    );
+    return div2DataDB.map((d2) => SumsEachQuot(qtsComponants, d2));
   }, [div2DataDB, qtsComponants]);
 
   //displayID
@@ -170,6 +170,7 @@ export default function Job({ user }) {
               handleSubmit={handleSubmitDiv1}
               submit_disabled={submit1Disabled}
               allCustomers={allCustomers}
+              savedJobsDB={savedJobsDB || []}
             />
             {!id && user.level_jobs >= 2 && (
               <>
@@ -199,7 +200,7 @@ export default function Job({ user }) {
           )}
         </div>
       )}
-      {/*DIV_2_/////////////////////////*/}
+      {/*DIV_2_show_hide/////////////////////////*/}
       {id && (
         <div className="framed" style={{ width: "fitContent" }}>
           <Link
@@ -214,45 +215,42 @@ export default function Job({ user }) {
           </Link>
         </div>
       )}
+      {/*DIV_2_/////////////////////////*/}
       {id &&
-        Array.from({ length: div1dataDB.total_jobs }, (_, index) => (
-          <div
-            key={index}
-            className="framed"
-            style={{ display: showQTS ? "block" : "none" }}
-          >
-            {div2Loading ? (
-              "loading..."
-            ) : (
-              <>
-                {`Quotation ${displayID}_${index + 1}`}
-                <br />
-                <br />
+        showQTS &&
+        Array.from({ length: div1dataDB.total_jobs }, (_, loopIndex) => (
+          <div key={loopIndex} className="framed">
+            <>
+              {div2Loading && "loading..."}
+              <div style={{ display: div2Loading ? "none" : "block" }}>
                 <JobDiv2
                   qts_componants={qtsComponants || []}
-                  detailsDB={div2DataDB[index]}
-                  allPapers={allPapers}
+                  detailsDB={div2DataDB[loopIndex] || []}
+                  allPapers={allPapers || []}
                   handleSubmit={handleSubmitDiv2}
+                  displayID={displayID}
+                  loopIndex={loopIndex}
+                  loading={div2Loading}
                 />
-              </>
-            )}
+              </div>
+            </>
           </div>
         ))}
       {/*DIV_3_/////////////////////////*/}
       {id && (
         <div className="framed">
           <h3>Job Status ...</h3>
-          {div1Loading || div2Loading ? (
-            "loading...."
-          ) : (
+          {div2Loading && "loading..."}
+          <div style={{ display: div2Loading ? "none" : "block" }}>
             <JobDiv3
               allUsernames={allUsernames || []}
-              detailsDiv1={div1dataDB || []}
-              detailsDiv2={div2DataDB || []}
-              allTotalPrices={allTotalPrices || []}
+              detailsDiv1={div1dataDB || {}}
+              detailsDiv2={div2DataDB || {}}
+              allTotalPrices={allTotalPrices || {}}
               displayID={displayID}
+              handleSubmit={handleSubmitDiv2}
             />
-          )}
+          </div>
         </div>
       )}
     </>

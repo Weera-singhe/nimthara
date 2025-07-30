@@ -1,4 +1,4 @@
-export function EachRowTotal(name, v, compID, min_cal_res) {
+export function SumEachRow(name, v, compID, min_cal_res) {
   const val = (key) => Number(v?.[`${name}_${key}`]) || 0;
   let calResult = 0;
 
@@ -44,25 +44,47 @@ export function EachRowTotal(name, v, compID, min_cal_res) {
       calResult = 0;
   }
 
-  const isBelowMin = calResult <= min_cal_res;
+  const isBelowMin =
+    compID === "Print"
+      ? calResult <= min_cal_res * val(3)
+      : calResult <= min_cal_res;
   return { calResult, isBelowMin };
 }
 
-export function SumEachRowTotal(components, v, loop_count) {
+export function SumsEachQuot(components, data) {
   let total = 0;
 
   for (const comp of components) {
-    const count = loop_count?.[comp.name] || 0;
+    const count = data.loop_count?.[comp.name] || 0;
 
     for (let i = 0; i < count; i++) {
       const name = `${comp.name}_${i}`;
-      const { calResult } = EachRowTotal(name, v, comp.name, comp.min_cal_res);
+      const { calResult } = SumEachRow(
+        name,
+        data.v,
+        comp.name,
+        comp.min_cal_res
+      );
       total += calResult;
     }
   }
 
-  return total;
+  const unitCount = data.unit_count || 1;
+  const profit = data.profit || 0;
+  const base = total + profit;
+
+  const unit_price = +(base / unitCount).toFixed(2);
+  const safe_total = +(unit_price * unitCount).toFixed(2);
+  const vatRate = 1.18;
+
+  return {
+    unit_price: unit_price,
+    total_price: safe_total,
+    unit_vat: +(unit_price * vatRate).toFixed(2),
+    total_vat: +(safe_total * vatRate).toFixed(2),
+  };
 }
+
 export function toLKR(value) {
   return (value || 0).toLocaleString("en-LK", {
     style: "currency",

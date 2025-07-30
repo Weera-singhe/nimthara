@@ -48,7 +48,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({ dest: "temp_uploads/" });
+const upload = multer({ dest: "/tmp" });
 
 //SQL FUNCTIONS      //////////////////////////////////
 
@@ -352,12 +352,28 @@ app.post("/jobs/div2", async (req, res) => {
       profit,
       user_id,
       deployed,
+      cus_id_each,
     } = req.body;
-    console.log(req.body.deployed);
+    console.log(req.body);
 
+    // Try updating the existing job
     const upd = await pool.query(
-      `UPDATE jobs_each SET item_count = $1,unit_count = $2, loop_count=$3, v=$4,notes_other=$5,profit=$6,last_edit_by=$7,last_edit_at=NOW(),deployed=$8 WHERE id_main  = $9 AND id_each  = $10
-      RETURNING *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_ `,
+      `UPDATE jobs_each
+       SET item_count = $1,
+           unit_count = $2,
+           loop_count = $3,
+           v = $4,
+           notes_other = $5,
+           profit = $6,
+           last_edit_by = $7,
+           last_edit_at = NOW(),
+           deployed = $8,
+           cus_id_each=$9
+       WHERE id_main = $10 AND id_each = $11
+       RETURNING 
+         *,
+         TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
+         TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_`,
       [
         item_count,
         unit_count,
@@ -367,15 +383,26 @@ app.post("/jobs/div2", async (req, res) => {
         profit,
         user_id,
         deployed,
+        cus_id_each,
         id_main,
         id_each,
       ]
     );
 
+    let result;
+
     if (upd.rowCount === 0) {
       const insert_result = await pool.query(
-        `INSERT INTO jobs_each (id_main, id_each, item_count, unit_count,loop_count,v,notes_other,profit,created_by,last_edit_by,last_edit_at)VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9,$9,NOW())
-        RETURNING *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_ `,
+        `INSERT INTO jobs_each (
+            id_main, id_each, item_count, unit_count,
+            loop_count, v, notes_other, profit,
+            created_by, last_edit_by, last_edit_at,cus_id_each
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, NOW(),$10)
+         RETURNING 
+           *,
+           TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
+           TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_`,
         [
           id_main,
           id_each,
@@ -386,12 +413,21 @@ app.post("/jobs/div2", async (req, res) => {
           notes_other,
           profit,
           user_id,
+          cus_id_each,
         ]
       );
-      res.status(200).json(insert_result.rows[0]);
+
+      result = insert_result.rows[0];
     } else {
-      res.status(200).json(upd.rows[0]);
+      result = upd.rows[0];
     }
+
+    const safeResult = {
+      ...result,
+      profit: Number(result?.profit) || 0,
+    };
+
+    res.status(200).json(safeResult);
   } catch (err) {
     console.error("DB Error:", err.message);
     res.status(500).send("Error saving job");
@@ -648,8 +684,9 @@ app.post("/upload/:id", upload.array("files"), async (req, res) => {
   const { id } = req.params;
   const folderName = req.body.folder_name || "doc";
   const prefix = req.body.prefix + "_" || "";
-  console.log(req.body);
-  console.log(req.files);
+
+  console.log("Upload started:", { id, folderName, prefix });
+  console.log("Files received:", req.files);
 
   try {
     await Promise.all(
@@ -660,10 +697,15 @@ app.post("/upload/:id", upload.array("files"), async (req, res) => {
           public_id: `${prefix}${file.originalname}_${Date.now()}`,
         });
 
-        await fs.unlink(file.path);
+        try {
+          await fs.unlink(file.path); // safely clean up temp file
+        } catch (err) {
+          console.warn("Temp file deletion failed:", file.path, err.message);
+        }
 
         await pool.query(
-          "INSERT INTO uploaded_docs (id, filename, url, public_id, format) VALUES ($1, $2, $3, $4, $5)",
+          `INSERT INTO uploaded_docs (id, filename, url, public_id, format)
+           VALUES ($1, $2, $3, $4, $5)`,
           [
             id,
             prefix + file.originalname.replace(/\.[^/.]+$/, ""),
@@ -676,7 +718,8 @@ app.post("/upload/:id", upload.array("files"), async (req, res) => {
     );
 
     res.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error("Upload failed:", err.message);
     res.status(500).json({ error: "upload failed" });
   }
 });

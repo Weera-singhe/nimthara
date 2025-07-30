@@ -64,8 +64,8 @@ nav a {
 }
 .boxyy {
   border-radius: 3px;
-  background-color: #e4e4e4;
-  box-shadow: 3px 3px 5px 0 rgba(69, 69, 69, 0.463); /*15px   0.3*/
+  border: 1px solid rgb(220, 220, 220);
+  box-shadow: 3px 3px 5px 0 rgba(69, 69, 69, 0.192); /*15px   0.3*/
   margin: 1px;
   width: fit-content;
   height: 43px;
@@ -200,6 +200,10 @@ h6 {
   justify-content: center;
   align-items: center;
   z-index: 999;
+}
+ul li {
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
 }
 .bodyxx {
   background-color: #ffffff;

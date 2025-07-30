@@ -2,9 +2,17 @@ import React, { useMemo, useEffect, useState } from "react";
 import Num from "../../elements/NumInput";
 import JobDiv2Mid from "./JobDiv2Mid";
 import JobDiv2Right from "./JobDiv2Right";
-import { SumEachRowTotal, toLKR } from "../../elements/cal";
+import { SumsEachQuot, toLKR } from "../../elements/cal";
 
-function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
+function JobDiv2({
+  qts_componants,
+  detailsDB,
+  handleSubmit,
+  allPapers,
+  displayID,
+  loopIndex,
+  loading,
+}) {
   const [detailsTemp, setDetailsTemp] = useState(detailsDB);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -27,42 +35,27 @@ function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
   function strChanged(e, arrayy) {
     setIsDirty(true);
     const { name, value } = e.target;
+    const safeVal = name === "cus_id_each" ? value.trim() : value;
     setDetailsTemp((p) =>
       arrayy
         ? {
             ...p,
             [arrayy]: {
               ...(p[arrayy] || {}),
-              [name]: value,
+              [name]: safeVal,
             },
           }
-        : { ...p, [name]: value }
+        : { ...p, [name]: safeVal }
     );
   }
-  const totalSum = useMemo(
-    () =>
-      SumEachRowTotal(qts_componants, detailsTemp.v, detailsTemp.loop_count),
-    [qts_componants, detailsTemp.v, detailsTemp.loop_count]
+  const { unit_price, total_price, unit_vat, total_vat } = useMemo(
+    () => SumsEachQuot(qts_componants, detailsTemp),
+    [qts_componants, detailsTemp]
   );
-
-  const { unit_price, total_price, unit_vat, total_vat } = useMemo(() => {
-    const unitCount = detailsTemp.unit_count || 1;
-    const profit = detailsTemp.profit || 0;
-    const base = totalSum + profit;
-    const unit = +(base / unitCount).toFixed(2);
-    const total = +(unit * unitCount).toFixed(2);
-    const vatRate = 1.18;
-
-    return {
-      unit_price: unit,
-      total_price: total,
-      unit_vat: +(unit * vatRate).toFixed(2),
-      total_vat: +(total * vatRate).toFixed(2),
-    };
-  }, [totalSum, detailsTemp.profit, detailsTemp.unit_count]);
 
   useEffect(() => {
     setDetailsTemp(detailsDB);
+    setIsDirty(false);
   }, [detailsDB]);
 
   function onSubmit(e) {
@@ -71,7 +64,16 @@ function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: isDirty && "azure" }}>
+      {`Quotation ${displayID}_${detailsTemp.cus_id_each || loopIndex + 1}`}
+      {!loading && (
+        <input
+          type="text"
+          style={{ width: "2%", marginLeft: "2%" }}
+          name="cus_id_each"
+          onChange={strChanged}
+        />
+      )}
       <br />
       <br />
       <form onSubmit={onSubmit}>
@@ -162,10 +164,9 @@ function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
           </div>
         ))}
         <br />
-        <br />
         <h5 style={{ display: "inline-block", marginRight: "3%" }}>
-          Total Cost: {toLKR(totalSum)}
-        </h5>{" "}
+          Total Cost: {toLKR(total_price)}
+        </h5>
         <Num
           name={"profit"}
           setTo={detailsTemp.profit || 0}
@@ -176,12 +177,12 @@ function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
         <b>||</b>
         <Num
           name={"profit"}
-          setTo={(detailsTemp.profit / totalSum) * 100 || 0}
+          setTo={(detailsTemp.profit / total_price) * 100 || 0}
           width={70}
           deci={2}
           changed={(e) => {
             const percent = Number(e.target.value);
-            const profit = (totalSum / 100) * percent;
+            const profit = (total_price / 100) * percent;
             NumChanged({
               target: {
                 name: "profit",
@@ -191,7 +192,7 @@ function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
           }}
         />
         <b>%</b>
-        <h3>
+        <h4>
           <small>
             <small> Total Price: </small>{" "}
           </small>
@@ -208,7 +209,7 @@ function JobDiv2({ qts_componants, detailsDB, handleSubmit, allPapers }) {
             <small> Unit +VAT: </small>
           </small>
           {toLKR(unit_vat)}
-        </h3>
+        </h4>
         <button type="submit" disabled={!isDirty}>
           Update
         </button>

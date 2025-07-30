@@ -17,6 +17,7 @@ export default function JobDiv1({
     const { name, value } = e.target;
     setDetails((p) => ({ ...p, [name]: Number(value) }));
   }
+
   return (
     <div>
       <form onSubmit={handleSubmit}>

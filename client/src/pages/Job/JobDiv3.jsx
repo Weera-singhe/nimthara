@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
-import Num from "../../elements/NumInput";
+import React from "react";
+//import React, { useState, useEffect } from "react";
+//import Num from "../../elements/NumInput";
 import { toLKR } from "../../elements/cal";
+//import JobDiv2 from "./JobDiv2";
 
 export default function JobDiv3({
   allUsernames,
@@ -8,13 +10,18 @@ export default function JobDiv3({
   detailsDiv2,
   allTotalPrices,
   displayID,
+  //handleSubmit,
 }) {
-  const [div2DataTemp, setDiv2DataTemp] = useState(detailsDiv2);
+  //const [div2DataTemp, setDiv2DataTemp] = useState(detailsDiv2);
 
-  function NumChanged(e, i) {
-    const { name, value } = e.target;
-    setDiv2DataTemp((p) => ({ ...p, [i]: { ...p[i], [name]: Number(value) } }));
-  }
+  // function NumChanged(e, i) {
+  //   const { name, value } = e.target;
+  //   setDiv2DataTemp((p) => ({ ...p, [i]: { ...p[i], [name]: Number(value) } }));
+  // }
+
+  // useEffect(() => {
+  //   setDiv2DataTemp(detailsDiv2);
+  // }, [detailsDiv2]);
 
   return (
     <>
@@ -34,7 +41,7 @@ export default function JobDiv3({
         <ul>
           {detailsDiv2.map((j, i) => (
             <li key={j.id_each}>
-              {`# ${displayID}_${i + 1} : `}
+              {`# ${displayID}_${detailsDiv2[i].cus_id_each || i + 1} : `}
               {j.deployed ? (
                 <>
                   <span>
@@ -52,16 +59,41 @@ export default function JobDiv3({
                 </small>
               )}
               <ul>
-                <li>
-                  {j.deployed ? (
-                    <>
-                      {toLKR(allTotalPrices[i])}{" "}
+                {j.deployed ? (
+                  <>
+                    <li>
+                      <small>
+                        <label>Total : </label>
+                      </small>
+                      {toLKR(allTotalPrices[i]?.total_price)}
                       <small style={{ marginLeft: "2%" }}>
+                        <label>Total +VAT : </label>
+                      </small>
+                      {toLKR(allTotalPrices[i]?.total_vat)}
+                    </li>
+
+                    <li>
+                      <small style={{ color: "darkblue" }}>
+                        <label>Units :</label>
+                      </small>
+                      <b style={{ color: "darkblue" }}>
+                        {detailsDiv2[i].unit_count.toLocaleString()}
+                      </b>
+                      <small style={{ marginLeft: "2%" }}>
+                        <label>Unit : </label>
+                      </small>
+                      {toLKR(allTotalPrices[i]?.unit_price)}
+                      <small style={{ marginLeft: "2%" }}>
+                        <label>Unit +VAT : </label>
+                      </small>
+                      {toLKR(allTotalPrices[i]?.unit_vat)}
+
+                      {/* <small style={{ marginLeft: "4%" }}>
                         <label>units : </label>
                         <Num
                           name={"unit_count"}
                           min={1}
-                          setTo={detailsDiv2[i].unit_count}
+                          setTo={detailsDiv2[i]?.unit_count}
                           changed={(e) => NumChanged(e, i)}
                           width={100}
                           deci={0}
@@ -69,15 +101,37 @@ export default function JobDiv3({
                         <button
                           disabled={
                             detailsDiv2[i].unit_count ===
-                            div2DataTemp[i].unit_count
+                            div2DataTemp[i]?.unit_count
                           }
+                          onClick={(e) => handleSubmit(e, div2DataTemp[i])}
                         >
                           save
                         </button>
-                      </small>
-                    </>
-                  ) : null}
-                </li>
+                        {detailsDiv2[i].unit_count !==
+                          div2DataTemp[i]?.unit_count && (
+                          <>
+                            <small style={{ marginLeft: "1%" }}>
+                              <label>Unit : </label>
+                            </small>
+                            {toLKR(
+                              allTotalPrices[i]?.total_price /
+                                div2DataTemp[i]?.unit_count
+                            )}
+                            <small style={{ marginLeft: "1%" }}>
+                              <label>Unit +VAT : </label>
+                            </small>
+                            {toLKR(
+                              allTotalPrices[i]?.total_vat /
+                                div2DataTemp[i]?.unit_count
+                            )}
+                          </>
+                        )}
+                      </small> */}
+                    </li>
+                  </>
+                ) : (
+                  <li></li>
+                )}
               </ul>
               <br />
             </li>
