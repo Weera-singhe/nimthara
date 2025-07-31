@@ -25,12 +25,12 @@ export default function Job({ user }) {
   const [savedJobsDB, setSavedJobs] = useState();
 
   const [div1DataTemp, setDiv1DataTemp] = useState(defDiv1);
-  const [div1dataDB, setDiv1DataDB] = useState(defDiv1);
+  const [div1DataDB, setDiv1DataDB] = useState(defDiv1);
 
   const [div2DataDB, setDiv2DataDB] = useState([]);
 
-  const [div1Loading, isDiv1Loading] = useState(true);
-  const [div2Loading, isDiv2Loading] = useState(true);
+  const [loadingMainJ, isLoadingMainJ] = useState(true);
+  const [loadingEachJ, isLoadingEachJ] = useState(true);
 
   const [allCustomers, loadAllCustomers] = useState([]);
   const [qtsComponants, setQtsComponants] = useState([]);
@@ -81,8 +81,8 @@ export default function Job({ user }) {
     } catch (err) {
       console.error("Failed to load job or customer data:", err);
     } finally {
-      isDiv1Loading(false);
-      isDiv2Loading(false);
+      isLoadingMainJ(false);
+      isLoadingEachJ(false);
     }
   }, [id]);
 
@@ -91,26 +91,26 @@ export default function Job({ user }) {
   }, [fetchData]);
 
   useEffect(() => {
-    console.log(div2DataDB);
-  }, [div2DataDB]);
+    console.log(div1DataDB);
+  }, [div1DataDB]);
 
   function handleSubmitDiv1(e) {
     e.preventDefault();
-    isDiv1Loading(true);
-    isDiv2Loading(true);
-
+    isLoadingMainJ(true);
+    isLoadingEachJ(true);
+    //userid always send to backend. only there is no id(add nw job) it uses
     const exprt = { ...div1DataTemp, user_id: user.id, ...(id && { id }) };
 
     axios
       .post(`${JOBS_API_URL}/div1`, exprt)
-      .then((res) => navigate(`/jobs/${res.data.load_this_id}`))
+      .then((res) => navigate(`/jobs/${res.data.load_this_id}`)) //when add new job
       .catch((err) => alert("Error: " + err))
-      .finally(() => fetchData());
+      .finally(() => fetchData()); //still fetch when update existing job
   }
 
   function handleSubmitDiv2(e, exprt) {
     e.preventDefault();
-    isDiv2Loading(true);
+    isLoadingEachJ(true);
 
     const isDeploy = e.submitter?.name === "dep";
     const updatedExprt = {
@@ -128,24 +128,38 @@ export default function Job({ user }) {
         );
       })
       .catch((err) => alert("Error: " + err))
-      .finally(() => isDiv2Loading(false));
+      .finally(() => isLoadingEachJ(false));
   }
+  function handleSubmitDiv3(e, exprt) {
+    e.preventDefault();
+    isLoadingMainJ(true);
+    isLoadingEachJ(true);
 
+    axios
+      .post(`${JOBS_API_URL}/div1`, exprt) //problamatic
+      .then((res) => {
+        console.log(res.data);
+      })
+      .finally(() => {
+        isLoadingMainJ(false);
+        isLoadingEachJ(false);
+      });
+  }
   const allTotalPrices = useMemo(() => {
     return div2DataDB.map((d2) => SumsEachQuot(qtsComponants, d2));
   }, [div2DataDB, qtsComponants]);
 
   //displayID
   const displayID =
-    div1dataDB.created_at && id
-      ? `${div1dataDB.created_at}_${id.toString().padStart(4, "0")}`
+    div1DataDB.created_at && id
+      ? `${div1DataDB.created_at}_${id.toString().padStart(4, "0")}`
       : "loading...";
 
   const submit1Disabled =
-    JSON.stringify(div1DataTemp) === JSON.stringify(div1dataDB) ||
+    JSON.stringify(div1DataTemp) === JSON.stringify(div1DataDB) ||
     (id ? user.level_jobs < 3 : user.level_jobs < 2) ||
-    div1Loading ||
-    div2Loading ||
+    loadingMainJ ||
+    loadingEachJ ||
     !div1DataTemp.customer ||
     !div1DataTemp.deadline;
 
@@ -159,7 +173,7 @@ export default function Job({ user }) {
 
       {/*DIV_1_/////////////////////////*/}
       <div className="framed">
-        {div1Loading ? (
+        {loadingMainJ ? (
           "loading..."
         ) : (
           <>
@@ -186,7 +200,7 @@ export default function Job({ user }) {
       {id && (
         <div className="framed">
           <h3>Related Documents</h3>{" "}
-          {div1Loading || div2Loading ? (
+          {loadingMainJ || loadingEachJ ? (
             "loading..."
           ) : (
             <Docs
@@ -218,11 +232,11 @@ export default function Job({ user }) {
       {/*DIV_2_/////////////////////////*/}
       {id &&
         showQTS &&
-        Array.from({ length: div1dataDB.total_jobs }, (_, loopIndex) => (
+        Array.from({ length: div1DataDB.total_jobs }, (_, loopIndex) => (
           <div key={loopIndex} className="framed">
             <>
-              {div2Loading && "loading..."}
-              <div style={{ display: div2Loading ? "none" : "block" }}>
+              {loadingEachJ && "loading..."}
+              <div style={{ display: loadingEachJ ? "none" : "block" }}>
                 <JobDiv2
                   qts_componants={qtsComponants || []}
                   detailsDB={div2DataDB[loopIndex] || []}
@@ -230,7 +244,7 @@ export default function Job({ user }) {
                   handleSubmit={handleSubmitDiv2}
                   displayID={displayID}
                   loopIndex={loopIndex}
-                  loading={div2Loading}
+                  loading={loadingEachJ}
                 />
               </div>
             </>
@@ -240,12 +254,12 @@ export default function Job({ user }) {
       {id && (
         <div className="framed">
           <h3>Job Status ...</h3>
-          {div2Loading && "loading..."}
-          <div style={{ display: div2Loading ? "none" : "block" }}>
+          {loadingEachJ && "loading..."}
+          <div style={{ display: loadingEachJ ? "none" : "block" }}>
             <JobDiv3
               allUsernames={allUsernames || []}
-              detailsDiv1={div1dataDB || {}}
-              detailsDiv2={div2DataDB || {}}
+              div1DataDB={div1DataDB || {}}
+              div2DataDB={div2DataDB || {}}
               allTotalPrices={allTotalPrices || {}}
               displayID={displayID}
               handleSubmit={handleSubmitDiv2}

@@ -3,32 +3,27 @@ import Num from "../elements/NumInput";
 import axios from "axios";
 import { Price_API_URL, ADD_Price_API_URL } from "../api/urls";
 import { useLocation } from "react-router-dom";
+import { toLKR } from "../elements/cal";
 
 export default function Price({ user }) {
-  const [newRec, setNewRec] = useState({ id: "", from: "", price: 0 });
-  const [loadedPapers, loadPapers] = useState([]);
+  const [newRecForm, setNewRecForm] = useState({ id: "", from: "", price: 0 });
+  const [allPapersData, setAllPapersData] = useState([]);
   const [selectedRecs, setSelectedRecs] = useState([]);
-  const [selectedUnits, setSelectedUnits] = useState([]);
-  const [serverLoading, isSeverLoading] = useState(false);
+  const [serverLoading, isSeverLoading] = useState(true);
 
   const location = useLocation();
 
   const changedNum = ({ target: { name, value } }) =>
-    setNewRec((p) => ({ ...p, [name]: Number(value) }));
+    setNewRecForm((p) => ({ ...p, [name]: Number(value) }));
   const changedStr = ({ target: { name, value } }) =>
-    setNewRec((p) => ({ ...p, [name]: value.trim() }));
-  //const changedCheck = ({ target: { name, checked } }) =>
-  // setNewRec((p) => ({ ...p, [name]: checked }));
+    setNewRecForm((p) => ({ ...p, [name]: value.trim() }));
 
   const changeSelected = (id) => {
     isSeverLoading(true);
-    const paper = loadedPapers.find((p) => p.id === id);
-
     axios
       .get(`${Price_API_URL}?id=${id}`)
       .then((res) => {
         setSelectedRecs(res.data.recs);
-        setSelectedUnits(paper ? paper.unit_val + " " + paper.unit : "");
       })
       .finally(() => isSeverLoading(false));
   };
@@ -38,90 +33,101 @@ export default function Price({ user }) {
     isSeverLoading(true);
 
     if (!user.loggedIn) return (window.location.href = "/login");
+    if (user.level_paper < 2) return (window.location.href = "/");
 
     axios
-      .post(ADD_Price_API_URL, newRec)
+      .post(ADD_Price_API_URL, newRecForm)
       .then((res) => {
         setSelectedRecs(res.data.recs);
-        setNewRec((p) => ({ ...p, price: 0 }));
+        setNewRecForm((p) => ({ ...p, price: 0 }));
       })
       .finally(() => isSeverLoading(false));
   };
 
   useEffect(() => {
-    axios.get(Price_API_URL).then((res) => {
-      loadPapers(res.data.eachpaper);
-      const id = new URLSearchParams(location.search).get("id");
-      if (id) {
-        setNewRec((p) => ({ ...p, id }));
-        changeSelected(id);
-      } else {
-        isSeverLoading(false);
-      }
-    });
+    axios
+      .get(Price_API_URL)
+      .then((res) => {
+        setAllPapersData(res.data.eachpaper);
+      })
+      .finally(() => {
+        const id = new URLSearchParams(location.search).get("id");
+        const safeID = Number(id);
+        if (id) {
+          setNewRecForm((p) => ({ ...p, id: safeID }));
+          changeSelected(safeID);
+        } else {
+          isSeverLoading(false);
+        }
+      });
   }, [location.search]);
 
-  const fromDate = new Date(newRec.from);
+  const fromDate = new Date(newRecForm.from);
   const disableBtn =
-    serverLoading ||
-    !newRec.id ||
-    !newRec.price ||
+    !user.loggedIn ||
+    user.level_paper < 2 ||
+    !newRecForm.id ||
+    !newRecForm.price ||
     isNaN(fromDate) ||
     fromDate.getFullYear() < 2020;
 
   return (
     <>
       <div className="new-division">
-        <div className="boxyy book">
-          <form onSubmit={newPriceRecord}>
-            <select
-              name="id"
-              value={newRec.id}
-              onChange={(e) => {
-                changedStr(e);
-                changeSelected(e.target.value);
-              }}
-            >
-              <option></option>
-              {loadedPapers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <label>effects from : </label>
-            <input name="from" type="datetime-local" onChange={changedStr} />
-            LKR{" "}
-            <Num
-              width={100}
-              name="price"
-              changed={changedNum}
-              min={0}
-              max={500000}
-              deci={2}
-              setTo={newRec.price}
-            />
-            <button
-              disabled={disableBtn}
-              type="submit"
-              style={{ marginLeft: "1em" }}
-            >
-              Add New Price Record
-            </button>
-            <b> {selectedUnits}</b>
-          </form>
+        <div className="formbox">
+          {serverLoading ? (
+            "loading..........."
+          ) : (
+            <form onSubmit={newPriceRecord}>
+              <select
+                name="id"
+                value={newRecForm.id}
+                onChange={(e) => {
+                  changedNum(e);
+                  changeSelected(Number(e.target.value));
+                }}
+              >
+                <option></option>
+                {allPapersData.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {`  ${p.name} - ${p.unit_val}${
+                      p.unit === "sheets" && p.unit_val === 1 ? "sheet" : p.unit
+                    }  `}
+                  </option> //if one sheet,many sheets
+                ))}
+              </select>
+              <span className="gap3"></span>
+              <label>effects from : </label>
+              <input name="from" type="datetime-local" onChange={changedStr} />
+
+              <span className="gap3">LKR </span>
+              <Num
+                width={100}
+                name="price"
+                changed={changedNum}
+                min={0}
+                max={500000}
+                deci={2}
+                setTo={newRecForm.price}
+              />
+              <span className="gap3"></span>
+              <button
+                disabled={disableBtn}
+                type="submit"
+                style={{ marginLeft: "1em" }}
+              >
+                Add New Price Record
+              </button>
+            </form>
+          )}
         </div>
       </div>
       <ul>
-        {selectedRecs.map((r, i) => (
-          <li key={i}>
-            {r.date_} ={" "}
-            {r.price.toLocaleString("en-LK", {
-              style: "currency",
-              currency: "LKR",
-            })}
-          </li>
-        ))}
+        {serverLoading
+          ? "loading..."
+          : selectedRecs.map((r, i) => (
+              <li key={i}>{`${r.date_} = ${toLKR(r.price)}`}</li>
+            ))}
       </ul>
     </>
   );

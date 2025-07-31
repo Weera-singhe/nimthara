@@ -1,55 +1,60 @@
-import React from "react";
-//import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 //import Num from "../../elements/NumInput";
 import { toLKR } from "../../elements/cal";
-//import JobDiv2 from "./JobDiv2";
 
 export default function JobDiv3({
   allUsernames,
-  detailsDiv1,
-  detailsDiv2,
+  div1DataDB,
+  div2DataDB,
   allTotalPrices,
   displayID,
-  //handleSubmit,
 }) {
-  //const [div2DataTemp, setDiv2DataTemp] = useState(detailsDiv2);
+  const [div1DataTemp, setDiv1DataTemp] = useState(div1DataDB);
 
-  // function NumChanged(e, i) {
-  //   const { name, value } = e.target;
-  //   setDiv2DataTemp((p) => ({ ...p, [i]: { ...p[i], [name]: Number(value) } }));
-  // }
+  useEffect(() => {
+    setDiv1DataTemp(div1DataDB);
+  }, [div1DataDB]);
 
-  // useEffect(() => {
-  //   setDiv2DataTemp(detailsDiv2);
-  // }, [detailsDiv2]);
-
+  function strChanged(e) {
+    const { name, value } = e.target;
+    setDiv1DataTemp((p) => ({ ...p, [name]: value }));
+  }
+  function NumChanged(e) {
+    const { name, value } = e.target;
+    setDiv1DataTemp((p) => ({ ...p, [name]: Number(value) }));
+  }
+  const submitByDis =
+    JSON.stringify(div1DataTemp) === JSON.stringify(div1DataDB) ||
+    div1DataTemp.submit_method === 0 ||
+    !(div1DataTemp.submit_note1 || "").trim() ||
+    !(div1DataTemp.submit_note2 || "").trim();
   return (
     <>
       <li>
-        System Submission - Done
+        Job ID :<b> {displayID}</b>
         <ul>
           <li>
-            <small>{`Submitted by : ${
-              allUsernames[detailsDiv1.created_by] || "?"
-            } on ${detailsDiv1.created_at_ || "?"}`}</small>
+            <small>{`Created by : ${
+              allUsernames[div1DataDB?.created_by] || "?"
+            } on ${div1DataDB?.created_at_ || "?"}`}</small>
           </li>
         </ul>
       </li>
       <li>
-        Estimation - {detailsDiv2.filter((j) => j.deployed).length} /{" "}
-        {detailsDiv1.total_jobs}
+        Estimation - {div2DataDB.filter((j) => j.deployed).length} /{" "}
+        {div1DataDB?.total_jobs}
         <ul>
-          {detailsDiv2.map((j, i) => (
+          {div2DataDB.map((j, i) => (
             <li key={j.id_each}>
-              {`# ${displayID}_${detailsDiv2[i].cus_id_each || i + 1} : `}
+              {`# ${displayID}_${div2DataDB[i].cus_id_each || i + 1} : `}
               {j.deployed ? (
                 <>
                   <span>
                     <small>
-                      <b style={{ color: "green" }}>Submitted. </b>
+                      <b style={{ color: "green" }}>Deployed. </b>
                       {` ( last edit by : ${
-                        allUsernames[j.last_edit_by] || "loading..."
-                      } on ${j.last_edit_at_ || "loading..."} )`}
+                        allUsernames[j.last_qt_edit_by] || "loading..."
+                      } on ${j.last_qt_edit_at_ || "loading..."} )`}
                     </small>
                   </span>
                 </>
@@ -77,7 +82,7 @@ export default function JobDiv3({
                         <label>Units :</label>
                       </small>
                       <b style={{ color: "darkblue" }}>
-                        {detailsDiv2[i].unit_count.toLocaleString()}
+                        {div2DataDB[i].unit_count.toLocaleString()}
                       </b>
                       <small style={{ marginLeft: "2%" }}>
                         <label>Unit : </label>
@@ -87,46 +92,6 @@ export default function JobDiv3({
                         <label>Unit +VAT : </label>
                       </small>
                       {toLKR(allTotalPrices[i]?.unit_vat)}
-
-                      {/* <small style={{ marginLeft: "4%" }}>
-                        <label>units : </label>
-                        <Num
-                          name={"unit_count"}
-                          min={1}
-                          setTo={detailsDiv2[i]?.unit_count}
-                          changed={(e) => NumChanged(e, i)}
-                          width={100}
-                          deci={0}
-                        />
-                        <button
-                          disabled={
-                            detailsDiv2[i].unit_count ===
-                            div2DataTemp[i]?.unit_count
-                          }
-                          onClick={(e) => handleSubmit(e, div2DataTemp[i])}
-                        >
-                          save
-                        </button>
-                        {detailsDiv2[i].unit_count !==
-                          div2DataTemp[i]?.unit_count && (
-                          <>
-                            <small style={{ marginLeft: "1%" }}>
-                              <label>Unit : </label>
-                            </small>
-                            {toLKR(
-                              allTotalPrices[i]?.total_price /
-                                div2DataTemp[i]?.unit_count
-                            )}
-                            <small style={{ marginLeft: "1%" }}>
-                              <label>Unit +VAT : </label>
-                            </small>
-                            {toLKR(
-                              allTotalPrices[i]?.total_vat /
-                                div2DataTemp[i]?.unit_count
-                            )}
-                          </>
-                        )}
-                      </small> */}
                     </li>
                   </>
                 ) : (
@@ -140,13 +105,31 @@ export default function JobDiv3({
       </li>
 
       <li>
-        Submitted To Customer
-        <select>
-          <option value="email">emailed</option>
-          <option value="post">posted</option>
-          <option value="deliver">delivered</option>
+        {`Submit by : `}
+        <select
+          name="submit_method"
+          onChange={NumChanged}
+          value={div1DataTemp.submit_method || 0}
+        >
+          <option value={0}></option>
+          <option value={1}>email</option>
+          <option value={2}>deliver</option>
+          <option value={3}>post</option>
         </select>
-        <input type="text"></input>
+        <input
+          type="text"
+          name="submit_note1"
+          onChange={strChanged}
+          value={div1DataTemp.submit_note1 || ""}
+          style={{ width: "30%" }}
+        ></input>{" "}
+        <input
+          type="text"
+          name="submit_note2"
+          onChange={strChanged}
+          value={div1DataTemp.submit_note2 || ""}
+        ></input>
+        {!submitByDis && <button>save</button>}
       </li>
       <li>Results</li>
       <li>PO Recieved</li>

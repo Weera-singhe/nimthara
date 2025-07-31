@@ -143,7 +143,6 @@ function JobDiv2({
                   <JobDiv2Mid
                     name={`${comp.name}_${compRepeated_i}`}
                     changed={(e) => NumChanged(e, "v")}
-                    changedStr={(e) => strChanged(e, "v")}
                     v={detailsTemp.v}
                     compID={comp.name}
                     allPapers={allPapers}

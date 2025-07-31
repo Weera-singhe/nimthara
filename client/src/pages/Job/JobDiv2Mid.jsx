@@ -2,14 +2,7 @@ import React from "react";
 import Num from "../../elements/NumInput";
 import { toLKR } from "../../elements/cal";
 
-export default function JobDiv2Mid({
-  name,
-  changed,
-  changedStr,
-  v,
-  compID,
-  allPapers,
-}) {
+export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
   return (
     <>
       {(compID === "Artwork" || compID === "Delivery") && (
@@ -79,7 +72,7 @@ export default function JobDiv2Mid({
               <select
                 name={name + "_0"}
                 value={v?.[name + "_0"]}
-                onChange={changedStr}
+                onChange={changed}
                 style={{ width: "30%", fontSize: "smaller" }}
               >
                 <option value={0}></option>

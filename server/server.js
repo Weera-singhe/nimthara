@@ -58,33 +58,36 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-function GetSpecsEachPaper() {
-  return pool
-    .query(
-      `SELECT id, CONCAT(p_type, ' ', gsm, 'gsm ', size_h, 'x', size_w, ' ', p_brand, ' ', p_color) AS name,
-      p_unit AS unit, unit_val FROM paper_specs_ ORDER BY id ASC;`
-    )
-    .then((result) => result.rows);
-}
-function GetAllSpecs() {
-  return pool
-    .query(
-      `WITH type_list AS (SELECT p_type, MIN(id) AS min_id FROM paper_specs WHERE p_type IS NOT NULL GROUP BY p_type),
-      color_list AS (SELECT p_color, MIN(id) AS min_id FROM paper_specs WHERE p_color IS NOT NULL GROUP BY p_color)
-      SELECT json_build_object(
-      'types',  (SELECT array_agg(p_type ORDER BY min_id) FROM type_list),
-      'colors', (SELECT array_agg(p_color ORDER BY min_id) FROM color_list),
-      'brands', (SELECT array_agg(DISTINCT p_brand ORDER BY p_brand)FROM paper_specs WHERE p_brand IS NOT NULL),
-      'brand_ids', (SELECT array_agg(id ORDER BY p_brand)FROM paper_specs WHERE p_brand IS NOT NULL),
-      'units', (SELECT array_agg(DISTINCT p_unit ORDER BY p_unit) FROM paper_specs WHERE p_unit IS NOT NULL)) AS result`
-    )
-    .then((res) => res.rows[0].result);
+async function GetAllPaperSpecs() {
+  const p_brand = await pool.query(`
+    SELECT id, COALESCE(p_brand, '') AS name FROM paper_specs
+    WHERE p_brand IS NOT NULL ORDER BY p_brand COLLATE "C"`);
+  const p_type = await pool.query(`
+    SELECT id, COALESCE(p_type, '') AS name FROM paper_specs
+    WHERE p_type IS NOT NULL ORDER BY id`);
+  const p_color = await pool.query(`
+    SELECT id, COALESCE(p_color, '') AS name FROM paper_specs
+    WHERE p_color IS NOT NULL ORDER BY id`);
+  const p_unit = await pool.query(`
+    SELECT id, COALESCE(p_unit, '') AS name FROM paper_specs
+    WHERE p_unit IS NOT NULL ORDER BY id`);
+  const p_den_unit = await pool.query(`
+    SELECT id, COALESCE(p_den_unit, '') AS name FROM paper_specs
+    WHERE p_den_unit IS NOT NULL ORDER BY id`);
+
+  return {
+    brands: p_brand.rows,
+    types: p_type.rows,
+    colors: p_color.rows,
+    units: p_unit.rows,
+    den_unit: p_den_unit.rows,
+  };
 }
 
 function GetPrices(id) {
   return pool
     .query(
-      `SELECT TO_CHAR(date, 'YYYY-MM-DD') AS date_ , price FROM paper_price WHERE price_id = $1 ORDER BY date DESC`,
+      `SELECT TO_CHAR(date, 'YYYY-MM-DD') AS date_ , price FROM paper_price WHERE paper_id = $1 ORDER BY date DESC`,
       [id]
     )
     .then((result) => {
@@ -92,18 +95,9 @@ function GetPrices(id) {
     });
 }
 
-function GetLatestPrice() {
-  return pool
-    .query(
-      `SELECT (SELECT price FROM paper_price pp WHERE pp.price_id = p.id
-     ORDER BY date DESC, price_rec DESC LIMIT 1) AS price FROM papers p ORDER BY p.id;`
-    )
-    .then((result) => result.rows.map((i) => i.price));
-}
-
 async function GetDatePrice(id, date) {
   const result = await pool.query(
-    `SELECT price FROM paper_price WHERE price_id = $1
+    `SELECT price FROM paper_price WHERE paper_id = $1
      AND date <= $2 ORDER BY date DESC, price_rec DESC LIMIT 1`,
     [id, date]
   );
@@ -137,26 +131,14 @@ function GetClients() {
       return result.rows;
     });
 }
-
-async function GetEachNLatestP() {
-  const eachPaper = await GetSpecsEachPaper();
-  const latestPrices = await GetLatestPrice();
-
-  return eachPaper.map((p, i) => ({
-    ...p,
-    latest_price: latestPrices[i] ?? 0,
-  }));
+// id, name, unit,unit_val, latest_price,
+async function GetPapersFullData() {
+  const specs = await pool.query(`
+    SELECT id, CONCAT(p_type, ' ', den,p_den_unit,' ', size_h, 'x', size_w,
+    ' ', p_brand, ' ', p_color) AS name,
+    p_unit AS unit, unit_val,latest_price FROM paper_specs_`);
+  return specs.rows;
 }
-
-//OTHER FUNCTIONS      ////////////////////////////////////////
-
-function getDateYYMMDD() {
-  const d = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
-  );
-  return d.toISOString().slice(2, 10).replace(/-/g, "");
-}
-
 //HOME      ////////////////////////////////////////////////////
 
 app.get("/", async (req, res) => {
@@ -176,10 +158,9 @@ app.get("/", async (req, res) => {
 
 app.get("/papers", async (req, res) => {
   try {
-    const papers = await GetEachNLatestP();
-    const data = await GetAllSpecs();
-
-    res.json({ papers, data });
+    const specs = await GetAllPaperSpecs();
+    const papers = await GetPapersFullData();
+    res.json({ papers, specs });
   } catch (err) {
     console.error("Error fetching papers:", err);
     res.status(500).json({ error: "Failed to fetch papers" });
@@ -187,23 +168,28 @@ app.get("/papers", async (req, res) => {
 });
 
 app.post("/add_new_paper", async (req, res) => {
-  const { brand_, color_, gsm, id, size_h, size_w, type_, unit_, unit_val } =
-    req.body;
+  const {
+    brand_,
+    color_,
+    den_,
+    size_h,
+    size_w,
+    type_,
+    unit_,
+    unit_val,
+    den_unit,
+  } = req.body;
   try {
-    await pool.query("INSERT INTO papers VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)", [
-      id,
-      type_,
-      color_,
-      gsm,
-      size_h,
-      size_w,
-      brand_,
-      unit_val,
-      unit_,
-    ]);
+    await pool.query(
+      `INSERT INTO papers 
+      (type_, color_, den, size_h, size_w, brand_, unit_val, unit_, den_unit_)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [type_, color_, den_, size_h, size_w, brand_, unit_val, unit_, den_unit]
+    );
 
-    const papers = await GetEachNLatestP();
+    const papers = await GetPapersFullData();
     res.status(201).json({ success: true, papers });
+    console.log(req.body);
   } catch (err) {
     console.error("DB Error:", err.message);
     if (err.code === "23505") {
@@ -242,7 +228,7 @@ app.get("/jobs/:id", async (req, res) => {
     }
 
     //   continue if no a add ...........
-    //
+    //main job data
     const {
       rows: [mainJobData],
     } = await pool.query(
@@ -250,9 +236,9 @@ app.get("/jobs/:id", async (req, res) => {
       TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs WHERE id = $1`,
       [id]
     );
-    //
+    //saved job data
     const { rows: getSavedJobs } = await pool.query(
-      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
+      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
       [id]
     );
     const savedEachJob = getSavedJobs.map((row) => ({
@@ -260,7 +246,7 @@ app.get("/jobs/:id", async (req, res) => {
       profit: Number(row.profit) || 0,
     }));
 
-    //
+    //qts componants
     const getQtsComp = await pool.query(
       `SELECT * FROM jobs_qts ORDER BY id ASC `
     );
@@ -289,14 +275,15 @@ app.get("/jobs/:id", async (req, res) => {
     }
     const qtsDefsEachJob = { loop_count, v, notes_other };
 
-    //
+    //user names
     const usernames = (
       await pool.query(
         `SELECT INITCAP(username) AS username FROM users ORDER BY id ASC`
       )
     ).rows.map((r) => r.username);
-    //
-    const allPapers = await GetEachNLatestP();
+    //all paper data
+    const allPapers = await GetPapersFullData();
+    console.log(allPapers);
 
     ////////
     res.json({
@@ -366,15 +353,15 @@ app.post("/jobs/div2", async (req, res) => {
            v = $4,
            notes_other = $5,
            profit = $6,
-           last_edit_by = $7,
-           last_edit_at = NOW(),
+           last_qt_edit_by = $7,
+           last_qt_edit_at = NOW(),
            deployed = $8,
            cus_id_each=$9
        WHERE id_main = $10 AND id_each = $11
        RETURNING 
          *,
          TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
-         TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_`,
+         TO_CHAR(last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_`,
       [
         item_count,
         unit_count,
@@ -397,13 +384,13 @@ app.post("/jobs/div2", async (req, res) => {
         `INSERT INTO jobs_each (
             id_main, id_each, item_count, unit_count,
             loop_count, v, notes_other, profit,
-            created_by, last_edit_by, last_edit_at,cus_id_each
+            created_by, last_qt_edit_by, last_qt_edit_at,cus_id_each
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, NOW(),$10)
          RETURNING 
            *,
            TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
-           TO_CHAR(last_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_edit_at_`,
+           TO_CHAR(last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_`,
         [
           id_main,
           id_each,
@@ -439,7 +426,7 @@ app.post("/jobs/div2", async (req, res) => {
 
 app.get("/price", async (req, res) => {
   try {
-    const eachpaper = await GetSpecsEachPaper();
+    const eachpaper = await GetPapersFullData();
     const id = req.query.id;
     const recs = await GetPrices(id);
     res.json({ eachpaper, recs });
@@ -453,7 +440,7 @@ app.post("/rec_new_price", async (req, res) => {
 
   try {
     await pool.query(
-      "INSERT INTO paper_price (price_id, date, price)VALUES ($1,$2,$3)",
+      "INSERT INTO paper_price (paper_id, date, price)VALUES ($1,$2,$3)",
       [id, from, +price]
     );
     const recs = await GetPrices(id);
@@ -471,7 +458,7 @@ app.get("/stock", async (req, res) => {
     const { id, date } = req.query;
 
     const recs = await GetStocks(id);
-    const papers = await GetEachNLatestP();
+    const papers = await GetPapersFullData();
     const c = await GetClients();
     const booksResult = await pool.query("SELECT * FROM gts_books ORDER by id");
     const books = booksResult.rows;
@@ -752,7 +739,6 @@ app.delete("/upload/:encoded_id", async (req, res) => {
   }
 });
 
-//
 //PORT      ////////////////////////////////////////////////
 
 app.listen(port, () => {
