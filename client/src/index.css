@@ -85,8 +85,9 @@ nav a {
 }
 
 .framed input,
+.framed select,
 .framed .needgap {
-  margin-right: 2em;
+  margin-right: 3%;
 }
 
 .book {

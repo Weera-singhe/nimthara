@@ -118,7 +118,11 @@ function GetStocks(id) {
 function GetCustomers() {
   return pool
     .query(
-      "SELECT *, TO_CHAR(reg_till, 'YYYY-MM-DD') AS reg_till_ FROM customers ORDER BY customer_name ASC"
+      `SELECT 
+      *,
+      TO_CHAR(reg_till, 'YYYY-MM-DD') AS reg_till_
+      FROM customers
+      ORDER BY customer_name ASC`
     )
     .then((result) => {
       return result.rows;
@@ -207,7 +211,7 @@ app.post("/add_new_paper", async (req, res) => {
 app.get("/jobs", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT *,TO_CHAR(created_at, 'YYMMDD') AS created_at FROM jobs ORDER BY id DESC"
+      "SELECT *,TO_CHAR(created_at, 'YYMMDD') AS created_at FROM jobs WHERE private=false ORDER BY id DESC"
     );
     const jobs = result.rows;
     const cus = await GetCustomers();
@@ -232,13 +236,25 @@ app.get("/jobs/:id", async (req, res) => {
     const {
       rows: [mainJobData],
     } = await pool.query(
-      `SELECT *,TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,TO_CHAR(created_at, 'YYMMDD') AS created_at,
-      TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_ FROM jobs WHERE id = $1`,
+      `SELECT
+      *,
+      TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,
+      TO_CHAR(created_at, 'YYMMDD') AS created_at,
+      TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_
+      FROM jobs WHERE id = $1 AND private=false`,
       [id]
     );
     //saved job data
     const { rows: getSavedJobs } = await pool.query(
-      `SELECT *,TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,TO_CHAR(last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_ FROM jobs_each WHERE id_main = $1 ORDER BY id_each ASC`,
+      `
+      SELECT 
+      je.*,
+      TO_CHAR(je.created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
+      TO_CHAR(je.last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_
+      FROM jobs_each je
+      JOIN jobs j ON je.id_main = j.id
+      WHERE je.id_main = $1 AND j.private = false
+      ORDER BY je.id_each ASC`,
       [id]
     );
     const savedEachJob = getSavedJobs.map((row) => ({
@@ -283,7 +299,6 @@ app.get("/jobs/:id", async (req, res) => {
     ).rows.map((r) => r.username);
     //all paper data
     const allPapers = await GetPapersFullData();
-    console.log(allPapers);
 
     ////////
     res.json({
@@ -416,6 +431,34 @@ app.post("/jobs/div2", async (req, res) => {
     };
 
     res.status(200).json(safeResult);
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+
+app.post("/jobs/div3", async (req, res) => {
+  try {
+    const { submit_method, submit_note1, submit_note2, user_id, id, form } =
+      req.body;
+    console.log(req.body);
+    if (form === "form1") {
+      const upd = await pool.query(
+        `UPDATE jobs SET
+      submit_method = $1,
+      submit_note1 = $2,
+      submit_note2 = $3
+      WHERE id = $4 AND private=false
+      RETURNING
+       *,
+      TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,
+      TO_CHAR(created_at, 'YYMMDD') AS created_at,
+      TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_`,
+        [submit_method, submit_note1.trim(), submit_note2.trim(), id]
+      );
+      const updtd = upd.rows[0];
+      res.status(200).json(updtd);
+    }
   } catch (err) {
     console.error("DB Error:", err.message);
     res.status(500).send("Error saving job");
@@ -673,8 +716,8 @@ app.post("/upload/:id", upload.array("files"), async (req, res) => {
   const folderName = req.body.folder_name || "doc";
   const prefix = req.body.prefix + "_" || "";
 
-  console.log("Upload started:", { id, folderName, prefix });
-  console.log("Files received:", req.files);
+  //console.log("Upload started:", { id, folderName, prefix });
+  //console.log("Files received:", req.files);
 
   try {
     await Promise.all(

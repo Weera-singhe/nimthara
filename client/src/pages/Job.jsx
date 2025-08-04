@@ -91,8 +91,8 @@ export default function Job({ user }) {
   }, [fetchData]);
 
   useEffect(() => {
-    console.log(div1DataDB);
-  }, [div1DataDB]);
+    console.log("data from db : ", div2DataDB);
+  }, [div2DataDB]);
 
   function handleSubmitDiv1(e) {
     e.preventDefault();
@@ -121,25 +121,29 @@ export default function Job({ user }) {
 
     axios
       .post(`${JOBS_API_URL}/div2`, updatedExprt)
-      .then((res) => {
-        console.log(res.data);
+      .then((res) =>
         setDiv2DataDB((p) =>
           p.map((slot) => (slot.id_each === res.data.id_each ? res.data : slot))
-        );
-      })
+        )
+      )
       .catch((err) => alert("Error: " + err))
       .finally(() => isLoadingEachJ(false));
   }
-  function handleSubmitDiv3(e, exprt) {
-    e.preventDefault();
+
+  function handleSubmitDiv3(exprt, form) {
     isLoadingMainJ(true);
     isLoadingEachJ(true);
+    console.log(exprt, form);
+    const safeExport = { ...exprt, user_id: user.id, form };
 
     axios
-      .post(`${JOBS_API_URL}/div1`, exprt) //problamatic
+      .post(`${JOBS_API_URL}/div3`, safeExport)
       .then((res) => {
-        console.log(res.data);
+        setDiv1DataDB(res.data);
+        console.log("hey ", res.data);
       })
+      .catch((err) => alert("Error: " + err))
+      //.finally(() => fetchData()); reloads all
       .finally(() => {
         isLoadingMainJ(false);
         isLoadingEachJ(false);
@@ -158,6 +162,7 @@ export default function Job({ user }) {
   const submit1Disabled =
     JSON.stringify(div1DataTemp) === JSON.stringify(div1DataDB) ||
     (id ? user.level_jobs < 3 : user.level_jobs < 2) ||
+    !user.loggedIn ||
     loadingMainJ ||
     loadingEachJ ||
     !div1DataTemp.customer ||
@@ -186,7 +191,7 @@ export default function Job({ user }) {
               allCustomers={allCustomers}
               savedJobsDB={savedJobsDB || []}
             />
-            {!id && user.level_jobs >= 2 && (
+            {!id && !submit1Disabled && (
               <>
                 <br />
                 <span>
@@ -205,9 +210,9 @@ export default function Job({ user }) {
           ) : (
             <Docs
               id={id}
-              can_upload={user.level_jobs >= 2}
-              can_delete={user.level_jobs >= 3}
-              can_view={user.level_jobs >= 1}
+              can_upload={user.level_jobs >= 2 && user.loggedIn}
+              can_delete={user.level_jobs >= 3 && user.loggedIn}
+              can_view={user.level_jobs >= 1 && user.loggedIn}
               folder_name={"jobs"}
               prefix={displayID}
             />
@@ -218,10 +223,15 @@ export default function Job({ user }) {
       {id && (
         <div className="framed" style={{ width: "fitContent" }}>
           <Link
-            onClick={() => user.level_jobs >= 1 && setShowQTS((p) => !p)}
+            onClick={() =>
+              user.level_jobs >= 1 && user.loggedIn && setShowQTS((p) => !p)
+            }
             style={{
-              cursor: user.level_jobs >= 1 ? "pointer" : "not-allowed",
-              color: user.level_jobs >= 1 ? "blue" : "gray",
+              cursor:
+                user.level_jobs >= 1 && user.loggedIn
+                  ? "pointer"
+                  : "not-allowed",
+              color: user.level_jobs >= 1 && user.loggedIn ? "blue" : "gray",
               textDecoration: "underline",
             }}
           >
@@ -262,7 +272,8 @@ export default function Job({ user }) {
               div2DataDB={div2DataDB || {}}
               allTotalPrices={allTotalPrices || {}}
               displayID={displayID}
-              handleSubmit={handleSubmitDiv2}
+              handleSubmit={handleSubmitDiv3}
+              user={user}
             />
           </div>
         </div>

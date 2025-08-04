@@ -44,7 +44,8 @@ export default function Jobbs() {
                 <Link to={`/jobs/${j.id}`}>
                   {`${j.created_at}_ ${String(j.id).padStart(4, "0")}`}
                 </Link>
-                <b>{`- ${cus?.customer_name || ""} - ${j?.reference}`}</b>
+                <b>{`- ${cus?.customer_name || ""} : `}</b>
+                <span>{j?.reference}</span>
               </li>
             );
           })}

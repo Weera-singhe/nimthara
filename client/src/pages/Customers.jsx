@@ -3,47 +3,56 @@ import axios from "axios";
 import { CUS_API_URL, ADD_CUS_API_URL } from "../api/urls";
 
 export default function Customers({ user }) {
-  const [customers, setCustomers] = useState([]);
-  const [formData, setFormData] = useState({
-    reg_must: true,
-    reg_till_: "2025-12-31",
-  });
-  const [editedFormData, setEditFormData] = useState(null);
+  const [savedCustomers, setSavedCustomers] = useState([]);
+  const [form_Add, setForm_Add] = useState({ reg_must: true });
+  const [form_Edit, setForm_Edit] = useState(null);
   const [serverLoading, isSeverLoading] = useState(true);
+  const [opertation, setOpertation] = useState(0);
 
   useEffect(() => {
     axios
       .get(CUS_API_URL)
-      .then((res) => setCustomers(res.data))
+      .then((res) => {
+        setSavedCustomers(res.data);
+        console.log(res.data);
+      })
       .catch((err) => console.error("Failed:", err))
-      .finally(isSeverLoading(false));
+      .finally(() => isSeverLoading(false));
   }, []);
 
-  const handleChange =
-    (setFunc) =>
-    ({ target: { name, value } }) =>
-      setFunc((prev) => ({ ...prev, [name]: value.trimStart().toUpperCase() }));
+  function strChanged(e) {
+    const { name, value } = e.target;
+    opertation === 0
+      ? setForm_Add((p) => ({
+          ...p,
+          [name]: value.trimStart().toUpperCase(),
+        }))
+      : setForm_Edit((p) => ({
+          ...p,
+          [name]: value.trimStart().toUpperCase(),
+        }));
+  }
+  function checkChanged(e) {
+    const { name, checked } = e.target;
+    opertation === 0
+      ? setForm_Add((p) => ({
+          ...p,
+          [name]: checked,
+          ...(checked ? {} : { reg_till_: null }),
+        }))
+      : setForm_Edit((p) => ({
+          ...p,
+          [name]: checked,
+          ...(checked ? {} : { reg_till_: null }),
+        }));
+  }
 
-  const handleCheckbox =
-    (setFunc) =>
-    ({ target: { name, checked } }) =>
-      setFunc((prev) => ({
-        ...prev,
-        [name]: checked,
-        ...(checked ? {} : { reg_till_: null }),
-      }));
-
-  const changedStr = handleChange(setFormData);
-  const changedCheck = handleCheckbox(setFormData);
-  const changedStrEdit = handleChange(setEditFormData);
-  const changedCheckEdit = handleCheckbox(setEditFormData);
-
-  const changeCustomersDB = (e, data) => {
+  const handleSubmit = (e, data) => {
     e.preventDefault();
     isSeverLoading(true);
 
-    const requiredLevel = data.id ? 3 : 2;
-    if (!user.loggedIn || user.level < requiredLevel) {
+    const reqLevel = data.id ? 3 : 2;
+    if (!user.loggedIn || user.level_jobs < reqLevel) {
       window.location.href = "/login";
       return;
     }
@@ -51,9 +60,10 @@ export default function Customers({ user }) {
     axios
       .post(ADD_CUS_API_URL, data)
       .then((res) => {
-        setCustomers(res.data.cus);
-        setEditFormData(null);
-        setFormData((p) => ({
+        setSavedCustomers(res.data.cus);
+        setOpertation(0);
+        setForm_Edit(null);
+        setForm_Add((p) => ({
           ...p,
           customer_name: "",
           cus_name_short: "",
@@ -63,121 +73,188 @@ export default function Customers({ user }) {
       .catch((err) => alert("Error:", err))
       .finally(isSeverLoading(false));
   };
+  const form_Uni = opertation ? form_Edit : form_Add;
+  const requiredLevel = opertation ? 3 : 2;
+  const noID = opertation ? !form_Uni?.id : false;
 
-  const renderInput = (label, name, value, onChange, width) => (
-    <>
-      <label>{label}</label>
-      <input
-        type="text"
-        name={name}
-        value={value || ""}
-        onChange={onChange}
-        style={{ width }}
-      />
-    </>
-  );
-  const disableBtn = serverLoading || !formData.customer_name;
+  const disableSubmit =
+    serverLoading ||
+    noID ||
+    !form_Uni?.customer_name ||
+    user.level_jobs < requiredLevel ||
+    !user.loggedIn;
+
+  useEffect(() => {
+    console.log("add form : ", form_Add);
+  }, [form_Add]);
+  useEffect(() => {
+    console.log("edit form : ", form_Edit);
+  }, [form_Edit]);
+  useEffect(() => {
+    console.log("universal form : ", form_Uni);
+  }, [form_Uni]);
 
   return (
     <>
-      <div className="new-division boxyy">
-        <form
-          onSubmit={(e) => changeCustomersDB(e, formData)}
-          className="left-mar"
-        >
-          {renderInput(
-            "customer name:",
-            "customer_name",
-            formData.customer_name,
-            changedStr,
-            "200px"
-          )}
-          {renderInput(
-            "short name:",
-            "cus_name_short",
-            formData.cus_name_short,
-            changedStr,
-            "100px"
-          )}
-          {renderInput(
-            "extra name:",
-            "cus_name_other",
-            formData.cus_name_other,
-            changedStr,
-            "150px"
-          )}
-
-          <label>registration required:</label>
-          <input
-            type="checkbox"
-            name="reg_must"
-            checked={formData.reg_must || false}
-            onChange={changedCheck}
-          />
-
-          {formData.reg_must && (
+      <div className="new-division">
+        <div className="formbox">
+          <span
+            onClick={() => setOpertation(0)}
+            style={{
+              cursor: "pointer",
+              fontWeight: opertation ? "lighter" : "normal",
+              textDecoration: "underline",
+            }}
+          >
+            ADD
+          </span>
+          <span className="gap3"></span>
+          <span
+            onClick={() => setOpertation(1)}
+            style={{
+              cursor: "pointer",
+              fontWeight: opertation ? "normal" : "lighter",
+              textDecoration: "underline",
+            }}
+          >
+            EDIT
+          </span>
+          {serverLoading ? (
             <>
-              <label>registered until:</label>
-              <input
-                type="date"
-                name="reg_till_"
-                value={formData.reg_till_ || ""}
-                onChange={changedStr}
-              />
+              <br />
+              <br />
+              loading...
+            </>
+          ) : (
+            <>
+              <br />
+              <br />
+              <div style={{ display: opertation ? "block" : "none" }}>
+                <select
+                  value={form_Edit?.id || 0}
+                  onChange={(e) =>
+                    setForm_Edit(
+                      savedCustomers.find(
+                        (c) => c.id === Number(e.target.value)
+                      )
+                    )
+                  }
+                >
+                  <option value={0}></option>
+                  {savedCustomers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.customer_name}
+                    </option>
+                  ))}
+                </select>
+                <br />
+                <br />
+              </div>
+              <form onSubmit={(e) => handleSubmit(e, form_Uni)}>
+                <label>customer name : </label>
+                <input
+                  type="text"
+                  name="customer_name"
+                  value={form_Uni?.customer_name || ""}
+                  onChange={strChanged}
+                  style={{ width: "20%" }}
+                />
+
+                <span className="gap3"></span>
+                <label>short name : </label>
+                <input
+                  type="text"
+                  name="cus_name_short"
+                  value={form_Uni?.cus_name_short || ""}
+                  onChange={strChanged}
+                  style={{ width: "10%" }}
+                />
+
+                <span className="gap3"></span>
+                <label>extra name : </label>
+                <input
+                  type="text"
+                  name="cus_name_other"
+                  value={form_Uni?.cus_name_other || ""}
+                  onChange={strChanged}
+                  style={{ width: "20%" }}
+                />
+                <br />
+                <br />
+                <label>registration required:</label>
+                <input
+                  type="checkbox"
+                  name="reg_must"
+                  checked={form_Uni?.reg_must || false}
+                  onChange={checkChanged}
+                />
+
+                <span className="gap3"></span>
+                {form_Uni?.reg_must && (
+                  <>
+                    <label>registered until:</label>
+                    <input
+                      type="date"
+                      name="reg_till_"
+                      value={form_Uni?.reg_till_ || ""}
+                      onChange={strChanged}
+                    />
+                  </>
+                )}
+
+                <br />
+                <br />
+                <button type="submit" disabled={disableSubmit}>
+                  {opertation ? "EDIT" : "ADD"}
+                </button>
+              </form>
             </>
           )}
-          <button type="submit" disabled={disableBtn}>
-            add customer
-          </button>
-        </form>
+        </div>
       </div>
 
       {/* Customer List */}
       <div className="new-division">
-        {customers.map((c) => (
+        {savedCustomers.map((c) => (
           <div key={c.id}>
-            <div className="flex-row">
+            <div>
               <div className="boxyy" style={{ width: "40%" }}>
-                {c.customer_name} {c.cus_name_short && ` / ${c.cus_name_short}`}{" "}
-                {c.cus_name_other && `( ${c.cus_name_other} )`}
+                {c.customer_name}{" "}
+                {c.cus_name_short && ` / ${c.cus_name_short} `}
+                {c.cus_name_other && ` ( ${c.cus_name_other} ) `}
               </div>
               <div className="boxyy" style={{ width: "15%" }}>
                 {!c.reg_must ? "done" : c.reg_till_ || "pending..."}
               </div>
-              {user.loggedIn && user.level >= 3 && (
-                <div className="boxyy" style={{ width: "5%" }}>
-                  <button onClick={() => setEditFormData(c)}>edit</button>
-                </div>
-              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Edit Popup */}
-      {editedFormData && (
-        <div className="backdrop" onClick={() => setEditFormData(null)}>
+      {/* Edit Popup
+      {formData_Edit && (
+        <div className="backdrop" onClick={() => setFormData_Edit(null)}>
           <div className="boxyy" onClick={(e) => e.stopPropagation()}>
             <form
               className="left-mar"
-              onSubmit={(e) => changeCustomersDB(e, editedFormData)}
+              onSubmit={(e) => handleAdd(e, formData_Edit)}
             >
               {renderInput(
                 "customer name:",
                 "customer_name",
-                editedFormData.customer_name,
+                formData_Edit.customer_name,
                 changedStrEdit
               )}
               {renderInput(
                 "short name:",
                 "cus_name_short",
-                editedFormData.cus_name_short,
+                formData_Edit.cus_name_short,
                 changedStrEdit
               )}
               {renderInput(
                 "extra name:",
                 "cus_name_other",
-                editedFormData.cus_name_other,
+                formData_Edit.cus_name_other,
                 changedStrEdit
               )}
 
@@ -185,17 +262,17 @@ export default function Customers({ user }) {
               <input
                 type="checkbox"
                 name="reg_must"
-                checked={editedFormData.reg_must || false}
+                checked={formData_Edit.reg_must || false}
                 onChange={changedCheckEdit}
               />
 
-              {editedFormData.reg_must && (
+              {formData_Edit.reg_must && (
                 <>
                   <label>registered until:</label>
                   <input
                     type="date"
                     name="reg_till_"
-                    value={editedFormData.reg_till_ || ""}
+                    value={formData_Edit.reg_till_ || ""}
                     onChange={changedStrEdit}
                   />
                 </>
@@ -204,7 +281,7 @@ export default function Customers({ user }) {
             </form>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 }
