@@ -19,7 +19,12 @@ import "./index.css";
 axios.defaults.withCredentials = true;
 
 const App = () => {
-  const [user, setUser] = useState({ loggedIn: false, level: 0 });
+  const [user, setUser] = useState({
+    loggedIn: false,
+    level: 0,
+    level_jobs: 0,
+    level_paper: 0,
+  });
 
   useEffect(() => {
     axios
@@ -27,7 +32,9 @@ const App = () => {
         withCredentials: true,
       })
       .then((res) => setUser(res.data))
-      .catch(() => setUser({ loggedIn: false, level: 0 }));
+      .catch(() =>
+        setUser({ loggedIn: false, level: 0, level_jobs: 0, level_paper: 0 })
+      );
   }, []);
   return (
     <BrowserRouter>

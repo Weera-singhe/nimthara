@@ -58,6 +58,19 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
+const date6Con = (h) => {
+  return ` TO_CHAR(${h}, 'YYMMDD') AS ${h}_x`;
+};
+const dateTimeCon = (h) => {
+  return ` TO_CHAR(${h}, 'YYYY-MM-DD @ HH24:MI') AS ${h}_t`;
+};
+const dateInpCon = (h) => {
+  return `TO_CHAR(${h}, 'YYYY-MM-DD"T"HH24:MI') AS ${h}_i`;
+};
+const dateCon = (h) => {
+  return `TO_CHAR(${h}, 'YYYY-MM-DD') AS ${h}_`;
+};
+
 async function GetAllPaperSpecs() {
   const p_brand = await pool.query(`
     SELECT id, COALESCE(p_brand, '') AS name FROM paper_specs
@@ -87,7 +100,11 @@ async function GetAllPaperSpecs() {
 function GetPrices(id) {
   return pool
     .query(
-      `SELECT TO_CHAR(date, 'YYYY-MM-DD') AS date_ , price FROM paper_price WHERE paper_id = $1 ORDER BY date DESC`,
+      `SELECT
+      ${dateCon("date")} ,
+      price 
+      FROM paper_price 
+      WHERE paper_id = $1 ORDER BY date DESC`,
       [id]
     )
     .then((result) => {
@@ -108,7 +125,9 @@ async function GetDatePrice(id, date) {
 function GetStocks(id) {
   return pool
     .query(
-      `SELECT *, TO_CHAR(date, 'YYYY-MM-DD') AS date_ FROM paper_stock WHERE stock_id = $1 ORDER BY date`,
+      `SELECT *,
+      ${dateCon("date")}
+      FROM paper_stock WHERE stock_id = $1 ORDER BY date`,
       [id]
     )
     .then((result) => {
@@ -120,7 +139,7 @@ function GetCustomers() {
     .query(
       `SELECT 
       *,
-      TO_CHAR(reg_till, 'YYYY-MM-DD') AS reg_till_
+      ${dateCon("reg_till")}
       FROM customers
       ORDER BY customer_name ASC`
     )
@@ -208,14 +227,35 @@ app.post("/add_new_paper", async (req, res) => {
 
 //JOBS      /////////////////////////////
 
+function GetAllJobs() {
+  return pool
+    .query(
+      `SELECT
+      *,
+      ${dateTimeCon("deadline")},
+      ${date6Con("created_at")}
+      FROM jobs WHERE private=false ORDER BY id DESC`
+    )
+    .then((result) => {
+      return result.rows;
+    });
+}
+
 app.get("/jobs", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT *,TO_CHAR(created_at, 'YYMMDD') AS created_at FROM jobs WHERE private=false ORDER BY id DESC"
+    const { rows: jobs } = await pool.query(
+      `SELECT
+      j.*,
+      ${dateTimeCon("deadline")},
+      ${date6Con("created_at")},
+      CAST(COALESCE((SELECT COUNT(*)FROM jobs_each je WHERE je.id_main = j.id AND je.deployed=true),0)AS INTEGER)AS dep_count,
+      c.customer_name FROM jobs j
+      LEFT JOIN customers c ON j.customer = c.id
+      WHERE j.private = false 
+      ORDER BY j.id DESC`
     );
-    const jobs = result.rows;
-    const cus = await GetCustomers();
-    res.json({ jobs, cus });
+
+    res.json(jobs);
   } catch (err) {
     res.status(500).send("Error");
   }
@@ -238,9 +278,9 @@ app.get("/jobs/:id", async (req, res) => {
     } = await pool.query(
       `SELECT
       *,
-      TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,
-      TO_CHAR(created_at, 'YYMMDD') AS created_at,
-      TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_
+      ${dateInpCon("deadline")},
+      ${date6Con("created_at")},
+      ${dateTimeCon("created_at")}
       FROM jobs WHERE id = $1 AND private=false`,
       [id]
     );
@@ -249,8 +289,7 @@ app.get("/jobs/:id", async (req, res) => {
       `
       SELECT 
       je.*,
-      TO_CHAR(je.created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
-      TO_CHAR(je.last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_
+      ${dateTimeCon("last_qt_edit_at")}
       FROM jobs_each je
       JOIN jobs j ON je.id_main = j.id
       WHERE je.id_main = $1 AND j.private = false
@@ -318,7 +357,8 @@ app.get("/jobs/:id", async (req, res) => {
 
 app.post("/jobs/div1", async (req, res) => {
   try {
-    const { id, customer, reference, deadline, total_jobs, user_id } = req.body;
+    const { id, customer, reference, deadline_i, total_jobs, user_id } =
+      req.body;
     console.log(req.body);
 
     let load_this_id;
@@ -326,13 +366,13 @@ app.post("/jobs/div1", async (req, res) => {
     if (id) {
       await pool.query(
         "UPDATE jobs SET customer = $1,reference=$2, deadline = $3,total_jobs=$4 WHERE id = $5",
-        [customer, reference, deadline, total_jobs, id]
+        [customer, reference, deadline_i, total_jobs, id]
       );
       load_this_id = id;
     } else {
       const result = await pool.query(
         "INSERT INTO jobs (customer,reference, deadline,total_jobs,created_by) VALUES ($1, $2,$3,$4,$5) RETURNING id",
-        [customer, reference, deadline, total_jobs, user_id]
+        [customer, reference, deadline_i, total_jobs, user_id]
       );
       load_this_id = result.rows[0].id;
     }
@@ -359,6 +399,8 @@ app.post("/jobs/div2", async (req, res) => {
     } = req.body;
     console.log(req.body);
 
+    const retStr = ` RETURNING *, ${dateTimeCon("last_qt_edit_at")}`;
+
     // Try updating the existing job
     const upd = await pool.query(
       `UPDATE jobs_each
@@ -372,11 +414,7 @@ app.post("/jobs/div2", async (req, res) => {
            last_qt_edit_at = NOW(),
            deployed = $8,
            cus_id_each=$9
-       WHERE id_main = $10 AND id_each = $11
-       RETURNING 
-         *,
-         TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
-         TO_CHAR(last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_`,
+       WHERE id_main = $10 AND id_each = $11 ${retStr}`,
       [
         item_count,
         unit_count,
@@ -401,11 +439,7 @@ app.post("/jobs/div2", async (req, res) => {
             loop_count, v, notes_other, profit,
             created_by, last_qt_edit_by, last_qt_edit_at,cus_id_each
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, NOW(),$10)
-         RETURNING 
-           *,
-           TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_,
-           TO_CHAR(last_qt_edit_at, 'YYYY-MM-DD @ HH24:MI') AS last_qt_edit_at_`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, NOW(),$10) ${retStr}`,
         [
           id_main,
           id_each,
@@ -450,12 +484,13 @@ app.post("/jobs/div3", async (req, res) => {
       submit_note2 = $3
       WHERE id = $4 AND private=false
       RETURNING
-       *,
-      TO_CHAR(deadline, 'YYYY-MM-DD"T"HH24:MI') AS deadline,
-      TO_CHAR(created_at, 'YYMMDD') AS created_at,
-      TO_CHAR(created_at, 'YYYY-MM-DD @ HH24:MI') AS created_at_`,
+      *,
+      ${dateInpCon("deadline")},
+      ${date6Con("created_at")},
+      ${dateTimeCon("created_at")}`,
         [submit_method, submit_note1.trim(), submit_note2.trim(), id]
       );
+
       const updtd = upd.rows[0];
       res.status(200).json(updtd);
     }

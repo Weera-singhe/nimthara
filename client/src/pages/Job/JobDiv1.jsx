@@ -45,8 +45,8 @@ export default function JobDiv1({
         <label>Deadline: </label>
         <input
           type="datetime-local"
-          name="deadline"
-          value={jobDetails.deadline || ""}
+          name="deadline_i"
+          value={jobDetails.deadline_i || ""}
           onChange={strChanged}
         />
 

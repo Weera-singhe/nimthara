@@ -54,7 +54,7 @@ export default function JobDiv3({
           <li>
             <small>{`Created by : ${
               allUsernames[div1DataDB?.created_by] || "?"
-            } on ${div1DataDB?.created_at_ || "?"}`}</small>
+            } on ${div1DataDB?.created_at_t || "?"}`}</small>
           </li>
         </ul>
       </li>
@@ -74,7 +74,7 @@ export default function JobDiv3({
                       <b style={{ color: "green" }}>Deployed. </b>
                       {` ( last edit by : ${
                         allUsernames[j.last_qt_edit_by] || "loading..."
-                      } on ${j.last_qt_edit_at_ || "loading..."} )`}
+                      } on ${j.last_qt_edit_at_t || "loading..."} )`}
                     </small>
                   </span>
                 </>

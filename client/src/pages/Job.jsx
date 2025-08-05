@@ -12,7 +12,7 @@ import { SumsEachQuot } from "../elements/cal.js";
 
 const defDiv1 = {
   customer: 0,
-  deadline: "",
+  deadline_i: "",
   reference: "",
   total_jobs: 1,
 };
@@ -93,6 +93,9 @@ export default function Job({ user }) {
   useEffect(() => {
     console.log("data from db : ", div2DataDB);
   }, [div2DataDB]);
+  useEffect(() => {
+    console.log("all usernames: ", allUsernames);
+  }, [allUsernames]);
 
   function handleSubmitDiv1(e) {
     e.preventDefault();
@@ -155,8 +158,8 @@ export default function Job({ user }) {
 
   //displayID
   const displayID =
-    div1DataDB.created_at && id
-      ? `${div1DataDB.created_at}_${id.toString().padStart(4, "0")}`
+    div1DataDB.created_at_x && id
+      ? `${div1DataDB.created_at_x}_${id.toString().padStart(4, "0")}`
       : "loading...";
 
   const submit1Disabled =
@@ -166,7 +169,7 @@ export default function Job({ user }) {
     loadingMainJ ||
     loadingEachJ ||
     !div1DataTemp.customer ||
-    !div1DataTemp.deadline;
+    !div1DataTemp.deadline_i;
 
   return (
     <>

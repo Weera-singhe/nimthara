@@ -7,16 +7,13 @@ import axios from "axios";
 export default function Jobbs() {
   const [allJobs, loadAllJobs] = useState([]);
   const [allJobsLoading, isAllJobsLoading] = useState(true);
-  const [allCustomers, loadAllCustomers] = useState([]);
 
   useEffect(() => {
     axios
       .get(JOBS_API_URL)
       .then((res) => {
-        loadAllJobs(res.data.jobs);
-        loadAllCustomers(res.data.cus);
-        console.log(res.data.jobs);
-        console.log(res.data.cus);
+        loadAllJobs(res.data);
+        console.log(res.data);
       })
       .catch((err) => alert("Error: " + err))
       .finally(() => {
@@ -36,19 +33,63 @@ export default function Jobbs() {
         </>
       ) : (
         <ul>
-          {allJobs.map((j) => {
-            const cus = allCustomers.find((c) => c.id === j.customer);
+          <li>
+            <b>Estimation Pending</b>
+          </li>
+          <ul>
+            {allJobs
+              .filter((j) => j.total_jobs > j.dep_count)
+              .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+              .map((j) => (
+                <li key={j.id}>
+                  <Link to={`/jobs/${j.id}`}>
+                    {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
+                  </Link>
+                  <small
+                    style={{ color: "firebrick" }}
+                  >{` - ${j?.deadline_t}`}</small>
 
-            return (
-              <li key={j.id}>
-                <Link to={`/jobs/${j.id}`}>
-                  {`${j.created_at}_ ${String(j.id).padStart(4, "0")}`}
-                </Link>
-                <b>{`- ${cus?.customer_name || ""} : `}</b>
-                <span>{j?.reference}</span>
-              </li>
-            );
-          })}
+                  <b>{`- ${j.customer_name || ""} : `}</b>
+                  <span>{j?.reference}</span>
+                </li>
+              ))}
+          </ul>
+          <br />
+
+          <li>
+            <b>Submit Pending</b>
+          </li>
+          <ul>
+            {allJobs
+              .filter((j) => j.total_jobs <= j.dep_count && !j.submit_method)
+              .map((j) => (
+                <li key={j.id}>
+                  <Link to={`/jobs/${j.id}`}>
+                    {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
+                  </Link>
+                  <b>{`- ${j.customer_name || ""} : `}</b>
+                  <span>{j?.reference}</span>
+                </li>
+              ))}
+          </ul>
+          <br />
+
+          <li>
+            <b>Results Pending</b>
+          </li>
+          <ul>
+            {allJobs
+              .filter((j) => j.total_jobs <= j.dep_count && j.submit_method)
+              .map((j) => (
+                <li key={j.id}>
+                  <Link to={`/jobs/${j.id}`}>
+                    {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
+                  </Link>
+                  <b>{`- ${j.customer_name || ""} : `}</b>
+                  <span>{j?.reference}</span>
+                </li>
+              ))}
+          </ul>
         </ul>
       )}
     </div>
