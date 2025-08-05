@@ -77,7 +77,7 @@ export default function Login({ user, setUser }) {
     <>
       {thisShows && !user.loggedIn && (
         <>
-          <div className="form-box book">
+          <div className="formbox">
             {whichFormShows === 2 ? (
               <Link
                 onClick={() => setShowForm(1)}
@@ -96,6 +96,7 @@ export default function Login({ user, setUser }) {
                     value={loginDetails.username}
                     onChange={changedLogDetails}
                   />
+                  <span className="gap3"></span>
                   <label>password : </label>
                   <input
                     name="password"
@@ -104,12 +105,14 @@ export default function Login({ user, setUser }) {
                     onChange={changedLogDetails}
                   />
                   <button type="submit">login</button>
+                  <br />
+                  <br />
                 </form>
               </>
             )}
           </div>
 
-          <div className="form-box book">
+          <div className="formbox">
             {whichFormShows === 1 ? (
               <Link
                 onClick={() => setShowForm(2)}
@@ -128,6 +131,7 @@ export default function Login({ user, setUser }) {
                     value={regDetails.display_name}
                     onChange={changedRegDetails}
                   />
+                  <span className="gap3"></span>
                   <label>username : </label>
                   <input
                     name="regname"
@@ -135,6 +139,7 @@ export default function Login({ user, setUser }) {
                     value={regDetails.regname}
                     onChange={changedRegDetails}
                   />
+                  <span className="gap3"></span>
                   <label>password : </label>
                   <input
                     name="pwr"
@@ -142,6 +147,7 @@ export default function Login({ user, setUser }) {
                     value={regDetails.pwr}
                     onChange={changedRegDetails}
                   />
+                  <span className="gap3"></span>
                   <label>repeat password : </label>
                   <input
                     name="pwrr"
