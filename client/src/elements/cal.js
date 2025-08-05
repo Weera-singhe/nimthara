@@ -78,6 +78,7 @@ export function SumsEachQuot(components, data) {
   const vatRate = 1.18;
 
   return {
+    id_each: data.id_each,
     unit_price: unit_price,
     total_price: safe_total,
     unit_vat: +(unit_price * vatRate).toFixed(2),

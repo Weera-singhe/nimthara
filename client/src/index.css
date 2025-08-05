@@ -149,6 +149,7 @@ select {
   border-radius: 3px;
   border: 1.5px solid black;
   text-align: center;
+  padding: 0 1%;
 }
 button {
   border-radius: 3px;

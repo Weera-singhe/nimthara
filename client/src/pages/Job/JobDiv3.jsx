@@ -39,8 +39,11 @@ export default function JobDiv3({
     !user.loggedIn;
 
   useEffect(() => {
-    console.log("data 1 from db : ", div1DataTemp);
-  }, [div1DataTemp]);
+    console.log("data 2 from db : ", div2DataDB);
+  }, [div2DataDB]);
+  useEffect(() => {
+    console.log("totals  from db : ", allTotalPrices);
+  }, [allTotalPrices]);
 
   return (
     <>
@@ -168,23 +171,37 @@ export default function JobDiv3({
       {/*4_SubDiv_________________________________________*/}
       <li>
         {`Results : `}
+
         <ul>
+          <small>Pending : </small>
+          <input type="checkbox" />
+          <small>Not Public : </small>
+          <input type="checkbox" />
           <li>
             <select
               value={selctedforResult}
-              onChange={(e) => setSelctedforResult(e.target.value)}
+              onChange={(e) => setSelctedforResult(Number(e.target.value))}
             >
               <option value={0}></option>
-              {div2DataDB.map((j, i) => (
-                <option key={j.id_each} value={j.id_each}>
-                  {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
-                </option>
-              ))}
+              {div2DataDB
+                .filter((j) => j.deployed)
+                .map((j) => (
+                  <option key={j.id_each} value={j.id_each}>
+                    {`# ${displayID}_${j.cus_id_each || j.id_each} `}
+                  </option>
+                ))}
             </select>
             <br />
             <br />
             {selctedforResult > 0 && (
               <>
+                <input type="text" readOnly={true} value="Nimthara Printers" />
+                <input
+                  type="text"
+                  // readOnly={true}value={allTotalPrices.find((p) => p.id_each === selctedforResult)?.total_price}
+                  style={{ width: "100px" }}
+                />
+                <br />
                 <input type="text" />
                 <Num />
                 <br /> <input type="text" />
@@ -192,6 +209,8 @@ export default function JobDiv3({
                 <br /> <input type="text" />
                 <Num />
                 <br />
+                <input type="text" />
+                <Num />
               </>
             )}
           </li>

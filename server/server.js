@@ -539,7 +539,7 @@ app.get("/cus", async (req, res) => {
     const cus = await GetCustomers();
     res.json(cus);
   } catch (err) {
-    res.status(500).json({ error: "Failed" });
+    res.status(500).json({ error: "Failed to load" });
   }
 });
 app.post("/add_new_cus", async (req, res) => {
