@@ -20,7 +20,7 @@ axios.defaults.withCredentials = true;
 
 const App = () => {
   const [user, setUser] = useState({
-    loggedIn: false,
+    loggedIn: null,
     level: 0,
     level_jobs: 0,
     level_paper: 0,

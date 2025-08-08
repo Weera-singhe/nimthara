@@ -277,6 +277,7 @@ export default function Job({ user }) {
               displayID={displayID}
               handleSubmit={handleSubmitDiv3}
               user={user}
+              setDiv2DataDB={setDiv2DataDB}
             />
           </div>
         </div>
