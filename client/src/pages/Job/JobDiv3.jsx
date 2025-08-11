@@ -4,80 +4,98 @@ import { toLKR } from "../../elements/cal";
 
 export default function JobDiv3({
   allUsernames,
-  div1DataDB,
-  div2DataDB,
+  mainJDB,
+  eachJDB,
+  eachJXDB,
   allTotalPrices,
   displayID,
   handleSubmit,
   user,
-  setDiv2DataDB,
 }) {
-  const [div1DataTemp, setDiv1DataTemp] = useState(div1DataDB);
-  const [selctedforResult, setSelctedforResult] = useState(0);
+  const [tempEstSub, setTempEstSub] = useState([]);
+  //const [eachJTemp, setEachJTemp] = useState([]);
+  const [tempBB, setTempBB] = useState([]);
+  const [indexBidRes, setIBidRes] = useState(0);
 
   useEffect(() => {
-    console.log("div 3 : tmp set to db");
-    setDiv1DataTemp(div1DataDB);
-  }, [div1DataDB]);
+    console.log("mainjtmp set to db");
+    setTempEstSub(mainJDB);
+  }, [mainJDB]);
 
-  function strChanged(e) {
+  // useEffect(() => {
+  //   console.log("eachjtmp set to db");
+  //   setEachJTemp(eachJDB);
+  // }, [eachJDB]);
+
+  useEffect(() => {
+    console.log("eachjxtratmp set to db");
+    !tempBB.length && setTempBB(eachJXDB);
+  }, [eachJXDB]);
+
+  function strChanged_M(e) {
     const { name, value } = e.target;
-    setDiv1DataTemp((p) => ({ ...p, [name]: value }));
+    setTempEstSub((p) => ({ ...p, [name]: value }));
   }
-  function NumChanged(e) {
+  function NumChanged_M(e) {
     const { name, value } = e.target;
-    setDiv1DataTemp((p) => ({ ...p, [name]: Number(value) }));
+    setTempEstSub((p) => ({ ...p, [name]: Number(value) }));
   }
-  function sampPPChanged(e, id_each) {
-    const { checked, value } = e.target;
-    console.log("check : ", value, checked);
+  function NumChanged_xtra(e, id_each) {
+    const { name, value } = e.target;
+    (name === "bb" || name === "bb_amount") &&
+      setTempBB((prev) =>
+        prev.map((slot) =>
+          slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
+        )
+      );
+  }
 
-    setDiv2DataDB((prev) =>
-      prev.map((slot) =>
-        slot.id_each === id_each ? { ...slot, samp_pp: Number(value) } : slot
-      )
-    );
+  function onSubmit(e) {
+    const name = e.target.name;
+    const exprt = name === "estSub" ? tempEstSub : tempBB;
+    handleSubmit(exprt, name);
   }
-
-  function onSubmit(e, form) {
-    e.preventDefault();
-    handleSubmit(div1DataTemp, form);
-  }
-  const submitByDis =
-    (div1DataTemp.submit_method === div1DataDB.submit_method &&
-      div1DataTemp.submit_note1 === div1DataDB.submit_note1 &&
-      div1DataTemp.submit_note2 === div1DataDB.submit_note2) ||
+  const estiSubDis =
+    (tempEstSub.submit_method === mainJDB.submit_method &&
+      tempEstSub.submit_note1 === mainJDB.submit_note1 &&
+      tempEstSub.submit_note2 === mainJDB.submit_note2) ||
     user.level_jobs < 2 ||
     !user.loggedIn;
 
+  const bbDisabled =
+    JSON.stringify(tempBB) === JSON.stringify(eachJXDB) ||
+    user.level_jobs < 2 ||
+    !user.loggedIn;
+
+  const depCount = eachJDB.filter((j) => j.deployed).length;
+
   useEffect(() => {
-    console.log("data 2 from db : ", div2DataDB);
-  }, [div2DataDB]);
-  useEffect(() => {
-    console.log("totals  from db : ", allTotalPrices);
-  }, [allTotalPrices]);
+    console.log("x changed : ", tempBB);
+  }, [tempBB]);
 
   return (
-    <>
+    <ul className="jb">
       {/*1_SubDiv_________________________________________*/}
       <li>
         Job ID :<b> {displayID}</b>
         <ul>
           <li>
             <small>{`Created by : ${
-              allUsernames[div1DataDB?.created_by] || "?"
-            } on ${div1DataDB?.created_at_t || "?"}`}</small>
+              allUsernames[mainJDB?.created_by] || "?"
+            } on ${mainJDB?.created_at_t || "?"}`}</small>
           </li>
         </ul>
       </li>
 
       {/*2_SubDiv_________________________________________*/}
       <li>
-        Estimation - {div2DataDB.filter((j) => j.deployed).length} /{" "}
-        {div1DataDB?.total_jobs}
+        Estimation - {depCount} / {mainJDB?.total_jobs}
         <ul>
-          {div2DataDB.map((j, i) => (
-            <li key={j.id_each}>
+          {eachJDB.map((j, i) => (
+            <li
+              key={j.id_each}
+              style={{ backgroundColor: !j.deployed && "mistyrose" }}
+            >
               {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
               {j.deployed ? (
                 <>
@@ -89,15 +107,8 @@ export default function JobDiv3({
                       } on ${j.last_qt_edit_at_t || "loading..."} )`}
                     </small>
                   </span>
-                </>
-              ) : (
-                <small>
-                  <b style={{ color: "firebrick" }}>pending.....</b>
-                </small>
-              )}
-              <ul>
-                {j.deployed ? (
-                  <>
+                  <ul>
+                    {" "}
                     <li>
                       <small>
                         <label>Total : </label>
@@ -108,13 +119,12 @@ export default function JobDiv3({
                       </small>
                       {toLKR(allTotalPrices[i]?.total_vat)}
                     </li>
-
                     <li>
                       <small style={{ color: "darkblue" }}>
                         <label>Units :</label>
                       </small>
                       <b style={{ color: "darkblue" }}>
-                        {div2DataDB[i].unit_count.toLocaleString()}
+                        {eachJDB[i].unit_count.toLocaleString()}
                       </b>
                       <small style={{ marginLeft: "2%" }}>
                         <label>Unit : </label>
@@ -125,12 +135,72 @@ export default function JobDiv3({
                       </small>
                       {toLKR(allTotalPrices[i]?.unit_vat)}
                     </li>
+                  </ul>
+                </>
+              ) : (
+                <>
+                  <small>
+                    <b style={{ color: "firebrick" }}>pending.....</b>
+                  </small>
+                  <ul>
+                    <li></li>
+                    <li></li>
+                  </ul>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </li>
+      {/*3_SubDiv_________________________________________*/}
+      <li>
+        {`Bid Bond : `}{" "}
+        <button disabled={bbDisabled} name="bb" onClick={onSubmit}>
+          Save
+        </button>
+        <ul>
+          {eachJDB.map((j, i) => (
+            <li key={j.id_each}>
+              {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
+              <small style={{ marginLeft: "2%" }}>
+                <label>Not Needed : </label>
+                <input
+                  name="bb"
+                  type="checkbox"
+                  checked={tempBB[i]?.bb === 2}
+                  value={2}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                />
+                <label>Processing : </label>
+                <input
+                  name="bb"
+                  type="checkbox"
+                  checked={!tempBB[i]?.bb}
+                  value={0}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                />
+                <label>Approved : </label>
+                <input
+                  name="bb"
+                  type="checkbox"
+                  checked={tempBB[i]?.bb === 1}
+                  value={1}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                />
+                {tempBB[i]?.bb !== 2 && (
+                  <>
+                    <label>Amount : </label>
+                    <Num
+                      name="bb_amount"
+                      min={0}
+                      setTo={tempBB[i]?.bb_amount || 0}
+                      changed={(e) => NumChanged_xtra(e, j.id_each)}
+                      width={100}
+                      deci={2}
+                    />
                   </>
-                ) : (
-                  <li></li>
                 )}
-              </ul>
-              <br />
+              </small>
             </li>
           ))}
         </ul>
@@ -140,37 +210,41 @@ export default function JobDiv3({
       <li>
         {`Sample Submission : `}
         <ul>
-          {div2DataDB.map((j, i) => (
+          {eachJDB.map((j, i) => (
             <li key={j.id_each}>
               {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
               <small style={{ marginLeft: "2%" }}>
                 <label>Processing : </label>
                 <input
+                  name="samp_pp"
                   type="checkbox"
-                  checked={!div2DataDB[i]?.samp_pp}
+                  checked={!tempBB[i]?.samp_pp}
                   value={0}
-                  onChange={(e) => sampPPChanged(e, j.id_each)}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />{" "}
                 <label>Submitted : </label>
                 <input
+                  name="samp_pp"
                   type="checkbox"
-                  checked={div2DataDB[i]?.samp_pp === 1}
+                  checked={tempBB[i]?.samp_pp === 1}
                   value={1}
-                  onChange={(e) => sampPPChanged(e, j.id_each)}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />
                 <label>Approved : </label>
                 <input
+                  name="samp_pp"
                   type="checkbox"
-                  checked={div2DataDB[i]?.samp_pp === 2}
+                  checked={tempBB[i]?.samp_pp === 2}
                   value={2}
-                  onChange={(e) => sampPPChanged(e, j.id_each)}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />
                 <label>Not Needed : </label>
                 <input
+                  name="samp_pp"
                   type="checkbox"
-                  checked={div2DataDB[i]?.samp_pp === 3}
+                  checked={tempBB[i]?.samp_pp === 3}
                   value={3}
-                  onChange={(e) => sampPPChanged(e, j.id_each)}
+                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />
               </small>
             </li>
@@ -178,43 +252,45 @@ export default function JobDiv3({
         </ul>
       </li>
       <li>
-        {`Bid Submission : `}
+        {`Estimation Submission : `}
         <ul>
           <li>
-            <form onSubmit={(e) => onSubmit(e, "form1")} name="form1">
-              <span># {displayID} : </span>
-              <select
-                name="submit_method"
-                onChange={NumChanged}
-                value={div1DataTemp.submit_method || 0}
-              >
-                <option value={0}></option>
-                <option value={1}>email</option>
-                <option value={2}>deliver</option>
-                <option value={3}>post</option>
-              </select>
-              {div1DataTemp.submit_method > 0 && (
-                <>
-                  <span>to : </span>
-                  <input
-                    type="text"
-                    name="submit_note1"
-                    onChange={strChanged}
-                    value={div1DataTemp.submit_note1 || ""}
-                    style={{ width: "30%" }}
-                  ></input>
-                  <span>by : </span>
-                  <input
-                    type="text"
-                    name="submit_note2"
-                    onChange={strChanged}
-                    value={div1DataTemp.submit_note2 || ""}
-                  ></input>
-                </>
-              )}
+            <span># {displayID} : </span>
+            <select
+              name="submit_method"
+              onChange={NumChanged_M}
+              value={tempEstSub.submit_method || 0}
+            >
+              <option value={0}></option>
+              <option value={1}>email</option>
+              <option value={2}>deliver</option>
+              <option value={3}>post</option>
+            </select>
+            {tempEstSub.submit_method > 0 && (
+              <>
+                <span>to : </span>
+                <input
+                  type="text"
+                  name="submit_note1"
+                  onChange={strChanged_M}
+                  value={tempEstSub.submit_note1 || ""}
+                  style={{ width: "30%" }}
+                ></input>
+                <span>by : </span>
+                <input
+                  type="text"
+                  name="submit_note2"
+                  onChange={strChanged_M}
+                  value={tempEstSub.submit_note2 || ""}
+                ></input>
+              </>
+            )}
 
-              {!submitByDis && <button type="submit">save</button>}
-            </form>
+            {!estiSubDis && (
+              <button name="estSub" onClick={onSubmit}>
+                save
+              </button>
+            )}
           </li>
         </ul>
       </li>
@@ -230,11 +306,11 @@ export default function JobDiv3({
           <input type="checkbox" />
           <li>
             <select
-              value={selctedforResult}
-              onChange={(e) => setSelctedforResult(Number(e.target.value))}
+              value={indexBidRes}
+              onChange={(e) => setIBidRes(Number(e.target.value))}
             >
               <option value={0}></option>
-              {div2DataDB
+              {eachJDB
                 .filter((j) => j.deployed)
                 .map((j) => (
                   <option key={j.id_each} value={j.id_each}>
@@ -244,7 +320,7 @@ export default function JobDiv3({
             </select>
             <br />
             <br />
-            {selctedforResult > 0 && (
+            {indexBidRes > 0 && (
               <>
                 <input type="text" readOnly={true} value="Nimthara Printers" />
                 <input
@@ -275,6 +351,6 @@ export default function JobDiv3({
       <li>Job Completed</li>
       <li>Delivered</li>
       <li>Payment Recieved</li>
-    </>
+    </ul>
   );
 }

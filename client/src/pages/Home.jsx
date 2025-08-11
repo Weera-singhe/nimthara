@@ -7,16 +7,21 @@ export default function Welcome({ user }) {
     <div className="new-division">
       {user.loggedIn ? (
         <>
-          <h4 style={{ color: "yellowgreen" }}>Log In Success...</h4>
-          <h3>{`Logged as ${user?.display_name || "error"}`}</h3>
+          <h4 style={{ color: "yellowgreen" }}>{"Log In Success..."}</h4>
+          <h3>
+            {`Logged as `}
+            <span style={{ color: "firebrick", fontWeight: "bold" }}>
+              {user?.display_name || "error"}
+            </span>
+          </h3>
         </>
       ) : user.loggedIn === null ? (
-        <>server is loading...</>
+        <>{"server is loading..."}</>
       ) : (
         <>
           <h3>
             {"Please "}
-            <Link to="/login">{"Login"}</Link> {" for Full access..."}
+            <Link to="/login">{"Login"}</Link> {" for full access..."}
           </h3>
         </>
       )}

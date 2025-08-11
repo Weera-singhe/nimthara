@@ -6,14 +6,14 @@ import { SumsEachQuot, toLKR } from "../../elements/cal";
 
 function JobDiv2({
   qts_componants,
-  detailsDB,
+  eachJDB,
   handleSubmit,
   allPapers,
   displayID,
   loopIndex,
   loading,
 }) {
-  const [detailsTemp, setDetailsTemp] = useState(detailsDB);
+  const [detailsTemp, setDetailsTemp] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
 
   function NumChanged(e, arrayy) {
@@ -48,19 +48,20 @@ function JobDiv2({
         : { ...p, [name]: safeVal }
     );
   }
-  const { unit_price, total_price, unit_vat, total_vat } = useMemo(
+  const { unit_price, the_sum, total_price, unit_vat, total_vat } = useMemo(
     () => SumsEachQuot(qts_componants, detailsTemp),
     [qts_componants, detailsTemp]
   );
 
   useEffect(() => {
-    setDetailsTemp(detailsDB);
+    setDetailsTemp(eachJDB);
     setIsDirty(false);
-  }, [detailsDB]);
+  }, [eachJDB]);
 
   function onSubmit(e) {
     e.preventDefault();
-    handleSubmit?.(e.nativeEvent, detailsTemp);
+    const submitter = e.nativeEvent.submitter?.name;
+    handleSubmit?.(submitter, detailsTemp);
   }
 
   return (
@@ -163,8 +164,8 @@ function JobDiv2({
           </div>
         ))}
         <br />
-        <h5 style={{ display: "inline-block", marginRight: "3%" }}>
-          Total Cost: {toLKR(total_price)}
+        <h5 style={{ display: "inline-block", marginRight: "2%" }}>
+          Total Cost: {toLKR(the_sum)} <b> + </b>
         </h5>
         <Num
           name={"profit"}
@@ -176,12 +177,12 @@ function JobDiv2({
         <b>||</b>
         <Num
           name={"profit"}
-          setTo={(detailsTemp.profit / total_price) * 100 || 0}
+          setTo={(detailsTemp.profit / the_sum) * 100 || 0}
           width={70}
           deci={2}
           changed={(e) => {
             const percent = Number(e.target.value);
-            const profit = (total_price / 100) * percent;
+            const profit = (the_sum / 100) * percent;
             NumChanged({
               target: {
                 name: "profit",
@@ -209,7 +210,7 @@ function JobDiv2({
           </small>
           {toLKR(unit_vat)}
         </h4>
-        <button type="submit" disabled={!isDirty}>
+        <button name="up" type="submit" disabled={!isDirty}>
           Update
         </button>
         {detailsTemp.deployed ? (

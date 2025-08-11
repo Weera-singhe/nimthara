@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { JOBS_API_URL, JOB_ADD_API_URL } from "../api/urls";
+import { JOBS_API_URL } from "../api/urls";
 import Docs from "../elements/Docs";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -10,24 +10,14 @@ import JobDiv3 from "./Job/JobDiv3";
 import useCurrentTime from "../elements/useCurrentTime";
 import { SumsEachQuot } from "../elements/cal.js";
 
-const defDiv1 = {
-  customer: 0,
-  deadline_i: "",
-  reference: "",
-  total_jobs: 1,
-};
-
 export default function Job({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const currentTime = useCurrentTime([]);
 
-  const [savedJobsDB, setSavedJobs] = useState();
-
-  const [div1DataTemp, setDiv1DataTemp] = useState(defDiv1);
-  const [div1DataDB, setDiv1DataDB] = useState(defDiv1);
-
-  const [div2DataDB, setDiv2DataDB] = useState([]);
+  const [mainJDB, setMainJ] = useState([]);
+  const [eachJDB, setEachJ] = useState([]);
+  const [eachJXDB, setEachJX] = useState([]);
 
   const [loadingMainJ, isLoadingMainJ] = useState(true);
   const [loadingEachJ, isLoadingEachJ] = useState(true);
@@ -39,43 +29,58 @@ export default function Job({ user }) {
 
   const [showQTS, setShowQTS] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchDB = useCallback(async () => {
     try {
+      const { data } = await axios.get(`${JOBS_API_URL}/${id || "add"}`, {
+        withCredentials: true,
+      });
       if (id) {
-        console.log("fetch with id");
-        const { data } = await axios.get(`${JOBS_API_URL}/${id}`, {
-          withCredentials: true,
-        });
-        setAllPapers(data.allPapers);
-        setQtsComponants(data.qtsComps);
+        //console.log("fetch with id");
         loadAllCustomers(data.cus);
+        setQtsComponants(data.qtsComps);
+        setAllPapers(data.allPapers);
         setAllUsernames(["", ...data.usernames]);
 
-        const { savedEachJob, qtsDefsEachJob, mainJobData } = data;
-        const totalJobs = mainJobData.total_jobs || 0;
-        const otherElements = { unit_count: 1, item_count: 1, profit: 0 };
+        const { savedEachJob, savedEachXJ, qtsDefJsons, mainJobData } = data;
+        setMainJ(mainJobData);
 
-        const savedJobsMap = Object.fromEntries(
+        const totalJobs = mainJobData.total_jobs || 0;
+
+        //set saved and empty eachjobs
+        const otherElements = {
+          unit_count: 1,
+          item_count: 1,
+          profit: 0,
+          id_main: Number(id),
+        };
+
+        const savedEachMap = Object.fromEntries(
           savedEachJob.map((job) => [job.id_each, job])
         );
-        setSavedJobs(savedJobsMap);
 
         const filled = Array.from({ length: totalJobs }, (_, i) => ({
-          id_main: Number(id),
           id_each: i + 1,
           ...otherElements,
-          ...qtsDefsEachJob,
-          ...savedJobsMap[i + 1],
+          ...qtsDefJsons, //{ loop_count, v, notes_other }
+          ...savedEachMap[i + 1],
         }));
+        setEachJ(filled);
+        //end
 
-        setDiv1DataTemp(mainJobData);
-        setDiv1DataDB(mainJobData);
-        setDiv2DataDB(filled);
+        //set saved and empty eachjobsx
+        const savedEachXMap = Object.fromEntries(
+          savedEachXJ.map((j) => [j.id_each, j])
+        );
+        const filledX = Array.from({ length: totalJobs }, (_, i) => ({
+          id_each: i + 1,
+          bb: 0, //
+          bb_amount: 0, //avoid srver error when post
+          ...savedEachXMap[i + 1],
+        }));
+        setEachJX(filledX);
+        //end
       } else {
-        console.log("fetch NO id");
-        const { data } = await axios.get(JOB_ADD_API_URL, {
-          withCredentials: true,
-        });
+        //console.log("fetch NO id");
         loadAllCustomers(data.cus);
       }
     } catch (err) {
@@ -87,35 +92,31 @@ export default function Job({ user }) {
   }, [id]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchDB();
+  }, [fetchDB]);
 
-  useEffect(() => {
-    console.log("data from db : ", div2DataDB);
-  }, [div2DataDB]);
-  useEffect(() => {
-    console.log("all usernames: ", allUsernames);
-  }, [allUsernames]);
+  // useEffect(() => {
+  //   console.log("data from db : ", eachJDB);
+  // }, [eachJDB]);
 
-  function handleSubmitDiv1(e) {
-    e.preventDefault();
+  function SubmitDiv1(exprt) {
     isLoadingMainJ(true);
     isLoadingEachJ(true);
-    //userid always send to backend. only there is no id(add nw job) it uses
-    const exprt = { ...div1DataTemp, user_id: user.id, ...(id && { id }) };
+
+    const updatedExprt = { ...exprt, user_id: user.id, ...(id && { id }) };
 
     axios
-      .post(`${JOBS_API_URL}/div1`, exprt)
-      .then((res) => navigate(`/jobs/${res.data.load_this_id}`)) //when add new job
+      .post(`${JOBS_API_URL}/div1`, updatedExprt)
+      .then((res) => !id && navigate(`/jobs/${res.data.load_this_id}`)) //navigate triggers fetchDB
       .catch((err) => alert("Error: " + err))
-      .finally(() => fetchData()); //still fetch when update existing job
+      .finally(() => id && fetchDB()); //if already id dont navigate. so manuelly triggers fetchDB
   }
 
-  function handleSubmitDiv2(e, exprt) {
-    e.preventDefault();
+  function SubmitDiv2(submitter, exprt) {
     isLoadingEachJ(true);
 
-    const isDeploy = e.submitter?.name === "dep";
+    const isDeploy = submitter === "dep";
+
     const updatedExprt = {
       ...exprt,
       ...(isDeploy && { deployed: true }),
@@ -125,7 +126,7 @@ export default function Job({ user }) {
     axios
       .post(`${JOBS_API_URL}/div2`, updatedExprt)
       .then((res) =>
-        setDiv2DataDB((p) =>
+        setEachJ((p) =>
           p.map((slot) => (slot.id_each === res.data.id_each ? res.data : slot))
         )
       )
@@ -133,76 +134,54 @@ export default function Job({ user }) {
       .finally(() => isLoadingEachJ(false));
   }
 
-  function handleSubmitDiv3(exprt, form) {
+  function SubmitDiv3(exprt, form) {
     isLoadingMainJ(true);
     isLoadingEachJ(true);
-    console.log(exprt, form);
-    const safeExport = { ...exprt, user_id: user.id, form };
+
+    const safeExport = { ...exprt, user_id: user.id, id: +id, form };
+    console.log("safeExport : ", safeExport);
 
     axios
       .post(`${JOBS_API_URL}/div3`, safeExport)
       .then((res) => {
-        setDiv1DataDB(res.data);
-        console.log("hey ", res.data);
+        form === "estSub" && setMainJ(res.data);
       })
       .catch((err) => alert("Error: " + err))
-      //.finally(() => fetchData()); reloads all
       .finally(() => {
         isLoadingMainJ(false);
         isLoadingEachJ(false);
       });
   }
   const allTotalPrices = useMemo(() => {
-    return div2DataDB.map((d2) => SumsEachQuot(qtsComponants, d2));
-  }, [div2DataDB, qtsComponants]);
+    return eachJDB.map((d2) => SumsEachQuot(qtsComponants, d2));
+  }, [eachJDB, qtsComponants]);
 
   //displayID
   const displayID =
-    div1DataDB.created_at_x && id
-      ? `${div1DataDB.created_at_x}_${id.toString().padStart(4, "0")}`
+    mainJDB.created_at_x && id
+      ? `${mainJDB.created_at_x}_${id.toString().padStart(4, "0")}`
       : "loading...";
-
-  const submit1Disabled =
-    JSON.stringify(div1DataTemp) === JSON.stringify(div1DataDB) ||
-    (id ? user.level_jobs < 3 : user.level_jobs < 2) ||
-    !user.loggedIn ||
-    loadingMainJ ||
-    loadingEachJ ||
-    !div1DataTemp.customer ||
-    !div1DataTemp.deadline_i;
 
   return (
     <>
-      <button onClick={() => navigate("/jobs")}>Back</button>
+      <div className="new-division">
+        <button onClick={() => navigate("/jobs")}>Back</button>
 
-      <h2 style={{ marginLeft: "2rem" }}>
-        {id ? `Update Job ${displayID}` : "Submit a New Job"}
-      </h2>
-
+        <h2>{id ? `Job # ${displayID}` : "Submit a New Job"}</h2>
+      </div>
       {/*DIV_1_/////////////////////////*/}
       <div className="framed">
         {loadingMainJ ? (
           "loading..."
         ) : (
-          <>
-            <JobDiv1
-              id={id}
-              jobDetails={div1DataTemp}
-              setDetails={setDiv1DataTemp}
-              handleSubmit={handleSubmitDiv1}
-              submit_disabled={submit1Disabled}
-              allCustomers={allCustomers}
-              savedJobsDB={savedJobsDB || []}
-            />
-            {!id && !submit1Disabled && (
-              <>
-                <br />
-                <span>
-                  submitted by <b>{user.display_name}</b>on<b> {currentTime}</b>
-                </span>
-              </>
-            )}
-          </>
+          <JobDiv1
+            id={id}
+            mainJDB={mainJDB}
+            allCustomers={allCustomers}
+            handleSubmit={SubmitDiv1}
+            user={user}
+            currentTime={currentTime}
+          />
         )}
       </div>
       {id && (
@@ -222,9 +201,29 @@ export default function Job({ user }) {
           )}
         </div>
       )}
+      {/*DIV_3_/////////////////////////*/}
+      {id && (
+        <div className="framed">
+          {loadingEachJ && loadingMainJ && "loading..."}
+          <div
+            style={{ display: loadingEachJ && loadingMainJ ? "none" : "block" }}
+          >
+            <JobDiv3
+              allUsernames={allUsernames}
+              mainJDB={mainJDB}
+              eachJDB={eachJDB}
+              eachJXDB={eachJXDB}
+              allTotalPrices={allTotalPrices}
+              displayID={displayID}
+              handleSubmit={SubmitDiv3}
+              user={user}
+            />
+          </div>
+        </div>
+      )}
       {/*DIV_2_show_hide/////////////////////////*/}
       {id && (
-        <div className="framed" style={{ width: "fitContent" }}>
+        <div className="framed">
           <Link
             onClick={() =>
               user.level_jobs >= 1 && user.loggedIn && setShowQTS((p) => !p)
@@ -245,16 +244,16 @@ export default function Job({ user }) {
       {/*DIV_2_/////////////////////////*/}
       {id &&
         showQTS &&
-        Array.from({ length: div1DataDB.total_jobs }, (_, loopIndex) => (
+        Array.from({ length: mainJDB.total_jobs }, (_, loopIndex) => (
           <div key={loopIndex} className="framed">
             <>
               {loadingEachJ && "loading..."}
               <div style={{ display: loadingEachJ ? "none" : "block" }}>
                 <JobDiv2
                   qts_componants={qtsComponants || []}
-                  detailsDB={div2DataDB[loopIndex] || []}
+                  eachJDB={eachJDB[loopIndex] || []}
                   allPapers={allPapers || []}
-                  handleSubmit={handleSubmitDiv2}
+                  handleSubmit={SubmitDiv2}
                   displayID={displayID}
                   loopIndex={loopIndex}
                   loading={loadingEachJ}
@@ -263,25 +262,6 @@ export default function Job({ user }) {
             </>
           </div>
         ))}
-      {/*DIV_3_/////////////////////////*/}
-      {id && (
-        <div className="framed">
-          <h3>Job Status ...</h3>
-          {loadingEachJ && "loading..."}
-          <div style={{ display: loadingEachJ ? "none" : "block" }}>
-            <JobDiv3
-              allUsernames={allUsernames || []}
-              div1DataDB={div1DataDB || {}}
-              div2DataDB={div2DataDB || {}}
-              allTotalPrices={allTotalPrices || {}}
-              displayID={displayID}
-              handleSubmit={handleSubmitDiv3}
-              user={user}
-              setDiv2DataDB={setDiv2DataDB}
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -32,7 +32,7 @@ export default function Jobbs() {
           Loading...
         </>
       ) : (
-        <ul>
+        <ul className="jb">
           <li>
             <b>Estimation Pending</b>
           </li>

@@ -1,30 +1,47 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Num from "../../elements/NumInput";
 
 export default function JobDiv1({
   id,
-  jobDetails,
-  setDetails,
+  mainJDB,
   allCustomers,
   handleSubmit,
-  submit_disabled,
+  user,
+  currentTime,
 }) {
+  const [mainJTemp, setMainJTemp] = useState(mainJDB);
+
+  useEffect(() => {
+    setMainJTemp(mainJDB);
+  }, [mainJDB]);
+
   function strChanged(e) {
     const { name, value } = e.target;
-    setDetails((p) => ({ ...p, [name]: value }));
+    setMainJTemp((p) => ({ ...p, [name]: value }));
   }
   function NumChanged(e) {
     const { name, value } = e.target;
-    setDetails((p) => ({ ...p, [name]: Number(value) }));
+    setMainJTemp((p) => ({ ...p, [name]: Number(value) }));
   }
+
+  function onSubmit(e) {
+    e.preventDefault();
+    handleSubmit?.(mainJTemp);
+  }
+  const submit_disabled =
+    JSON.stringify(mainJTemp) === JSON.stringify(mainJDB) ||
+    (id ? user.level_jobs < 3 : user.level_jobs < 2) ||
+    !user.loggedIn ||
+    !mainJTemp.customer ||
+    !mainJTemp.deadline_i;
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <label>Customer: </label>
         <select
           name="customer"
-          value={jobDetails.customer}
+          value={mainJTemp.customer}
           onChange={NumChanged}
         >
           <option value={0}></option>
@@ -38,7 +55,7 @@ export default function JobDiv1({
         <label>Reference : </label>
         <input
           name="reference"
-          value={jobDetails.reference || ""}
+          value={mainJTemp.reference || ""}
           onChange={strChanged}
         />
 
@@ -46,7 +63,7 @@ export default function JobDiv1({
         <input
           type="datetime-local"
           name="deadline_i"
-          value={jobDetails.deadline_i || ""}
+          value={mainJTemp.deadline_i || ""}
           onChange={strChanged}
         />
 
@@ -55,7 +72,7 @@ export default function JobDiv1({
           name={"total_jobs"}
           min={1}
           max={500}
-          setTo={jobDetails.total_jobs}
+          setTo={mainJTemp.total_jobs}
           changed={NumChanged}
           width={100}
           deci={0}
@@ -66,6 +83,9 @@ export default function JobDiv1({
             <br />
             <br />
             <button type="submit">{id ? "Update" : "Submit"}</button>
+            <span style={{ marginLeft: "2%" }}>
+              submitted by <b>{user.display_name}</b>on<b> {currentTime}</b>
+            </span>
           </>
         )}
       </form>

@@ -201,9 +201,12 @@ h6 {
   align-items: center;
   z-index: 999;
 }
-ul li {
-  margin-bottom: 0.5rem;
-  margin-top: 0.5rem;
+.jb li {
+  padding: 0.7rem 0.7rem 0 0.7rem;
+  margin: 0.2rem 0;
+}
+.jb ul {
+  padding-bottom: 0.8rem;
 }
 .bodyxx {
   background-color: #ffffff;
