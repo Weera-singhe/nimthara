@@ -43,6 +43,7 @@ export default function Job({ user }) {
 
         const { savedEachJob, savedEachXJ, qtsDefJsons, mainJobData } = data;
         setMainJ(mainJobData);
+        console.log(mainJobData);
 
         const totalJobs = mainJobData.total_jobs || 0;
 

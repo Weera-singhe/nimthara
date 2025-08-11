@@ -232,7 +232,8 @@ const JobsById_SQL = `
       *,
       ${dateInpCon("deadline")},
       ${date6Con("created_at")},
-      ${dateTimeCon("created_at")}
+      ${dateTimeCon("created_at")},
+      ${dateTimeCon("last_sub_edit_at")}
       FROM jobs
       WHERE id = $1 AND private = false`;
 

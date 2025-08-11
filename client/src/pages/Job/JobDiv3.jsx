@@ -30,7 +30,7 @@ export default function JobDiv3({
   useEffect(() => {
     console.log("eachjxtratmp set to db");
     !tempBB.length && setTempBB(eachJXDB);
-  }, [eachJXDB]);
+  }, [eachJXDB, tempBB.length]);
 
   function strChanged_M(e) {
     const { name, value } = e.target;
@@ -208,7 +208,7 @@ export default function JobDiv3({
 
       {/*3_SubDiv_________________________________________*/}
       <li>
-        {`Sample Submission : `}
+        {`Sample Submission  `}
         <ul>
           {eachJDB.map((j, i) => (
             <li key={j.id_each}>
@@ -252,7 +252,13 @@ export default function JobDiv3({
         </ul>
       </li>
       <li>
-        {`Estimation Submission : `}
+        {`Estimation Submission `}{" "}
+        <small>
+          {mainJDB?.last_sub_edit_by &&
+            ` ( last edit by ${allUsernames[mainJDB?.last_sub_edit_by]} at ${
+              mainJDB?.last_sub_edit_at_t
+            } ) `}
+        </small>
         <ul>
           <li>
             <span># {displayID} : </span>
