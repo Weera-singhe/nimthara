@@ -15,22 +15,19 @@ export default function JobDiv3({
   const [tempEstSub, setTempEstSub] = useState([]);
   //const [eachJTemp, setEachJTemp] = useState([]);
   const [tempBB, setTempBB] = useState([]);
+  const [tempSample, setTempSample] = useState([]);
   const [indexBidRes, setIBidRes] = useState(0);
 
   useEffect(() => {
-    console.log("mainjtmp set to db");
-    setTempEstSub(mainJDB);
-  }, [mainJDB]);
-
-  // useEffect(() => {
-  //   console.log("eachjtmp set to db");
-  //   setEachJTemp(eachJDB);
-  // }, [eachJDB]);
+    !tempEstSub.length && setTempEstSub(mainJDB);
+  }, [mainJDB, tempEstSub.length]);
 
   useEffect(() => {
-    console.log("eachjxtratmp set to db");
     !tempBB.length && setTempBB(eachJXDB);
   }, [eachJXDB, tempBB.length]);
+  useEffect(() => {
+    !tempSample.length && setTempSample(eachJXDB);
+  }, [eachJXDB, tempSample.length]);
 
   function strChanged_M(e) {
     const { name, value } = e.target;
@@ -42,12 +39,19 @@ export default function JobDiv3({
   }
   function NumChanged_xtra(e, id_each) {
     const { name, value } = e.target;
-    (name === "bb" || name === "bb_amount") &&
+    if (name === "bb" || name === "bb_amount") {
       setTempBB((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
         )
       );
+    } else if (name === "samp_pp") {
+      setTempSample((prev) =>
+        prev.map((slot) =>
+          slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
+        )
+      );
+    }
   }
 
   function onSubmit(e, i) {
@@ -260,7 +264,7 @@ export default function JobDiv3({
                 <input
                   name="samp_pp"
                   type="checkbox"
-                  checked={!tempBB[i]?.samp_pp}
+                  checked={!tempSample[i]?.samp_pp}
                   value={0}
                   onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />{" "}
@@ -268,7 +272,7 @@ export default function JobDiv3({
                 <input
                   name="samp_pp"
                   type="checkbox"
-                  checked={tempBB[i]?.samp_pp === 1}
+                  checked={tempSample[i]?.samp_pp === 1}
                   value={1}
                   onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />
@@ -276,7 +280,7 @@ export default function JobDiv3({
                 <input
                   name="samp_pp"
                   type="checkbox"
-                  checked={tempBB[i]?.samp_pp === 2}
+                  checked={tempSample[i]?.samp_pp === 2}
                   value={2}
                   onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />
@@ -284,7 +288,7 @@ export default function JobDiv3({
                 <input
                   name="samp_pp"
                   type="checkbox"
-                  checked={tempBB[i]?.samp_pp === 3}
+                  checked={tempSample[i]?.samp_pp === 3}
                   value={3}
                   onChange={(e) => NumChanged_xtra(e, j.id_each)}
                 />
