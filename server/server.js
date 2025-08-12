@@ -262,7 +262,8 @@ async function JobsEByIdM(id_main) {
 const JobsXByIdM_SQL = `
       SELECT 
       jx.*,
-      ${dateTimeCon("last_bb_edit_at")}
+      ${dateTimeCon("last_bb_edit_at")},
+      ${dateTimeCon("last_samppp_edit_at")}
       FROM jobs_eachx jx
       JOIN jobs j ON jx.id_main = j.id
       WHERE jx.id_main = $1 AND j.private = false
@@ -291,7 +292,8 @@ async function JobsEByIdMIdE(id_main, id_each) {
 const JobsXByIdMIdE_SQL = `
       SELECT 
       jx.*,
-      ${dateTimeCon("last_bb_edit_at")}
+      ${dateTimeCon("last_bb_edit_at")},
+      ${dateTimeCon("last_samppp_edit_at")}
       FROM jobs_eachx jx
       JOIN jobs j ON jx.id_main = j.id
       WHERE jx.id_main = $1 AND j.private = false AND id_each=$2
@@ -543,6 +545,27 @@ app.post("/jobs/div3", async (req, res) => {
       const { id_each, bb, bb_amount } = req.body;
       const params = [id_main, id_each, bb, bb_amount, user_id];
 
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+
+      const updtd = await JobsXByIdMIdE(id_main, id_each);
+      res.status(200).json(updtd);
+    } else if (form === "samp_pp") {
+      const updt = `
+          UPDATE jobs_eachx
+          SET samp_pp=$3, last_samppp_edit_by=$4, last_samppp_edit_at=NOW()
+          WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_eachx 
+          (id_main, id_each, samp_pp, last_samppp_edit_by, last_samppp_edit_at)
+          SELECT $1, $2, $3, $4, NOW()`;
+
+      const { id_each, samp_pp } = req.body;
+      const params = [id_main, id_each, samp_pp, user_id];
       const upd = await pool.query(updt, params);
 
       if (upd.rowCount === 0) {

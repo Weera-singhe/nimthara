@@ -74,8 +74,9 @@ export default function Job({ user }) {
         );
         const filledX = Array.from({ length: totalJobs }, (_, i) => ({
           id_each: i + 1,
-          bb: 0, //
-          bb_amount: 0, //avoid srver error when post
+          bb: 0, ////avoid srver errors and save bttn error
+          bb_amount: 0, //avoid srver errors and save bttn error
+          samp_pp: 0, //avoid srver errors and save bttn error
           ...savedEachXMap[i + 1],
         }));
         setEachJX(filledX);
@@ -145,13 +146,15 @@ export default function Job({ user }) {
     axios
       .post(`${JOBS_API_URL}/div3`, safeExport)
       .then((res) => {
-        form === "estSub"
-          ? setMainJ(res.data)
-          : setEachJX((p) =>
-              p.map((slot) =>
-                slot.id_each === res.data.id_each ? res.data : slot
-              )
-            );
+        if (form === "estSub") {
+          setMainJ(res.data);
+        } else if (form === "bb" || form === "samp_pp") {
+          setEachJX((p) =>
+            p.map((slot) =>
+              slot.id_each === res.data.id_each ? res.data : slot
+            )
+          );
+        }
       })
       .catch((err) => alert("Error: " + err))
       .finally(() => {

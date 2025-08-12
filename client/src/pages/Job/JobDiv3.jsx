@@ -15,7 +15,7 @@ export default function JobDiv3({
   const [tempEstSub, setTempEstSub] = useState([]);
   //const [eachJTemp, setEachJTemp] = useState([]);
   const [tempBB, setTempBB] = useState([]);
-  const [tempSample, setTempSample] = useState([]);
+  const [tempSampPP, setTempSampPP] = useState([]);
   const [indexBidRes, setIBidRes] = useState(0);
 
   useEffect(() => {
@@ -25,9 +25,10 @@ export default function JobDiv3({
   useEffect(() => {
     !tempBB.length && setTempBB(eachJXDB);
   }, [eachJXDB, tempBB.length]);
+
   useEffect(() => {
-    !tempSample.length && setTempSample(eachJXDB);
-  }, [eachJXDB, tempSample.length]);
+    !tempSampPP.length && setTempSampPP(eachJXDB);
+  }, [eachJXDB, tempSampPP.length]);
 
   function strChanged_M(e) {
     const { name, value } = e.target;
@@ -46,7 +47,7 @@ export default function JobDiv3({
         )
       );
     } else if (name === "samp_pp") {
-      setTempSample((prev) =>
+      setTempSampPP((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
         )
@@ -56,7 +57,12 @@ export default function JobDiv3({
 
   function onSubmit(e, i) {
     const name = e.target.name;
-    const exprt = name === "estSub" ? tempEstSub : tempBB[i];
+    const exprt =
+      name === "estSub"
+        ? tempEstSub
+        : name === "bb"
+        ? tempBB[i]
+        : tempSampPP[i];
     handleSubmit(exprt, name);
   }
   const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
@@ -66,9 +72,10 @@ export default function JobDiv3({
       tempEstSub.submit_note1 === mainJDB.submit_note1 &&
       tempEstSub.submit_note2 === mainJDB.submit_note2) ||
     !userJobsL2;
-
-  const depCount = eachJDB.filter((j) => j.deployed).length;
-  const pendingBBCount = tempBB.filter((j) => j.bb < 1).length;
+  const totalJobs = mainJDB?.total_jobs;
+  const pendingDep = totalJobs - eachJDB.filter((j) => j.deployed).length;
+  const pendingBB = totalJobs - tempBB.filter((j) => j.bb > 0).length;
+  const pendingSPP = totalJobs - tempSampPP.filter((j) => j.samp_pp > 1).length;
 
   useEffect(() => {
     console.log("x changed : ", tempBB);
@@ -90,7 +97,10 @@ export default function JobDiv3({
 
       {/*2_SubDiv_________________________________________*/}
       <li>
-        Estimation - {depCount} / {mainJDB?.total_jobs}
+        {`Estimation : `}
+        <small style={{ color: "firebrick" }}>
+          {pendingDep ? ` ${pendingDep} pending...` : "✅"}
+        </small>
         <ul>
           {eachJDB.map((j, i) => (
             <li
@@ -157,22 +167,18 @@ export default function JobDiv3({
       <li>
         {`Bid Bond : `}
         <small style={{ color: "firebrick" }}>
-          {pendingBBCount ? ` ${pendingBBCount} pending...` : "✅"}
+          {pendingBB ? ` ${pendingBB} pending...` : "✅"}
         </small>
 
-        <ul
-          style={{
-            backgroundColor: pendingBBCount > 0 ? "mistyrose" : undefined,
-          }}
-        >
-          {eachJDB.map((j, i) => {
+        <ul>
+          {eachJXDB.map((j, i) => {
+            //loop with eachJDB becasue it guaranted every element
             const bbChanged =
-              tempBB[i]?.bb !== eachJXDB[i]?.bb ||
-              tempBB[i]?.bb_amount !== eachJXDB[i]?.bb_amount;
+              tempBB[i]?.bb !== j.bb || tempBB[i]?.bb_amount !== j.bb_amount;
 
-            const lastEditText = eachJXDB[i]?.last_bb_edit_by
-              ? `last edit at ${eachJXDB[i]?.last_bb_edit_at_t} by ${
-                  allUsernames[eachJXDB[i]?.last_bb_edit_by]
+            const lastEditText = j.last_bb_edit_by
+              ? `last edit at ${j.last_bb_edit_at_t} by ${
+                  allUsernames[j.last_bb_edit_by]
                 }`
               : "";
 
@@ -182,15 +188,11 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor:
-                    (userAuditL2 || userJobsL2) && bbChanged
-                      ? "azure"
-                      : undefined,
+                  backgroundColor: tempBB[i]?.bb < 1 && "mistyrose",
                 }}
               >
-                {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
+                {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
                 <small style={{ marginLeft: "2%" }}>
-                  {/* Status Checkboxes */}
                   <label>Not Needed :</label>
                   <input
                     name="bb"
@@ -218,7 +220,6 @@ export default function JobDiv3({
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
 
-                  {/* Amount or Checkmark */}
                   <label>Amount :</label>
                   {showAmount ? (
                     <Num
@@ -254,47 +255,76 @@ export default function JobDiv3({
 
       {/*3_SubDiv_________________________________________*/}
       <li>
-        {`Sample Submission  `}
+        {`Paper Sample : `}
+        <small style={{ color: "firebrick" }}>
+          {pendingSPP ? ` ${pendingSPP} pending...` : "✅"}
+        </small>
         <ul>
-          {eachJDB.map((j, i) => (
-            <li key={j.id_each}>
-              {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
-              <small style={{ marginLeft: "2%" }}>
-                <label>Processing : </label>
-                <input
-                  name="samp_pp"
-                  type="checkbox"
-                  checked={!tempSample[i]?.samp_pp}
-                  value={0}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />{" "}
-                <label>Submitted : </label>
-                <input
-                  name="samp_pp"
-                  type="checkbox"
-                  checked={tempSample[i]?.samp_pp === 1}
-                  value={1}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />
-                <label>Approved : </label>
-                <input
-                  name="samp_pp"
-                  type="checkbox"
-                  checked={tempSample[i]?.samp_pp === 2}
-                  value={2}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />
-                <label>Not Needed : </label>
-                <input
-                  name="samp_pp"
-                  type="checkbox"
-                  checked={tempSample[i]?.samp_pp === 3}
-                  value={3}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />
-              </small>
-            </li>
-          ))}
+          {/* */}
+          {eachJXDB.map((j, i) => {
+            //loop with eachJDB becasue it guaranted every element
+            const sppChanged = tempSampPP[i]?.samp_pp !== j.samp_pp;
+
+            const lastEditText = j.last_samppp_edit_by
+              ? `last edit at ${j.last_samppp_edit_at_t} by ${
+                  allUsernames[j.last_samppp_edit_by]
+                }`
+              : "";
+
+            return (
+              <li
+                key={j.id_each}
+                style={{
+                  backgroundColor: tempSampPP[i]?.samp_pp < 2 && "mistyrose",
+                }}
+              >
+                {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
+                <small style={{ marginLeft: "2%" }}>
+                  <label>Not Needed : </label>
+                  <input
+                    name="samp_pp"
+                    type="checkbox"
+                    checked={tempSampPP[i]?.samp_pp === 3}
+                    value={3}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />
+                  <label>Processing : </label>
+                  <input
+                    name="samp_pp"
+                    type="checkbox"
+                    checked={!tempSampPP[i]?.samp_pp}
+                    value={0}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />{" "}
+                  <label>Submitted : </label>
+                  <input
+                    name="samp_pp"
+                    type="checkbox"
+                    checked={tempSampPP[i]?.samp_pp === 1}
+                    value={1}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />
+                  <label>Approved : </label>
+                  <input
+                    name="samp_pp"
+                    type="checkbox"
+                    checked={tempSampPP[i]?.samp_pp === 2}
+                    value={2}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />
+                  <span style={{ marginLeft: "1%" }}>
+                    {userJobsL2 && sppChanged ? (
+                      <button name="samp_pp" onClick={(e) => onSubmit(e, i)}>
+                        Save
+                      </button>
+                    ) : (
+                      lastEditText
+                    )}
+                  </span>
+                </small>
+              </li>
+            );
+          })}
         </ul>
       </li>
       <li>
