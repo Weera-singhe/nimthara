@@ -312,6 +312,7 @@ app.get("/jobs", async (req, res) => {
       ${dateTimeCon("deadline")},
       ${date6Con("created_at")},
       CAST(COALESCE((SELECT COUNT(*)FROM jobs_each je WHERE je.id_main = j.id AND je.deployed=true AND j.total_jobs >= je.id_each ),0)AS INTEGER)AS dep_count,
+      CAST(COALESCE((SELECT COUNT(*)FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb>0 AND j.total_jobs >= jx.id_each ),0)AS INTEGER)AS bb_done_count,
       c.customer_name FROM jobs j
       LEFT JOIN customers c ON j.customer = c.id
       WHERE j.private = false 
@@ -503,11 +504,11 @@ app.post("/jobs/div2", async (req, res) => {
 });
 
 app.post("/jobs/div3", async (req, res) => {
-  const { submit_method, submit_note1, submit_note2, user_id, id, form } =
-    req.body;
+  const { user_id, id_main, form } = req.body;
   console.log(req.body);
   try {
     if (form === "estSub") {
+      const { submit_method, submit_note1, submit_note2 } = req.body;
       await pool.query(
         `
         UPDATE jobs SET
@@ -517,16 +518,18 @@ app.post("/jobs/div3", async (req, res) => {
         last_sub_edit_by = $4,
         last_sub_edit_at = NOW()
         WHERE id = $5 AND private=false`,
-        [submit_method, submit_note1.trim(), submit_note2.trim(), user_id, id]
+        [
+          submit_method,
+          submit_note1.trim(),
+          submit_note2.trim(),
+          user_id,
+          id_main,
+        ]
       );
 
-      const updtd = await JobsById(id);
+      const updtd = await JobsById(id_main);
       res.status(200).json(updtd);
     } else if (form === "bb") {
-      const items = Object.values(req.body).filter(
-        (v) => v && typeof v === "object" && "id_each" in v
-      );
-
       const updt = `
           UPDATE jobs_eachx
           SET bb=$3, bb_amount=$4, last_bb_edit_by=$5, last_bb_edit_at=NOW()
@@ -537,17 +540,17 @@ app.post("/jobs/div3", async (req, res) => {
           (id_main, id_each, bb, bb_amount, last_bb_edit_by, last_bb_edit_at)
           SELECT $1, $2, $3, $4, $5, NOW()`;
 
-      for (const { id_each, bb, bb_amount } of items) {
-        const params = [id, id_each, bb, bb_amount, user_id];
+      const { id_each, bb, bb_amount } = req.body;
+      const params = [id_main, id_each, bb, bb_amount, user_id];
 
-        const upd = await pool.query(updt, params);
+      const upd = await pool.query(updt, params);
 
-        if (upd.rowCount === 0 && !(bb === 0 && bb_amount === 0)) {
-          await pool.query(insrt, params);
-        }
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
       }
 
-      res.status(200).json({ success: true });
+      const updtd = await JobsXByIdMIdE(id_main, id_each);
+      res.status(200).json(updtd);
     }
   } catch (err) {
     console.error("DB Error:", err.message);
@@ -794,7 +797,13 @@ app.get("/check-auth", (req, res) => {
       ...req.user,
     });
   } else {
-    res.json({ loggedIn: false, level: 0, level_jobs: 0 });
+    res.json({
+      loggedIn: false,
+      level: 0,
+      level_jobs: 0,
+      level_audit: 0,
+      level_paper: 0,
+    });
   }
 });
 

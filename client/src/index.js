@@ -24,6 +24,7 @@ const App = () => {
     level: 0,
     level_jobs: 0,
     level_paper: 0,
+    level_audit: 0,
   });
 
   useEffect(() => {
@@ -33,7 +34,13 @@ const App = () => {
       })
       .then((res) => setUser(res.data))
       .catch(() =>
-        setUser({ loggedIn: false, level: 0, level_jobs: 0, level_paper: 0 })
+        setUser({
+          loggedIn: false,
+          level: 0,
+          level_jobs: 0,
+          level_paper: 0,
+          level_audit: 0,
+        })
       );
   }, []);
   return (

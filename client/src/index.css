@@ -89,6 +89,10 @@ nav a {
 .framed .needgap {
   margin-right: 3%;
 }
+.compact input,
+.compact select {
+  margin: 0;
+}
 
 .book {
   padding: 15px;

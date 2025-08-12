@@ -92,3 +92,9 @@ export function toLKR(value) {
     currency: "LKR",
   });
 }
+export function toDeci(value) {
+  return (value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}

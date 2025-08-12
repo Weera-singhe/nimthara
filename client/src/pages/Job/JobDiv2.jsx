@@ -58,6 +58,10 @@ function JobDiv2({
     setIsDirty(false);
   }, [eachJDB]);
 
+  useEffect(() => {
+    console.log(detailsTemp);
+  }, [detailsTemp]);
+
   function onSubmit(e) {
     e.preventDefault();
     const submitter = e.nativeEvent.submitter?.name;
@@ -140,7 +144,7 @@ function JobDiv2({
                 </div>
 
                 {/* ///////MIDDLE//////// */}
-                <div className="boxyy" style={{ width: "80%" }}>
+                <div className="boxyy compact" style={{ width: "80%" }}>
                   <JobDiv2Mid
                     name={`${comp.name}_${compRepeated_i}`}
                     changed={(e) => NumChanged(e, "v")}

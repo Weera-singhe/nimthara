@@ -45,12 +45,18 @@ export default function Jobbs() {
                   <Link to={`/jobs/${j.id}`}>
                     {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
                   </Link>
-                  <small
-                    style={{ color: "firebrick" }}
-                  >{` - ${j?.deadline_t}`}</small>
-
                   <b>{`- ${j.customer_name || ""} : `}</b>
                   <span>{j?.reference}</span>
+                  <b>
+                    {j.bb_done_count < j.total_jobs && (
+                      <small style={{ color: "red", marginLeft: "1%" }}>
+                        {"bid bond pending"}{" "}
+                      </small>
+                    )}
+                    <small style={{ color: "firebrick", marginLeft: "1%" }}>
+                      {` deadline : ${j?.deadline_t}`}
+                    </small>
+                  </b>
                 </li>
               ))}
           </ul>
@@ -69,6 +75,16 @@ export default function Jobbs() {
                   </Link>
                   <b>{`- ${j.customer_name || ""} : `}</b>
                   <span>{j?.reference}</span>
+                  <b>
+                    {j.bb_done_count < j.total_jobs && (
+                      <small style={{ color: "red", marginLeft: "1%" }}>
+                        {"bid bond pending"}{" "}
+                      </small>
+                    )}
+                    <small style={{ color: "firebrick", marginLeft: "1%" }}>
+                      {` deadline : ${j?.deadline_t}`}
+                    </small>
+                  </b>
                 </li>
               ))}
           </ul>
@@ -87,6 +103,13 @@ export default function Jobbs() {
                   </Link>
                   <b>{`- ${j.customer_name || ""} : `}</b>
                   <span>{j?.reference}</span>
+                  <b>
+                    {j.bb_done_count < j.total_jobs && (
+                      <small style={{ color: "red", marginLeft: "1%" }}>
+                        {"pending bid bond"}{" "}
+                      </small>
+                    )}
+                  </b>
                 </li>
               ))}
           </ul>

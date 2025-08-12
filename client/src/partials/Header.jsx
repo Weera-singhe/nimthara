@@ -11,7 +11,13 @@ export default function Header({ user, setUser }) {
   const handleLogout = async () => {
     try {
       await axios.post(LOGOUT_API_URL, {}, { withCredentials: true });
-      setUser({ loggedIn: false, level: 0, level_jobs: 0, level_paper: 0 });
+      setUser({
+        loggedIn: false,
+        level: 0,
+        level_jobs: 0,
+        level_paper: 0,
+        level_audit: 0,
+      });
       navigate("/login");
     } catch {
       alert("Logout failed");

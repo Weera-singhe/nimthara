@@ -50,24 +50,21 @@ export default function JobDiv3({
       );
   }
 
-  function onSubmit(e) {
+  function onSubmit(e, i) {
     const name = e.target.name;
-    const exprt = name === "estSub" ? tempEstSub : tempBB;
+    const exprt = name === "estSub" ? tempEstSub : tempBB[i];
     handleSubmit(exprt, name);
   }
+  const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
+  const userAuditL2 = user.level_audit > 1 && user.loggedIn;
   const estiSubDis =
     (tempEstSub.submit_method === mainJDB.submit_method &&
       tempEstSub.submit_note1 === mainJDB.submit_note1 &&
       tempEstSub.submit_note2 === mainJDB.submit_note2) ||
-    user.level_jobs < 2 ||
-    !user.loggedIn;
-
-  const bbDisabled =
-    JSON.stringify(tempBB) === JSON.stringify(eachJXDB) ||
-    user.level_jobs < 2 ||
-    !user.loggedIn;
+    !userJobsL2;
 
   const depCount = eachJDB.filter((j) => j.deployed).length;
+  const pendingBBCount = tempBB.filter((j) => j.bb < 1).length;
 
   useEffect(() => {
     console.log("x changed : ", tempBB);
@@ -154,42 +151,72 @@ export default function JobDiv3({
       </li>
       {/*3_SubDiv_________________________________________*/}
       <li>
-        {`Bid Bond : `}{" "}
-        <button disabled={bbDisabled} name="bb" onClick={onSubmit}>
-          Save
-        </button>
-        <ul>
-          {eachJDB.map((j, i) => (
-            <li key={j.id_each}>
-              {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
-              <small style={{ marginLeft: "2%" }}>
-                <label>Not Needed : </label>
-                <input
-                  name="bb"
-                  type="checkbox"
-                  checked={tempBB[i]?.bb === 2}
-                  value={2}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />
-                <label>Processing : </label>
-                <input
-                  name="bb"
-                  type="checkbox"
-                  checked={!tempBB[i]?.bb}
-                  value={0}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />
-                <label>Approved : </label>
-                <input
-                  name="bb"
-                  type="checkbox"
-                  checked={tempBB[i]?.bb === 1}
-                  value={1}
-                  onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                />
-                {tempBB[i]?.bb !== 2 && (
-                  <>
-                    <label>Amount : </label>
+        {`Bid Bond : `}
+        <small style={{ color: "firebrick" }}>
+          {pendingBBCount ? ` ${pendingBBCount} pending...` : "✅"}
+        </small>
+
+        <ul
+          style={{
+            backgroundColor: pendingBBCount > 0 ? "mistyrose" : undefined,
+          }}
+        >
+          {eachJDB.map((j, i) => {
+            const bbChanged =
+              tempBB[i]?.bb !== eachJXDB[i]?.bb ||
+              tempBB[i]?.bb_amount !== eachJXDB[i]?.bb_amount;
+
+            const lastEditText = eachJXDB[i]?.last_bb_edit_by
+              ? `last edit at ${eachJXDB[i]?.last_bb_edit_at_t} by ${
+                  allUsernames[eachJXDB[i]?.last_bb_edit_by]
+                }`
+              : "";
+
+            const showAmount = tempBB[i]?.bb !== 2;
+
+            return (
+              <li
+                key={j.id_each}
+                style={{
+                  backgroundColor:
+                    (userAuditL2 || userJobsL2) && bbChanged
+                      ? "azure"
+                      : undefined,
+                }}
+              >
+                {`# ${displayID}_${j.cus_id_each || j.id_each} : `}
+                <small style={{ marginLeft: "2%" }}>
+                  {/* Status Checkboxes */}
+                  <label>Not Needed :</label>
+                  <input
+                    name="bb"
+                    type="checkbox"
+                    checked={tempBB[i]?.bb === 2}
+                    value={2}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />
+
+                  <label>Processing :</label>
+                  <input
+                    name="bb"
+                    type="checkbox"
+                    checked={!tempBB[i]?.bb}
+                    value={0}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />
+
+                  <label>Approved :</label>
+                  <input
+                    name="bb"
+                    type="checkbox"
+                    checked={tempBB[i]?.bb === 1}
+                    value={1}
+                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
+                  />
+
+                  {/* Amount or Checkmark */}
+                  <label>Amount :</label>
+                  {showAmount ? (
                     <Num
                       name="bb_amount"
                       min={0}
@@ -198,11 +225,26 @@ export default function JobDiv3({
                       width={100}
                       deci={2}
                     />
-                  </>
-                )}
-              </small>
-            </li>
-          ))}
+                  ) : (
+                    <input
+                      style={{ width: "100px", marginRight: "0" }}
+                      readOnly
+                      value="✅"
+                    />
+                  )}
+                  <span style={{ marginLeft: "1%" }}>
+                    {(userAuditL2 || userJobsL2) && bbChanged ? (
+                      <button name="bb" onClick={(e) => onSubmit(e, i)}>
+                        Save
+                      </button>
+                    ) : (
+                      lastEditText
+                    )}
+                  </span>
+                </small>
+              </li>
+            );
+          })}
         </ul>
       </li>
 

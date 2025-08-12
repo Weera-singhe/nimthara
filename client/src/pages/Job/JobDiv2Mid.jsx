@@ -66,6 +66,10 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
           const input_price = v?.[name + "_1"] || 0;
           const the_unit_val = selectedPaper?.unit_val || 0;
           const input_unit_val = v?.[name + "_2"] || 1;
+          const ppqty1 =
+            (v?.[name + "_3"] * v?.[name + "_7"]) / v?.[name + "_4"];
+          const ppqty2 = v?.[name + "_5"] / v?.[name + "_6"];
+          const ppqty = Math.ceil(ppqty1 + ppqty2);
 
           return (
             <>
@@ -171,6 +175,9 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
                 deci={0}
               />
               <b> ) </b>
+              <small>
+                <b>{`[ ${ppqty.toLocaleString()} ]`}</b>
+              </small>
             </>
           );
         })()}

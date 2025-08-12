@@ -96,9 +96,9 @@ export default function Job({ user }) {
     fetchDB();
   }, [fetchDB]);
 
-  // useEffect(() => {
-  //   console.log("data from db : ", eachJDB);
-  // }, [eachJDB]);
+  useEffect(() => {
+    console.log("MAIN J DB : ", mainJDB);
+  }, [mainJDB]);
 
   function SubmitDiv1(exprt) {
     isLoadingMainJ(true);
@@ -139,13 +139,19 @@ export default function Job({ user }) {
     isLoadingMainJ(true);
     isLoadingEachJ(true);
 
-    const safeExport = { ...exprt, user_id: user.id, id: +id, form };
+    const safeExport = { ...exprt, user_id: user.id, id_main: +id, form };
     console.log("safeExport : ", safeExport);
 
     axios
       .post(`${JOBS_API_URL}/div3`, safeExport)
       .then((res) => {
-        form === "estSub" && setMainJ(res.data);
+        form === "estSub"
+          ? setMainJ(res.data)
+          : setEachJX((p) =>
+              p.map((slot) =>
+                slot.id_each === res.data.id_each ? res.data : slot
+              )
+            );
       })
       .catch((err) => alert("Error: " + err))
       .finally(() => {
