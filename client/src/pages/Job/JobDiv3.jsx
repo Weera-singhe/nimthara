@@ -75,7 +75,8 @@ export default function JobDiv3({
   const estiSubDis =
     (tempEstSub.submit_method === mainJDB.submit_method &&
       tempEstSub.submit_note1 === mainJDB.submit_note1 &&
-      tempEstSub.submit_note2 === mainJDB.submit_note2) ||
+      tempEstSub.submit_note2 === mainJDB.submit_note2 &&
+      tempEstSub.submit_at_ === mainJDB.submit_at_) ||
     !userJobsL2;
   const totalJobs = mainJDB?.total_jobs;
   const pendingDep = totalJobs - eachJDB.filter((j) => j.deployed).length;
@@ -301,7 +302,7 @@ export default function JobDiv3({
                     value={0}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />{" "}
-                  <label>Ready : </label>
+                  <label>Ready to Submit : </label>
                   <input
                     name="samp_pp"
                     type="checkbox"
@@ -369,6 +370,13 @@ export default function JobDiv3({
                   name="submit_note2"
                   onChange={strChanged_M}
                   value={tempEstSub.submit_note2 || ""}
+                ></input>{" "}
+                <span>at : </span>
+                <input
+                  type="date"
+                  name="submit_at_"
+                  onChange={strChanged_M}
+                  value={tempEstSub.submit_at_ || ""}
                 ></input>
               </>
             )}

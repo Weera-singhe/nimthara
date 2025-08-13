@@ -17,7 +17,8 @@ export default function JobDiv1({
 
   function strChanged(e) {
     const { name, value } = e.target;
-    setMainJTemp((p) => ({ ...p, [name]: value }));
+    const safeVal = value.trimStart();
+    setMainJTemp((p) => ({ ...p, [name]: safeVal }));
   }
   function NumChanged(e) {
     const { name, value } = e.target;
@@ -33,7 +34,8 @@ export default function JobDiv1({
     (id ? user.level_jobs < 3 : user.level_jobs < 2) ||
     !user.loggedIn ||
     !mainJTemp.customer ||
-    !mainJTemp.deadline_i;
+    !mainJTemp.deadline_i ||
+    (!mainJTemp.reference && !mainJTemp.contact_p && !mainJTemp.contact_d);
 
   return (
     <div>
@@ -77,6 +79,23 @@ export default function JobDiv1({
           width={100}
           deci={0}
         />
+        <br />
+        <br />
+
+        <label>Contact Person : </label>
+        <input
+          name="contact_p"
+          value={mainJTemp.contact_p || ""}
+          onChange={strChanged}
+        />
+
+        <label>Contact : </label>
+        <input
+          name="contact_d"
+          value={mainJTemp.contact_d || ""}
+          onChange={strChanged}
+          style={{ width: "20%" }}
+        />
 
         {!submit_disabled && (
           <>
@@ -84,10 +103,13 @@ export default function JobDiv1({
             <br />
             <button type="submit">{id ? "Update" : "Submit"}</button>
             <span style={{ marginLeft: "2%" }}>
-              submitted by <b>{user.display_name}</b>on<b> {currentTime}</b>
+              by <b>{user.display_name}</b>on
+              <b> {currentTime}</b>
             </span>
           </>
         )}
+        <br />
+        <br />
       </form>
     </div>
   );

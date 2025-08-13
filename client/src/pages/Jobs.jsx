@@ -46,7 +46,7 @@ export default function Jobbs() {
                     {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
                   </Link>
                   <b>{`- ${j.customer_name || ""} : `}</b>
-                  <span>{j?.reference}</span>
+                  <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
                       <small style={{ color: "red" }}>
@@ -79,7 +79,7 @@ export default function Jobbs() {
                     {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
                   </Link>
                   <b>{`- ${j.customer_name || ""} : `}</b>
-                  <span>{j?.reference}</span>
+                  <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
                       <small style={{ color: "red" }}>
@@ -112,7 +112,7 @@ export default function Jobbs() {
                     {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
                   </Link>
                   <b>{`- ${j.customer_name || ""} : `}</b>
-                  <span>{j?.reference}</span>
+                  <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
                       <small style={{ color: "red" }}>
