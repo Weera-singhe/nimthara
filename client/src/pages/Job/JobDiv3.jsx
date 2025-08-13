@@ -16,7 +16,8 @@ export default function JobDiv3({
   //const [eachJTemp, setEachJTemp] = useState([]);
   const [tempBB, setTempBB] = useState([]);
   const [tempSampPP, setTempSampPP] = useState([]);
-  const [indexBidRes, setIBidRes] = useState(0);
+  const [tempRes, setTempRes] = useState([]);
+  const [bidRes_i, setIBidRes] = useState(0);
 
   useEffect(() => {
     !tempEstSub.length && setTempEstSub(mainJDB);
@@ -25,6 +26,10 @@ export default function JobDiv3({
   useEffect(() => {
     !tempBB.length && setTempBB(eachJXDB);
   }, [eachJXDB, tempBB.length]);
+
+  useEffect(() => {
+    !tempRes.length && setTempRes(eachJXDB);
+  }, [eachJXDB, tempRes.length]);
 
   useEffect(() => {
     !tempSampPP.length && setTempSampPP(eachJXDB);
@@ -125,7 +130,7 @@ export default function JobDiv3({
                         <label>Total : </label>
                       </small>
                       {toLKR(allTotalPrices[i]?.total_price)}
-                      <small style={{ marginLeft: "2%" }}>
+                      <small>
                         <label>Total +VAT : </label>
                       </small>
                       {toLKR(allTotalPrices[i]?.total_vat)}
@@ -137,11 +142,11 @@ export default function JobDiv3({
                       <b style={{ color: "darkblue" }}>
                         {eachJDB[i].unit_count.toLocaleString()}
                       </b>
-                      <small style={{ marginLeft: "2%" }}>
+                      <small>
                         <label>Unit : </label>
                       </small>
                       {toLKR(allTotalPrices[i]?.unit_price)}
-                      <small style={{ marginLeft: "2%" }}>
+                      <small>
                         <label>Unit +VAT : </label>
                       </small>
                       {toLKR(allTotalPrices[i]?.unit_vat)}
@@ -192,7 +197,7 @@ export default function JobDiv3({
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
-                <small style={{ marginLeft: "2%" }}>
+                <small>
                   <label>Not Needed :</label>
                   <input
                     name="bb"
@@ -211,7 +216,7 @@ export default function JobDiv3({
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
 
-                  <label>Approved :</label>
+                  <label>Approved : </label>
                   <input
                     name="bb"
                     type="checkbox"
@@ -220,7 +225,7 @@ export default function JobDiv3({
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
 
-                  <label>Amount :</label>
+                  <label>Amount : </label>
                   {showAmount ? (
                     <Num
                       name="bb_amount"
@@ -237,7 +242,7 @@ export default function JobDiv3({
                       value="✅"
                     />
                   )}
-                  <span style={{ marginLeft: "1%" }}>
+                  <span style={{ marginLeft: "2.5%" }}>
                     {(userAuditL2 || userJobsL2) && bbChanged ? (
                       <button name="bb" onClick={(e) => onSubmit(e, i)}>
                         Save
@@ -279,7 +284,7 @@ export default function JobDiv3({
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
-                <small style={{ marginLeft: "2%" }}>
+                <small>
                   <label>Not Needed : </label>
                   <input
                     name="samp_pp"
@@ -312,7 +317,7 @@ export default function JobDiv3({
                     value={2}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
-                  <span style={{ marginLeft: "1%" }}>
+                  <span>
                     {userJobsL2 && sppChanged ? (
                       <button name="samp_pp" onClick={(e) => onSubmit(e, i)}>
                         Save
@@ -380,15 +385,19 @@ export default function JobDiv3({
       {/*4_SubDiv_________________________________________*/}
       <li>
         {`Results : `}
+        <small>
+          <label>Waiting : </label>
+          <input type="checkbox" />
+          <label>Published : </label>
+          <input type="checkbox" />
+          <label>Never Publish : </label>
+          <input type="checkbox" />
+        </small>
 
         <ul>
-          <small>Pending : </small>
-          <input type="checkbox" />
-          <small>Not Public : </small>
-          <input type="checkbox" />
           <li>
             <select
-              value={indexBidRes}
+              value={bidRes_i}
               onChange={(e) => setIBidRes(Number(e.target.value))}
             >
               <option value={0}></option>
@@ -402,26 +411,32 @@ export default function JobDiv3({
             </select>
             <br />
             <br />
-            {indexBidRes > 0 && (
-              <>
-                <input type="text" readOnly={true} value="Nimthara Printers" />
-                <input
-                  type="text"
-                  // readOnly={true}value={allTotalPrices.find((p) => p.id_each === selctedforResult)?.total_price}
-                  style={{ width: "100px" }}
-                />
-                <br />
-                <input type="text" />
-                <Num />
-                <br /> <input type="text" />
-                <Num />
-                <br /> <input type="text" />
-                <Num />
-                <br />
-                <input type="text" />
-                <Num />
-              </>
-            )}
+            {bidRes_i > 0 &&
+              (() => {
+                const totRes = allTotalPrices.find(
+                  (item) => item.id_each === bidRes_i
+                );
+
+                return (
+                  <>
+                    <input type="text" readOnly value="Nimthara Printers" />
+                    <Num />
+
+                    <small>{`total : ${toLKR(totRes?.total_price)}`}</small>
+                    <small>{`total+VAT : ${toLKR(totRes?.total_vat)}`}</small>
+                    <small>{`unit : ${toLKR(totRes?.unit_price)}`}</small>
+                    <small>{`unit+VAT : ${toLKR(totRes?.unit_vat)}`}</small>
+
+                    {[...Array(9)].map((_, idx) => (
+                      <React.Fragment key={idx}>
+                        <br />
+                        <input type="text" />
+                        <Num />
+                      </React.Fragment>
+                    ))}
+                  </>
+                );
+              })()}
           </li>
         </ul>
       </li>

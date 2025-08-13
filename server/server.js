@@ -274,7 +274,7 @@ async function JobsXByIdM(id_main) {
   return rows || null;
 }
 
-const JobsEByIdMIdE_SQL = `
+const JobsEByIdE_SQL = `
       SELECT 
       je.*,
       ${dateTimeCon("last_qt_edit_at")}
@@ -283,13 +283,13 @@ const JobsEByIdMIdE_SQL = `
       WHERE je.id_main = $1 AND j.private = false AND id_each=$2
       ORDER BY je.id_each ASC`;
 
-async function JobsEByIdMIdE(id_main, id_each) {
-  const { rows } = await pool.query(JobsEByIdMIdE_SQL, [id_main, id_each]);
+async function JobsEByIdE(id_main, id_each) {
+  const { rows } = await pool.query(JobsEByIdE_SQL, [id_main, id_each]);
   if (rows[0]) rows[0].profit = Number(rows[0].profit) || 0;
   return rows[0] || null;
 }
 
-const JobsXByIdMIdE_SQL = `
+const JobsXByIdE_SQL = `
       SELECT 
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
@@ -299,8 +299,8 @@ const JobsXByIdMIdE_SQL = `
       WHERE jx.id_main = $1 AND j.private = false AND id_each=$2
       ORDER BY jx.id_each ASC`;
 
-async function JobsXByIdMIdE(id_main, id_each) {
-  const { rows } = await pool.query(JobsXByIdMIdE_SQL, [id_main, id_each]);
+async function JobsXByIdE(id_main, id_each) {
+  const { rows } = await pool.query(JobsXByIdE_SQL, [id_main, id_each]);
   return rows[0] || null;
 }
 
@@ -313,14 +313,14 @@ app.get("/jobs", async (req, res) => {
       j.*,
       ${dateTimeCon("deadline")},
       ${date6Con("created_at")},
-      CAST(COALESCE((SELECT COUNT(*)FROM jobs_each je WHERE je.id_main = j.id AND je.deployed=true AND j.total_jobs >= je.id_each ),0)AS INTEGER)AS dep_count,
-      CAST(COALESCE((SELECT COUNT(*)FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb>0 AND j.total_jobs >= jx.id_each ),0)AS INTEGER)AS bb_done_count,
+      (SELECT COUNT(*)::int FROM jobs_each je WHERE je.id_main = j.id AND je.deployed AND je.id_each <= j.total_jobs) AS dep_count,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) AS bb_done_count,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_done_count,
       c.customer_name FROM jobs j
-      LEFT JOIN customers c ON j.customer = c.id
-      WHERE j.private = false 
+      LEFT JOIN customers c ON c.id = j.customer
+      WHERE j.private = false
       ORDER BY j.id DESC`
     );
-
     res.json(jobs);
   } catch (err) {
     res.status(500).send("Error");
@@ -497,7 +497,7 @@ app.post("/jobs/div2", async (req, res) => {
       `;
       await pool.query(insSQL, params);
     }
-    const safeResult = await JobsEByIdMIdE(id_main, id_each);
+    const safeResult = await JobsEByIdE(id_main, id_each);
     res.status(200).json(safeResult);
   } catch (err) {
     console.error("DB Error:", err.message);
@@ -551,7 +551,7 @@ app.post("/jobs/div3", async (req, res) => {
         await pool.query(insrt, params);
       }
 
-      const updtd = await JobsXByIdMIdE(id_main, id_each);
+      const updtd = await JobsXByIdE(id_main, id_each);
       res.status(200).json(updtd);
     } else if (form === "samp_pp") {
       const updt = `
@@ -572,7 +572,7 @@ app.post("/jobs/div3", async (req, res) => {
         await pool.query(insrt, params);
       }
 
-      const updtd = await JobsXByIdMIdE(id_main, id_each);
+      const updtd = await JobsXByIdE(id_main, id_each);
       res.status(200).json(updtd);
     }
   } catch (err) {

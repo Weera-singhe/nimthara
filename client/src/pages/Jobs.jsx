@@ -49,11 +49,16 @@ export default function Jobbs() {
                   <span>{j?.reference}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
-                      <small style={{ color: "red", marginLeft: "1%" }}>
+                      <small style={{ color: "red" }}>
                         {"bid bond pending"}{" "}
                       </small>
+                    )}{" "}
+                    {j.spp_done_count < j.total_jobs && (
+                      <small style={{ color: "darksalmon" }}>
+                        {"samples pending"}
+                      </small>
                     )}
-                    <small style={{ color: "firebrick", marginLeft: "1%" }}>
+                    <small style={{ color: "firebrick" }}>
                       {` deadline : ${j?.deadline_t}`}
                     </small>
                   </b>
@@ -77,11 +82,16 @@ export default function Jobbs() {
                   <span>{j?.reference}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
-                      <small style={{ color: "red", marginLeft: "1%" }}>
+                      <small style={{ color: "red" }}>
                         {"bid bond pending"}{" "}
                       </small>
+                    )}{" "}
+                    {j.spp_done_count < j.total_jobs && (
+                      <small style={{ color: "darksalmon" }}>
+                        {"samples pending"}
+                      </small>
                     )}
-                    <small style={{ color: "firebrick", marginLeft: "1%" }}>
+                    <small style={{ color: "firebrick" }}>
                       {` deadline : ${j?.deadline_t}`}
                     </small>
                   </b>
@@ -105,8 +115,13 @@ export default function Jobbs() {
                   <span>{j?.reference}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
-                      <small style={{ color: "red", marginLeft: "1%" }}>
-                        {"pending bid bond"}{" "}
+                      <small style={{ color: "red" }}>
+                        {"pending bid bond"}
+                      </small>
+                    )}
+                    {j.spp_done_count < j.total_jobs && (
+                      <small style={{ color: "darksalmon" }}>
+                        {"samples pending"}
                       </small>
                     )}
                   </b>

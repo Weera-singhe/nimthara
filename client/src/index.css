@@ -212,6 +212,9 @@ h6 {
 .jb ul {
   padding-bottom: 0.8rem;
 }
+.jb small {
+  margin-left: 1.5%;
+}
 .bodyxx {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png");
