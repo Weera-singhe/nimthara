@@ -233,7 +233,8 @@ const JobsById_SQL = `
       ${dateInpCon("deadline")},
       ${date6Con("created_at")},
       ${dateTimeCon("created_at")},
-      ${dateTimeCon("last_sub_edit_at")}
+      ${dateTimeCon("last_sub_edit_at")},
+      ${dateCon("submit_at")}
       FROM jobs
       WHERE id = $1 AND private = false`;
 
@@ -405,8 +406,16 @@ app.get("/jobs/:id", async (req, res) => {
 
 app.post("/jobs/div1", async (req, res) => {
   try {
-    const { id, customer, reference, deadline_i, total_jobs, user_id } =
-      req.body;
+    const {
+      id,
+      customer,
+      reference,
+      deadline_i,
+      total_jobs,
+      user_id,
+      contact_p,
+      contact_d,
+    } = req.body;
     console.log(req.body);
 
     let load_this_id;
@@ -419,9 +428,20 @@ app.post("/jobs/div1", async (req, res) => {
         deadline = $3,
         total_jobs=$4,
         last_div1_edit_by=$5,
-        last_div1_edit_at=NOW() 
-        WHERE id = $6`,
-        [customer, reference, deadline_i, total_jobs, user_id, id]
+        last_div1_edit_at=NOW(),
+        contact_p=$6,
+        contact_d=$7 
+        WHERE id = $8`,
+        [
+          customer,
+          reference,
+          deadline_i,
+          total_jobs,
+          user_id,
+          contact_p,
+          contact_d,
+          id,
+        ]
       );
       load_this_id = id;
     } else {
@@ -431,9 +451,18 @@ app.post("/jobs/div1", async (req, res) => {
         reference, 
         deadline,
         total_jobs,
-        created_by
-        ) VALUES ($1, $2,$3,$4,$5) RETURNING id`,
-        [customer, reference, deadline_i, total_jobs || 1, user_id]
+        created_by,
+        contact_p,contact_d
+        ) VALUES ($1, $2,$3,$4,$5,$6,$7) RETURNING id`,
+        [
+          customer,
+          reference,
+          deadline_i,
+          total_jobs || 1,
+          user_id,
+          contact_p,
+          contact_d,
+        ]
       );
       load_this_id = result.rows[0].id;
     }
@@ -511,20 +540,23 @@ app.post("/jobs/div3", async (req, res) => {
   console.log(req.body);
   try {
     if (form === "estSub") {
-      const { submit_method, submit_note1, submit_note2 } = req.body;
+      const { submit_method, submit_note1, submit_note2, submit_at_ } =
+        req.body;
       await pool.query(
         `
         UPDATE jobs SET
         submit_method = $1,
         submit_note1 = $2,
         submit_note2 = $3,
-        last_sub_edit_by = $4,
+        submit_at= $4,
+        last_sub_edit_by = $5,
         last_sub_edit_at = NOW()
-        WHERE id = $5 AND private=false`,
+        WHERE id = $6 AND private=false`,
         [
           submit_method,
           submit_note1.trim(),
           submit_note2.trim(),
+          submit_at_,
           user_id,
           id_main,
         ]
