@@ -301,7 +301,7 @@ export default function JobDiv3({
                     value={0}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />{" "}
-                  <label>Submitted : </label>
+                  <label>Ready : </label>
                   <input
                     name="samp_pp"
                     type="checkbox"
