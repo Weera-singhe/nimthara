@@ -147,6 +147,16 @@ function GetCustomers() {
       return result.rows;
     });
 }
+
+async function GetBanks() {
+  const result = await pool.query(
+    `SELECT id,customer_name FROM customers 
+      WHERE is_bank
+      ORDER BY customer_name ASC`
+  );
+  return result.rows;
+}
+
 function GetClients() {
   return pool
     .query("SELECT * FROM gts_clients ORDER BY client_name ASC")
@@ -611,6 +621,33 @@ app.post("/jobs/div3", async (req, res) => {
   } catch (err) {
     console.error("DB Error:", err.message);
     res.status(500).send("Error saving job");
+  }
+});
+
+//AUDIT       //////////////////////////////////////////
+
+app.get("/audit/bb", async (req, res) => {
+  try {
+    const { rows: bb } = await pool.query(
+      `SELECT 
+      jx.*,
+      j.*,
+      TO_CHAR(j.created_at, 'YYMMDD') AS created_at_x,
+      TO_CHAR(deadline, 'YYYY-MM-DD @ HH24:MI') AS deadline_t,
+      c.customer_name
+      FROM jobs_eachx jx
+      JOIN jobs j 
+      ON jx.id_main = j.id
+      LEFT JOIN customers c 
+      ON c.id = j.customer
+      WHERE j.private = false
+      AND jx.bb !=1
+      ORDER BY jx.id_each ASC`
+    );
+    const banks = await GetBanks();
+    res.json({ bb, banks });
+  } catch (err) {
+    res.status(500).send("Error");
   }
 });
 

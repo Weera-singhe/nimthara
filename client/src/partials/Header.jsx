@@ -31,6 +31,7 @@ export default function Header({ user, setUser }) {
     { path: "/gts/clients", label: "Clients" },
     { path: "/cus", label: "Customers" },
     { path: "/jobs", label: "Jobs" },
+    { path: "/audit", label: "Audit" },
   ];
 
   if (!user.loggedIn) {
@@ -47,6 +48,7 @@ export default function Header({ user, setUser }) {
             style={{
               fontWeight: location.pathname === path ? "bolder" : "lighter",
               textDecoration: "none",
+              marginLeft: label === "Login" && "auto",
             }}
           >
             {label}

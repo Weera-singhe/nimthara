@@ -188,7 +188,7 @@ export default function JobDiv3({
                 }`
               : "";
 
-            const showAmount = tempBB[i]?.bb !== 2;
+            const showAmount = tempBB[i]?.bb !== 1;
 
             return (
               <li
@@ -203,8 +203,8 @@ export default function JobDiv3({
                   <input
                     name="bb"
                     type="checkbox"
-                    checked={tempBB[i]?.bb === 2}
-                    value={2}
+                    checked={tempBB[i]?.bb === 1}
+                    value={1}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
 
@@ -221,8 +221,8 @@ export default function JobDiv3({
                   <input
                     name="bb"
                     type="checkbox"
-                    checked={tempBB[i]?.bb === 1}
-                    value={1}
+                    checked={tempBB[i]?.bb === 2}
+                    value={2}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
 

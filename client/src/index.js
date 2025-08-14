@@ -11,6 +11,8 @@ import ClientsGTS from "./pages/ClientsGTS";
 import Header from "./partials/Header";
 import Jobs from "./pages/Jobs";
 import Job from "./pages/Job";
+import Audit from "./pages/Audit";
+import BidBond from "./pages/Audit/BidBond";
 
 import { CHECK_AUTH_API_URL } from "./api/urls";
 import axios from "axios";
@@ -60,6 +62,9 @@ const App = () => {
         <Route path="jobs" element={<Jobs user={user} />} />
         <Route path="jobs/add" element={<Job user={user} />} />
         <Route path="jobs/:id" element={<Job user={user} />} />
+
+        <Route path="audit" element={<Audit user={user} />} />
+        <Route path="audit/bb" element={<BidBond user={user} />} />
 
         <Route
           path="/login"

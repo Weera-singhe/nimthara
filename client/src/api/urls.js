@@ -26,4 +26,6 @@ export const ADD_GTSCL_API_URL = `${API_BASE_URL}/gts/add_new_clients`;
 
 export const JOBS_API_URL = `${API_BASE_URL}/jobs`;
 
+export const BB_Audit_API_URL = `${API_BASE_URL}/audit/bb`;
+
 export const UPLOAD_API_URL = `${API_BASE_URL}/upload`;
