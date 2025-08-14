@@ -626,14 +626,14 @@ app.post("/jobs/div3", async (req, res) => {
 
 //AUDIT       //////////////////////////////////////////
 
-app.get("/audit/bb", async (req, res) => {
-  try {
-    const { rows: bb } = await pool.query(
-      `SELECT 
+const AUDITBB_SQL = `
+      SELECT 
       jx.*,
       j.*,
-      TO_CHAR(j.created_at, 'YYMMDD') AS created_at_x,
-      TO_CHAR(deadline, 'YYYY-MM-DD @ HH24:MI') AS deadline_t,
+      ${date6Con("created_at")},
+      ${dateTimeCon("deadline")},
+      ${dateCon("bb_op_at")},
+      ${dateCon("bb_ref_at")},
       c.customer_name
       FROM jobs_eachx jx
       JOIN jobs j 
@@ -641,13 +641,64 @@ app.get("/audit/bb", async (req, res) => {
       LEFT JOIN customers c 
       ON c.id = j.customer
       WHERE j.private = false
-      AND jx.bb !=1
-      ORDER BY jx.id_each ASC`
-    );
+      AND jx.bb !=1`;
+
+async function AuditBBAll() {
+  const { rows } = await pool.query(`${AUDITBB_SQL} ORDER BY jx.idx ASC`);
+  return rows || null;
+}
+async function AuditBBOne(idx) {
+  const { rows } = await pool.query(`${AUDITBB_SQL} AND idx=${idx}`);
+  return rows[0] || null;
+}
+
+app.get("/audit/bb", async (req, res) => {
+  try {
+    const bb = await AuditBBAll();
     const banks = await GetBanks();
     res.json({ bb, banks });
   } catch (err) {
     res.status(500).send("Error");
+  }
+});
+
+app.post("/audit/bb", async (req, res) => {
+  console.log(req.body);
+  try {
+    const {
+      bbtemp,
+      bb,
+      bb_code,
+      bb_op_at_,
+      bb_bank,
+      idx,
+      user_id,
+      bb_ref_at_,
+      bb_ref,
+    } = req.body;
+
+    const updt = `
+          UPDATE jobs_eachx
+          SET bb=$1, last_bb_edit_by=$2, last_bb_edit_at=NOW(),bb_code=$3,bb_op_at=$4,bb_bank=$5,bb_ref_at=$6,bb_ref=$7
+          WHERE idx=$8`;
+
+    const params = [
+      bbtemp || bb,
+      user_id,
+      bb_code,
+      bb_op_at_,
+      bb_bank,
+      bb_ref_at_,
+      bb_ref,
+      idx,
+    ];
+    await pool.query(updt, params);
+    const ret = await AuditBBOne(idx);
+
+    res.status(200).json(ret);
+  } catch (err) {
+    res.status(500).send("Error");
+    console.error("Error fetching papers:", err);
   }
 });
 
