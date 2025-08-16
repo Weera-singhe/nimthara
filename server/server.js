@@ -274,7 +274,8 @@ const JobsXByIdM_SQL = `
       SELECT 
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
-      ${dateTimeCon("last_samppp_edit_at")}
+      ${dateTimeCon("last_samppp_edit_at")},
+      ${dateTimeCon("last_res_edit_at")}
       FROM jobs_eachx jx
       JOIN jobs j ON jx.id_main = j.id
       WHERE jx.id_main = $1 AND j.private = false
@@ -304,7 +305,8 @@ const JobsXByIdE_SQL = `
       SELECT 
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
-      ${dateTimeCon("last_samppp_edit_at")}
+      ${dateTimeCon("last_samppp_edit_at")},
+      ${dateTimeCon("last_res_edit_at")}
       FROM jobs_eachx jx
       JOIN jobs j ON jx.id_main = j.id
       WHERE jx.id_main = $1 AND j.private = false AND id_each=$2
@@ -326,12 +328,12 @@ app.get("/jobs", async (req, res) => {
       ${date6Con("created_at")},
       (SELECT COUNT(*)::int FROM jobs_each je WHERE je.id_main = j.id AND je.deployed AND je.id_each <= j.total_jobs) AS dep_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) AS bb_done_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_done_count,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_ready_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
       c.customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
       WHERE j.private = false
-      ORDER BY j.id DESC`
+      ORDER BY j.deadline ASC`
     );
     res.json(jobs);
   } catch (err) {
@@ -550,6 +552,7 @@ app.post("/jobs/div3", async (req, res) => {
   console.log(req.body);
   try {
     if (form === "estSub") {
+      //no need inser
       const { submit_method, submit_note1, submit_note2, submit_at_ } =
         req.body;
       await pool.query(
@@ -575,6 +578,7 @@ app.post("/jobs/div3", async (req, res) => {
       const updtd = await JobsById(id_main);
       res.status(200).json(updtd);
     } else if (form === "bb") {
+      //need both inser and update
       const updt = `
           UPDATE jobs_eachx
           SET bb=$3, bb_amount=$4, last_bb_edit_by=$5, last_bb_edit_at=NOW()
@@ -597,6 +601,7 @@ app.post("/jobs/div3", async (req, res) => {
       const updtd = await JobsXByIdE(id_main, id_each);
       res.status(200).json(updtd);
     } else if (form === "samp_pp") {
+      //need both inser and update
       const updt = `
           UPDATE jobs_eachx
           SET samp_pp=$3, last_samppp_edit_by=$4, last_samppp_edit_at=NOW()
@@ -617,6 +622,28 @@ app.post("/jobs/div3", async (req, res) => {
 
       const updtd = await JobsXByIdE(id_main, id_each);
       res.status(200).json(updtd);
+    } else if (form === "result") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_eachx
+          SET result=$3, res_status=$4, last_res_edit_by=$5, last_res_edit_at=NOW()
+          WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_eachx 
+          (id_main, id_each, result, res_status, last_res_edit_by, last_res_edit_at)
+          SELECT $1, $2, $3, $4, $5, NOW()`;
+
+      const { id_each, result, res_status } = req.body;
+      const params = [id_main, id_each, result, res_status, user_id];
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+
+      const updtd = await JobsXByIdE(id_main, id_each);
+      res.status(200).json(updtd);
     }
   } catch (err) {
     console.error("DB Error:", err.message);
@@ -626,7 +653,7 @@ app.post("/jobs/div3", async (req, res) => {
 
 //AUDIT       //////////////////////////////////////////
 
-const AUDITBB_SQL = `
+const BB_SQL = `
       SELECT 
       jx.*,
       j.*,
@@ -643,20 +670,38 @@ const AUDITBB_SQL = `
       WHERE j.private = false
       AND jx.bb !=1`;
 
-async function AuditBBAll() {
-  const { rows } = await pool.query(`${AUDITBB_SQL} ORDER BY jx.idx ASC`);
+const BBPending_SQL = `
+      SELECT 
+      j.*,
+      ${dateTimeCon("deadline")},
+      ${date6Con("created_at")},
+      c.customer_name FROM jobs j
+      LEFT JOIN customers c ON c.id = j.customer
+      WHERE j.private = false
+      AND 
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) < j.total_jobs
+      ORDER BY j.deadline ASC`;
+
+//giving saved once only. no problem because bb=2,and bb=3 always saved
+async function BBAll() {
+  const { rows } = await pool.query(`${BB_SQL} ORDER BY jx.idx ASC`);
   return rows || null;
 }
-async function AuditBBOne(idx) {
-  const { rows } = await pool.query(`${AUDITBB_SQL} AND idx=${idx}`);
+async function BBPending() {
+  const { rows } = await pool.query(BBPending_SQL);
+  return rows || null;
+}
+async function BBOne(idx) {
+  const { rows } = await pool.query(`${BB_SQL} AND idx=${idx}`);
   return rows[0] || null;
 }
 
 app.get("/audit/bb", async (req, res) => {
   try {
-    const bb = await AuditBBAll();
+    const bb = await BBAll();
+    const bbPending = await BBPending();
     const banks = await GetBanks();
-    res.json({ bb, banks });
+    res.json({ bb, banks, bbPending });
   } catch (err) {
     res.status(500).send("Error");
   }
@@ -682,7 +727,7 @@ app.post("/audit/bb", async (req, res) => {
           SET bb=$1, last_bb_edit_by=$2, last_bb_edit_at=NOW(),bb_code=$3,bb_op_at=$4,bb_bank=$5,bb_ref_at=$6,bb_ref=$7
           WHERE idx=$8`;
 
-    const params = [
+    const p = [
       bbtemp || bb,
       user_id,
       bb_code,
@@ -692,8 +737,8 @@ app.post("/audit/bb", async (req, res) => {
       bb_ref,
       idx,
     ];
-    await pool.query(updt, params);
-    const ret = await AuditBBOne(idx);
+    await pool.query(updt, p);
+    const ret = await BBOne(idx);
 
     res.status(200).json(ret);
   } catch (err) {

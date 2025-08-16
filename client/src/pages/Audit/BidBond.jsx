@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 
 export default function BidBond({ user }) {
   const [bbDB, setBBDB] = useState([]);
+  const [bbPendigDB, setBBPDB] = useState([]);
   const [banks, setBanks] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -14,6 +15,7 @@ export default function BidBond({ user }) {
       .get(BB_Audit_API_URL)
       .then((res) => {
         setBBDB(res.data.bb);
+        setBBPDB(res.data.bbPending);
         setBanks(res.data.banks);
       })
       .catch((err) => console.error("Error fetching papers:", err))
@@ -65,8 +67,8 @@ export default function BidBond({ user }) {
   }
 
   useEffect(() => {
-    console.log(bbDB);
-  }, [bbDB]);
+    console.log(bbPendigDB);
+  }, [bbPendigDB]);
 
   //displayID
 
@@ -194,19 +196,17 @@ export default function BidBond({ user }) {
           "loading"
         ) : (
           <ul>
-            {bbDB
+            {bbPendigDB
               .filter((b) => !b.bb)
               .map((b) => (
-                <li key={b.idx}>
-                  <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
-                    {displayID(b.created_at_x, b.id_main)}_
-                    {b.cus_id_each || b.id_each}
+                <li key={b.id}>
+                  <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                    {displayID(b.created_at_x, b.id)}
                   </Link>
                   <small>
                     <b> {b.customer_name}</b>
                   </small>
                   <small>{b.reference || b.contact_p || b.contact_d}</small>
-                  <small>{toLKR(b.bb_amount)}</small>
                   <small
                     style={{ color: "firebrick" }}
                   >{`deadline : ${b.deadline_t}`}</small>

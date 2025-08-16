@@ -17,7 +17,7 @@ export default function JobDiv3({
   const [tempBB, setTempBB] = useState([]);
   const [tempSampPP, setTempSampPP] = useState([]);
   const [tempRes, setTempRes] = useState([]);
-  const [bidRes_i, setIBidRes] = useState(0);
+  const [idEachRes, setIDEachRes] = useState(0);
 
   useEffect(() => {
     !tempEstSub.length && setTempEstSub(mainJDB);
@@ -57,7 +57,36 @@ export default function JobDiv3({
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
         )
       );
+    } else if (name === "res_status") {
+      setTempRes((prev) =>
+        prev.map((slot) =>
+          slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
+        )
+      );
     }
+  }
+
+  function resChanged(e, id_each, i) {
+    const { name, value } = e.target;
+    const safeval = name === "v" ? Number(value) : value;
+
+    setTempRes((prev) =>
+      prev.map((slot) =>
+        slot.id_each === id_each
+          ? {
+              ...slot,
+              result: {
+                ...(slot.result || {}),
+                [i]: {
+                  ...((slot.result && slot.result[i]) || {}),
+                  [name]: safeval,
+                  ...(i === 0 ? { n: "Nimthara Printers" } : {}),
+                },
+              },
+            }
+          : slot
+      )
+    );
   }
 
   function onSubmit(e, i) {
@@ -67,7 +96,9 @@ export default function JobDiv3({
         ? tempEstSub
         : name === "bb"
         ? tempBB[i]
-        : tempSampPP[i];
+        : name === "samp_pp"
+        ? tempSampPP[i]
+        : tempRes[i];
     handleSubmit(exprt, name);
   }
   const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
@@ -82,10 +113,16 @@ export default function JobDiv3({
   const pendingDep = totalJobs - eachJDB.filter((j) => j.deployed).length;
   const pendingBB = totalJobs - tempBB.filter((j) => j.bb > 0).length;
   const pendingSPP = totalJobs - tempSampPP.filter((j) => j.samp_pp > 1).length;
+  const pendingRes =
+    totalJobs - tempRes.filter((j) => j.res_status === 2).length;
 
   useEffect(() => {
-    console.log("x changed : ", tempBB);
-  }, [tempBB]);
+    console.log(tempRes[0]?.result);
+  }, [tempRes]);
+
+  useEffect(() => {
+    console.log("xchanged : ", eachJXDB);
+  }, [eachJXDB]);
 
   return (
     <ul className="jb">
@@ -183,9 +220,9 @@ export default function JobDiv3({
               tempBB[i]?.bb !== j.bb || tempBB[i]?.bb_amount !== j.bb_amount;
 
             const lastEditText = j.last_bb_edit_by
-              ? `last edit at ${j.last_bb_edit_at_t} by ${
+              ? `( last edit at ${j.last_bb_edit_at_t} by ${
                   allUsernames[j.last_bb_edit_by]
-                }`
+                } ) `
               : "";
 
             const showAmount = tempBB[i]?.bb !== 1;
@@ -244,7 +281,8 @@ export default function JobDiv3({
                     />
                   )}
                   <span style={{ marginLeft: "2.5%" }}>
-                    {(userAuditL2 || userJobsL2) && bbChanged ? (
+                    {/*once approved cannot change*/}
+                    {(userAuditL2 || userJobsL2) && bbChanged && j?.bb !== 2 ? (
                       <button name="bb" onClick={(e) => onSubmit(e, i)}>
                         Save
                       </button>
@@ -252,6 +290,11 @@ export default function JobDiv3({
                       lastEditText
                     )}
                   </span>
+                  {tempBB[i]?.bb !== 2 && j?.bb === 2 && (
+                    <small style={{ color: "red" }}>
+                      cannot change once approved
+                    </small>
+                  )}
                 </small>
               </li>
             );
@@ -272,9 +315,9 @@ export default function JobDiv3({
             const sppChanged = tempSampPP[i]?.samp_pp !== j.samp_pp;
 
             const lastEditText = j.last_samppp_edit_by
-              ? `last edit at ${j.last_samppp_edit_at_t} by ${
+              ? ` ( last edit at ${j.last_samppp_edit_at_t} by ${
                   allUsernames[j.last_samppp_edit_by]
-                }`
+                } ) `
               : "";
 
             return (
@@ -393,58 +436,200 @@ export default function JobDiv3({
       {/*4_SubDiv_________________________________________*/}
       <li>
         {`Results : `}
-        <small>
-          <label>Waiting : </label>
-          <input type="checkbox" />
-          <label>Published : </label>
-          <input type="checkbox" />
-          <label>Never Publish : </label>
-          <input type="checkbox" />
+
+        <small style={{ color: "firebrick" }}>
+          {pendingRes ? ` ${pendingRes} pending...` : "✅"}
         </small>
 
         <ul>
           <li>
-            <select
-              value={bidRes_i}
-              onChange={(e) => setIBidRes(Number(e.target.value))}
-            >
-              <option value={0}></option>
-              {eachJDB
-                .filter((j) => j.deployed)
-                .map((j) => (
-                  <option key={j.id_each} value={j.id_each}>
-                    {`# ${displayID}_${j.cus_id_each || j.id_each} `}
-                  </option>
-                ))}
-            </select>
-            <br />
-            <br />
-            {bidRes_i > 0 &&
-              (() => {
-                const totRes = allTotalPrices.find(
-                  (item) => item.id_each === bidRes_i
-                );
+            <ul>
+              {eachJXDB.map((j, i) => (
+                <li key={i}>
+                  {`# ${displayID}_${eachJDB[i].cus_id_each || j.id_each}`}
+                  <small>
+                    <span>
+                      {!j.res_status
+                        ? "Waiting"
+                        : j.res_status === 1
+                        ? "Private"
+                        : "Published"}
+                    </span>
+                    <small>
+                      {j?.last_res_edit_by
+                        ? ` ( last edit at ${j.last_res_edit_at_t} by ${
+                            allUsernames[j.last_res_edit_by]
+                          } ) `
+                        : ""}
+                    </small>
+                    {j.res_status === 2 && (
+                      <ol>
+                        {Object.values(j.result || {})
+                          .filter((r) => r?.v > 0)
+                          .sort((a, b) => a.v - b.v)
+                          .map((r, idx) => (
+                            <li key={idx}>{`${r.n} : ${toLKR(r.v)}`}</li>
+                          ))}
+                      </ol>
+                    )}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </li>
+          <li>
+            {(() => {
+              const totRes = allTotalPrices.find(
+                (item) => item.id_each === idEachRes
+              );
+              const tempJ = tempRes[idEachRes - 1];
+              const dbJX = eachJXDB[idEachRes - 1];
+              const dbJ = eachJDB[idEachRes - 1];
+              const resultsChanged =
+                tempJ?.res_status !== dbJX?.res_status ||
+                JSON.stringify(tempJ?.result) !== JSON.stringify(dbJX?.result);
 
-                return (
-                  <>
-                    <input type="text" readOnly value="Nimthara Printers" />
-                    <Num />
+              const pubEmpty =
+                tempJ?.res_status === 2 && !tempJ?.result?.[0]?.v;
 
-                    <small>{`total : ${toLKR(totRes?.total_price)}`}</small>
-                    <small>{`total+VAT : ${toLKR(totRes?.total_vat)}`}</small>
-                    <small>{`unit : ${toLKR(totRes?.unit_price)}`}</small>
-                    <small>{`unit+VAT : ${toLKR(totRes?.unit_vat)}`}</small>
+              return (
+                <>
+                  <span>Edit Results : </span>
+                  {userJobsL2 && resultsChanged && idEachRes ? (
+                    <>
+                      <input
+                        style={{ width: "12%" }}
+                        value={`# ${displayID}_${
+                          dbJ?.cus_id_each || dbJ?.id_each
+                        } `}
+                        readOnly={true}
+                      />
+                      <button
+                        name="result"
+                        onClick={(e) => onSubmit(e, idEachRes - 1)}
+                        disabled={pubEmpty}
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <select
+                        style={{ width: "12%" }}
+                        value={idEachRes}
+                        onChange={
+                          resultsChanged
+                            ? undefined
+                            : (e) => setIDEachRes(Number(e.target.value))
+                        }
+                      >
+                        <option value={0}></option>
+                        {eachJDB
+                          .filter((j) => j.deployed)
+                          .map((j) => (
+                            <option key={j.id_each} value={j.id_each}>
+                              {`# ${displayID}_${j.cus_id_each || j.id_each} `}
+                            </option>
+                          ))}
+                      </select>
+                    </>
+                  )}
 
-                    {[...Array(9)].map((_, idx) => (
-                      <React.Fragment key={idx}>
-                        <br />
-                        <input type="text" />
-                        <Num />
-                      </React.Fragment>
-                    ))}
-                  </>
-                );
-              })()}
+                  {idEachRes ? (
+                    <>
+                      <br />
+                      <br />
+                      <small>
+                        <label>Waiting : </label>
+                        <input
+                          name="res_status"
+                          type="checkbox"
+                          checked={!tempJ?.res_status || false}
+                          value={0}
+                          onChange={(e) => NumChanged_xtra(e, idEachRes)}
+                        />
+
+                        <label>Published : </label>
+                        <input
+                          name="res_status"
+                          type="checkbox"
+                          checked={tempJ?.res_status === 2 || false}
+                          value={2}
+                          onChange={(e) => NumChanged_xtra(e, idEachRes)}
+                        />
+                        <label>Private : </label>
+                        <input
+                          name="res_status"
+                          type="checkbox"
+                          checked={tempJ?.res_status === 1 || false}
+                          value={1}
+                          onChange={(e) => NumChanged_xtra(e, idEachRes)}
+                        />
+                      </small>
+                      {tempJ.res_status === 2 && (
+                        <>
+                          <br />
+                          <br />
+                          <input
+                            type="text"
+                            readOnly
+                            value="Nimthara Printers"
+                          />
+
+                          <select
+                            name="v"
+                            onChange={(e) => resChanged(e, idEachRes, 0)}
+                            value={tempJ.result?.[0]?.v || 0}
+                          >
+                            <option></option>
+                            <option
+                              value={totRes?.total_price}
+                            >{`total : ${toLKR(totRes?.total_price)}`}</option>
+                            <option
+                              value={totRes?.total_vat}
+                            >{`total+VAT : ${toLKR(
+                              totRes?.total_vat
+                            )}`}</option>
+                            <option value={totRes?.unit_price}>{`unit : ${toLKR(
+                              totRes?.unit_price
+                            )}`}</option>
+                            <option
+                              value={totRes?.unit_vat}
+                            >{`unit+VAT : ${toLKR(totRes?.unit_vat)}`}</option>
+                          </select>
+
+                          {[...Array(9)].map((_, idx) => (
+                            <div key={idx}>
+                              <br />
+                              <input
+                                type="text"
+                                name="n"
+                                value={tempJ.result?.[idx + 1]?.n || ""}
+                                onChange={(e) =>
+                                  resChanged(e, idEachRes, idx + 1)
+                                }
+                              />
+                              <Num
+                                name="v"
+                                min={0}
+                                setTo={tempJ.result?.[idx + 1]?.v || 0}
+                                changed={(e) =>
+                                  resChanged(e, idEachRes, idx + 1)
+                                }
+                                deci={2}
+                              />
+                              <br />
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </>
+              );
+            })()}
           </li>
         </ul>
       </li>

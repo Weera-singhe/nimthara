@@ -53,7 +53,7 @@ export default function Jobbs() {
                         {"bid bond pending"}{" "}
                       </small>
                     )}{" "}
-                    {j.spp_done_count < j.total_jobs && (
+                    {j.spp_ready_count < j.total_jobs && (
                       <small style={{ color: "darksalmon" }}>
                         {"samples pending"}
                       </small>
@@ -86,7 +86,7 @@ export default function Jobbs() {
                         {"bid bond pending"}{" "}
                       </small>
                     )}{" "}
-                    {j.spp_done_count < j.total_jobs && (
+                    {j.spp_ready_count < j.total_jobs && (
                       <small style={{ color: "darksalmon" }}>
                         {"samples pending"}
                       </small>
@@ -119,7 +119,7 @@ export default function Jobbs() {
                         {"pending bid bond"}
                       </small>
                     )}
-                    {j.spp_done_count < j.total_jobs && (
+                    {j.spp_ready_count < j.total_jobs && (
                       <small style={{ color: "darksalmon" }}>
                         {"samples pending"}
                       </small>

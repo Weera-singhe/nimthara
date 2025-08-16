@@ -111,7 +111,7 @@ export default function Job({ user }) {
       .post(`${JOBS_API_URL}/div1`, updatedExprt)
       .then((res) => !id && navigate(`/jobs/${res.data.load_this_id}`)) //navigate triggers fetchDB
       .catch((err) => alert("Error: " + err))
-      .finally(() => id && fetchDB()); //if already id dont navigate. so manuelly triggers fetchDB
+      .finally(() => id && navigate(0)); //if already id dont navigate. so manuelly triggers fetchDB
   }
 
   function SubmitDiv2(submitter, exprt) {
@@ -148,7 +148,7 @@ export default function Job({ user }) {
       .then((res) => {
         if (form === "estSub") {
           setMainJ(res.data);
-        } else if (form === "bb" || form === "samp_pp") {
+        } else if (form === "bb" || form === "samp_pp" || form === "result") {
           setEachJX((p) =>
             p.map((slot) =>
               slot.id_each === res.data.id_each ? res.data : slot
