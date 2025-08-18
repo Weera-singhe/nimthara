@@ -154,11 +154,9 @@ export default function Jobbs() {
                         {"paper samples"}
                       </small>
                     )}
-                    {j.inc_private && (
-                      <small style={{ color: "darkblue" }}>
-                        {"include private"}
-                      </small>
-                    )}
+                    <small style={{ color: "darkblue" }}>
+                      {j.inc_private ? "Include Private" : ""}
+                    </small>
                   </b>
                 </li>
               ))}
