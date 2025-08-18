@@ -18,6 +18,7 @@ export default function JobDiv3({
   const [tempSampPP, setTempSampPP] = useState([]);
   const [tempRes, setTempRes] = useState([]);
   const [idEachRes, setIDEachRes] = useState(0);
+  const [resJsonCh, setResJsonCh] = useState(false);
 
   useEffect(() => {
     !tempEstSub.length && setTempEstSub(mainJDB);
@@ -87,6 +88,7 @@ export default function JobDiv3({
           : slot
       )
     );
+    setResJsonCh(true);
   }
 
   function onSubmit(e, i) {
@@ -100,6 +102,8 @@ export default function JobDiv3({
         ? tempSampPP[i]
         : tempRes[i];
     handleSubmit(exprt, name);
+
+    name === "result" && setResJsonCh(false);
   }
   const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
   const userAuditL2 = user.level_audit > 1 && user.loggedIn;
@@ -494,8 +498,7 @@ export default function JobDiv3({
               const dbJX = eachJXDB[idEachRes - 1];
               const dbJ = eachJDB[idEachRes - 1];
               const resultsChanged =
-                tempJ?.res_status !== dbJX?.res_status ||
-                JSON.stringify(tempJ?.result) !== JSON.stringify(dbJX?.result);
+                tempJ?.res_status !== dbJX?.res_status || resJsonCh;
 
               const pubEmpty =
                 tempJ?.res_status === 2 && !tempJ?.result?.[0]?.v;
