@@ -111,10 +111,9 @@ export default function JobDiv3({
     !userJobsL2;
   const totalJobs = mainJDB?.total_jobs;
   const pendingDep = totalJobs - eachJDB.filter((j) => j.deployed).length;
-  const pendingBB = totalJobs - tempBB.filter((j) => j.bb > 0).length;
+  const pendingBB = totalJobs - tempBB.filter((j) => j.bb).length;
   const pendingSPP = totalJobs - tempSampPP.filter((j) => j.samp_pp > 1).length;
-  const pendingRes =
-    totalJobs - tempRes.filter((j) => j.res_status === 2).length;
+  const pendingRes = totalJobs - tempRes.filter((j) => j.res_status).length;
 
   useEffect(() => {
     console.log(tempRes[0]?.result);
@@ -377,7 +376,7 @@ export default function JobDiv3({
         </ul>
       </li>
       <li>
-        {`Estimation Submission `}{" "}
+        {`Estimation Submission : `}
         <small>
           {mainJDB?.last_sub_edit_by &&
             ` ( last edit by ${allUsernames[mainJDB?.last_sub_edit_by]} at ${
@@ -385,7 +384,11 @@ export default function JobDiv3({
             } ) `}
         </small>
         <ul>
-          <li>
+          <li
+            style={{
+              backgroundColor: !tempEstSub.submit_method && "mistyrose",
+            }}
+          >
             <span># {displayID} : </span>
             <select
               name="submit_method"
@@ -445,7 +448,12 @@ export default function JobDiv3({
           <li>
             <ul>
               {eachJXDB.map((j, i) => (
-                <li key={i}>
+                <li
+                  key={i}
+                  style={{
+                    backgroundColor: !tempRes[i]?.res_status && "mistyrose",
+                  }}
+                >
                   {`# ${displayID}_${eachJDB[i].cus_id_each || j.id_each}`}
                   <small>
                     <span>
@@ -494,7 +502,7 @@ export default function JobDiv3({
 
               return (
                 <>
-                  <span>Edit Results : </span>
+                  <small style={{ color: "darkblue" }}>Edit Results : </small>
                   {userJobsL2 && resultsChanged && idEachRes ? (
                     <>
                       <input
@@ -549,7 +557,7 @@ export default function JobDiv3({
                           onChange={(e) => NumChanged_xtra(e, idEachRes)}
                         />
 
-                        <label>Published : </label>
+                        <label style={{ color: "green" }}>Published : </label>
                         <input
                           name="res_status"
                           type="checkbox"
@@ -557,7 +565,7 @@ export default function JobDiv3({
                           value={2}
                           onChange={(e) => NumChanged_xtra(e, idEachRes)}
                         />
-                        <label>Private : </label>
+                        <label style={{ color: "red" }}>Private : </label>
                         <input
                           name="res_status"
                           type="checkbox"
@@ -633,14 +641,6 @@ export default function JobDiv3({
           </li>
         </ul>
       </li>
-      <li>PO Recieved</li>
-      <li>Artwork</li>
-      <li>Artwork Approved</li>
-      <li>Samples Approved</li>
-      <li>Proccesing</li>
-      <li>Job Completed</li>
-      <li>Delivered</li>
-      <li>Payment Recieved</li>
     </ul>
   );
 }

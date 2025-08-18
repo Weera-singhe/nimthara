@@ -256,7 +256,8 @@ async function JobsById(id) {
 const JobsEByIdM_SQL = `
       SELECT 
       je.*,
-      ${dateTimeCon("last_qt_edit_at")}
+      ${dateTimeCon("last_qt_edit_at")},
+      ${dateTimeCon("last_jst_edit_at")}
       FROM jobs_each je
       JOIN jobs j ON je.id_main = j.id
       WHERE je.id_main = $1 AND j.private = false
@@ -274,6 +275,7 @@ const JobsXByIdM_SQL = `
       SELECT 
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
+      ${dateTimeCon("last_pb_edit_at")},
       ${dateTimeCon("last_samppp_edit_at")},
       ${dateTimeCon("last_res_edit_at")}
       FROM jobs_eachx jx
@@ -289,7 +291,8 @@ async function JobsXByIdM(id_main) {
 const JobsEByIdE_SQL = `
       SELECT 
       je.*,
-      ${dateTimeCon("last_qt_edit_at")}
+      ${dateTimeCon("last_qt_edit_at")},
+      ${dateTimeCon("last_jst_edit_at")}
       FROM jobs_each je
       JOIN jobs j ON je.id_main = j.id
       WHERE je.id_main = $1 AND j.private = false AND id_each=$2
@@ -305,6 +308,7 @@ const JobsXByIdE_SQL = `
       SELECT 
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
+      ${dateTimeCon("last_pb_edit_at")},
       ${dateTimeCon("last_samppp_edit_at")},
       ${dateTimeCon("last_res_edit_at")}
       FROM jobs_eachx jx
@@ -636,6 +640,63 @@ app.post("/jobs/div3", async (req, res) => {
 
       const { id_each, result, res_status } = req.body;
       const params = [id_main, id_each, result, res_status, user_id];
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+
+      const updtd = await JobsXByIdE(id_main, id_each);
+      res.status(200).json(updtd);
+    }
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+
+app.post("/jobs/div4", async (req, res) => {
+  const { user_id, id_main, form } = req.body;
+  console.log(req.body);
+  try {
+    if (form === "j_status") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_each
+          SET j_status=$3, last_jst_edit_by=$4, last_jst_edit_at=NOW()
+          WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_each 
+          (id_main, id_each, j_status, last_jst_edit_by, last_jst_edit_at)
+          SELECT $1, $2, $3, $4, NOW()`;
+
+      const { id_each, j_status } = req.body;
+      const params = [id_main, id_each, j_status, user_id];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+
+      const updtd = await JobsEByIdE(id_main, id_each);
+      res.status(200).json(updtd);
+    } else if (form === "pb") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_eachx
+          SET pb=$3, pb_amount=$4, last_pb_edit_by=$5, last_pb_edit_at=NOW()
+          WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_eachx 
+          (id_main, id_each, pb, pb_amount, last_pb_edit_by, last_pb_edit_at)
+          SELECT $1, $2, $3, $4, $5, NOW()`;
+
+      const { id_each, pb, pb_amount } = req.body;
+      const params = [id_main, id_each, pb, pb_amount, user_id];
+
       const upd = await pool.query(updt, params);
 
       if (upd.rowCount === 0) {

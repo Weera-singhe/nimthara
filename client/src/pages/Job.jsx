@@ -6,6 +6,7 @@ import axios from "axios";
 import JobDiv1 from "./Job/JobDiv1";
 import JobDiv2 from "./Job/JobDiv2";
 import JobDiv3 from "./Job/JobDiv3";
+import JobDiv4 from "./Job/JobDiv4";
 //import JobDiv3Xtra from "./Job/JobDiv3Xtra";
 import useCurrentTime from "../elements/useCurrentTime";
 import { SumsEachQuot } from "../elements/cal.js";
@@ -162,6 +163,39 @@ export default function Job({ user }) {
         isLoadingEachJ(false);
       });
   }
+
+  function SubmitDiv4(exprt, form) {
+    isLoadingMainJ(true);
+    isLoadingEachJ(true);
+
+    const safeExport = { ...exprt, user_id: user.id, id_main: +id, form };
+    console.log("safeExport : ", safeExport);
+
+    axios
+      .post(`${JOBS_API_URL}/div4`, safeExport)
+      .then((res) => {
+        console.log(res.data);
+        if (form === "j_status") {
+          setEachJ((p) =>
+            p.map((slot) =>
+              slot.id_each === res.data.id_each ? res.data : slot
+            )
+          );
+        } else if (form === "pb") {
+          setEachJX((p) =>
+            p.map((slot) =>
+              slot.id_each === res.data.id_each ? res.data : slot
+            )
+          );
+        }
+      })
+      .catch((err) => alert("Error: " + err))
+      .finally(() => {
+        isLoadingMainJ(false);
+        isLoadingEachJ(false);
+      });
+  }
+
   const allTotalPrices = useMemo(() => {
     return eachJDB.map((d2) => SumsEachQuot(qtsComponants, d2));
   }, [eachJDB, qtsComponants]);
@@ -226,6 +260,26 @@ export default function Job({ user }) {
               allTotalPrices={allTotalPrices}
               displayID={displayID}
               handleSubmit={SubmitDiv3}
+              user={user}
+            />
+          </div>
+        </div>
+      )}
+      {/*DIV_4_/////////////////////////*/}
+      {id && (
+        <div className="framed">
+          {loadingEachJ && loadingMainJ && "loading..."}
+          <div
+            style={{ display: loadingEachJ && loadingMainJ ? "none" : "block" }}
+          >
+            <JobDiv4
+              allUsernames={allUsernames}
+              mainJDB={mainJDB}
+              eachJDB={eachJDB}
+              eachJXDB={eachJXDB}
+              allTotalPrices={allTotalPrices}
+              displayID={displayID}
+              handleSubmit={SubmitDiv4}
               user={user}
             />
           </div>
