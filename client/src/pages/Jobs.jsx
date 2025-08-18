@@ -49,13 +49,11 @@ export default function Jobbs() {
                   <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
-                      <small style={{ color: "red" }}>
-                        {"bid bond pending"}{" "}
-                      </small>
+                      <small style={{ color: "red" }}>{"bid bond"}</small>
                     )}{" "}
                     {j.spp_ready_count < j.total_jobs && (
                       <small style={{ color: "darksalmon" }}>
-                        {"samples pending"}
+                        {"paper samples"}
                       </small>
                     )}
                     <small style={{ color: "firebrick" }}>
@@ -82,13 +80,11 @@ export default function Jobbs() {
                   <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
-                      <small style={{ color: "red" }}>
-                        {"bid bond pending"}{" "}
-                      </small>
+                      <small style={{ color: "red" }}>{"bid bond"}</small>
                     )}{" "}
                     {j.spp_ready_count < j.total_jobs && (
                       <small style={{ color: "darksalmon" }}>
-                        {"samples pending"}
+                        {"paper samples"}
                       </small>
                     )}
                     <small style={{ color: "firebrick" }}>
@@ -105,7 +101,12 @@ export default function Jobbs() {
           </li>
           <ul>
             {allJobs
-              .filter((j) => j.total_jobs <= j.dep_count && j.submit_method)
+              .filter(
+                (j) =>
+                  j.total_jobs <= j.dep_count &&
+                  j.submit_method &&
+                  j.total_jobs > j.res_count
+              )
               .map((j) => (
                 <li key={j.id}>
                   <Link to={`/jobs/${j.id}`}>
@@ -115,13 +116,47 @@ export default function Jobbs() {
                   <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
                   <b>
                     {j.bb_done_count < j.total_jobs && (
-                      <small style={{ color: "red" }}>
-                        {"pending bid bond"}
-                      </small>
+                      <small style={{ color: "red" }}>{"bid bond"}</small>
                     )}
                     {j.spp_ready_count < j.total_jobs && (
                       <small style={{ color: "darksalmon" }}>
-                        {"samples pending"}
+                        {"paper samples"}
+                      </small>
+                    )}
+                  </b>
+                </li>
+              ))}
+          </ul>
+          <li>
+            <b>Results Published</b>
+          </li>
+          <ul>
+            {allJobs
+              .filter(
+                (j) =>
+                  j.total_jobs <= j.dep_count &&
+                  j.submit_method &&
+                  j.total_jobs <= j.res_count
+              )
+              .map((j) => (
+                <li key={j.id}>
+                  <Link to={`/jobs/${j.id}`}>
+                    {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
+                  </Link>
+                  <b>{`- ${j.customer_name || ""} : `}</b>
+                  <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
+                  <b>
+                    {j.bb_done_count < j.total_jobs && (
+                      <small style={{ color: "red" }}>{"bid bond"}</small>
+                    )}
+                    {j.spp_ready_count < j.total_jobs && (
+                      <small style={{ color: "darksalmon" }}>
+                        {"paper samples"}
+                      </small>
+                    )}
+                    {j.inc_private && (
+                      <small style={{ color: "darkblue" }}>
+                        {"include private"}
                       </small>
                     )}
                   </b>

@@ -331,9 +331,12 @@ app.get("/jobs", async (req, res) => {
       ${dateTimeCon("deadline")},
       ${date6Con("created_at")},
       (SELECT COUNT(*)::int FROM jobs_each je WHERE je.id_main = j.id AND je.deployed AND je.id_each <= j.total_jobs) AS dep_count,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.pb > 0 AND jx.id_each <= j.total_jobs) AS pb_done_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) AS bb_done_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_ready_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status > 0 AND jx.id_each <= j.total_jobs) AS res_count,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 1 AND jx.id_each <= j.total_jobs) AS inc_private,
       c.customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
       WHERE j.private = false
