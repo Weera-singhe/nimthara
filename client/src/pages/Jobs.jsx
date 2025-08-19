@@ -104,7 +104,8 @@ export default function Jobbs() {
               .filter(
                 (j) =>
                   j.total_jobs <= j.dep_count &&
-                  j.submit_method &&
+                  j.submit_method > 0 &&
+                  j.submit_method < 4 &&
                   j.total_jobs > j.res_count
               )
               .map((j) => (
@@ -127,6 +128,8 @@ export default function Jobbs() {
                 </li>
               ))}
           </ul>
+          <br />
+
           <li>
             <b>Results Published</b>
           </li>
@@ -155,12 +158,31 @@ export default function Jobbs() {
                       </small>
                     )}
                     <small style={{ color: "darkblue" }}>
-                      {j.inc_private ? "Include Private" : ""}
+                      {j.inc_private ? "Private Results" : ""}
                     </small>
                   </b>
                 </li>
               ))}
           </ul>
+          <br />
+
+          <li>
+            <b>Removed</b>
+          </li>
+          <ul>
+            {allJobs
+              .filter((j) => j.submit_method === 4)
+              .map((j) => (
+                <li key={j.id}>
+                  <Link to={`/jobs/${j.id}`}>
+                    {`${j.created_at_x}_ ${String(j.id).padStart(4, "0")}`}
+                  </Link>
+                  <b>{`- ${j.customer_name || ""} : `}</b>
+                  <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
+                </li>
+              ))}
+          </ul>
+          <br />
         </ul>
       )}
     </div>

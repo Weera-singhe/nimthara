@@ -49,10 +49,12 @@ export default function Job({ user }) {
         const totalJobs = mainJobData.total_jobs || 0;
 
         //set saved and empty eachjobs
-        const otherElements = {
+        const defsE = {
           unit_count: 1,
           item_count: 1,
           profit: 0,
+          j_status: 0,
+          deployed: false,
           id_main: Number(id),
         };
 
@@ -62,7 +64,7 @@ export default function Job({ user }) {
 
         const filled = Array.from({ length: totalJobs }, (_, i) => ({
           id_each: i + 1,
-          ...otherElements,
+          ...defsE,
           ...qtsDefJsons, //{ loop_count, v, notes_other }
           ...savedEachMap[i + 1],
         }));
@@ -73,11 +75,20 @@ export default function Job({ user }) {
         const savedEachXMap = Object.fromEntries(
           savedEachXJ.map((j) => [j.id_each, j])
         );
+        const defsX = {
+          //avoid srver errors and save bttn error
+          bb: 0,
+          bb_amount: 0,
+          samp_pp: 0,
+          res_status: 0,
+          pb: 0,
+          pb_amount: 0,
+          po: 0,
+          po_amount: 0,
+        };
         const filledX = Array.from({ length: totalJobs }, (_, i) => ({
           id_each: i + 1,
-          bb: 0, ////avoid srver errors and save bttn error
-          bb_amount: 0, //avoid srver errors and save bttn error
-          samp_pp: 0, //avoid srver errors and save bttn error
+          ...defsX,
           ...savedEachXMap[i + 1],
         }));
         setEachJX(filledX);
@@ -181,7 +192,7 @@ export default function Job({ user }) {
               slot.id_each === res.data.id_each ? res.data : slot
             )
           );
-        } else if (form === "pb") {
+        } else if (form === "pb" || form === "po") {
           setEachJX((p) =>
             p.map((slot) =>
               slot.id_each === res.data.id_each ? res.data : slot

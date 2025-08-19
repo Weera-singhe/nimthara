@@ -14,6 +14,7 @@ export default function JobDiv3({
 }) {
   const [tempJStatus, setTempJStatus] = useState([]);
   const [tempPB, setTempPB] = useState([]);
+  const [tempPO, setTempPO] = useState([]);
 
   useEffect(() => {
     !tempJStatus.length && setTempJStatus(eachJDB);
@@ -22,6 +23,10 @@ export default function JobDiv3({
   useEffect(() => {
     !tempPB.length && setTempPB(eachJXDB);
   }, [eachJXDB, tempPB.length]);
+
+  useEffect(() => {
+    !tempPO.length && setTempPO(eachJXDB);
+  }, [eachJXDB, tempPO.length]);
 
   function NumChanged(e, id_each) {
     const { name, value } = e.target;
@@ -40,6 +45,13 @@ export default function JobDiv3({
         )
       );
     }
+    if (name === "po" || name === "po_amount") {
+      setTempPO((prev) =>
+        prev.map((slot) =>
+          slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
+        )
+      );
+    }
   }
 
   function onSubmit(e, i) {
@@ -49,18 +61,22 @@ export default function JobDiv3({
         ? tempJStatus[i]
         : name === "pb"
         ? tempPB[i]
+        : name === "po"
+        ? tempPO[i]
         : tempJStatus[i];
 
     handleSubmit(exprt, name);
   }
 
   const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
+  //  const userJobsL3 = user.level_jobs > 2 && user.loggedIn;
   const userAuditL2 = user.level_audit > 1 && user.loggedIn;
 
   const totalJobs = mainJDB?.total_jobs;
   const pendingConf = totalJobs - tempJStatus.filter((j) => j.j_status).length;
 
   const pendingPB = totalJobs - tempPB.filter((j) => j.pb).length;
+  const pendingPO = totalJobs - tempPO.filter((j) => j.po).length;
 
   useEffect(() => {
     console.log("eachJXDB : ", eachJXDB);
@@ -103,14 +119,14 @@ export default function JobDiv3({
                     value={0}
                     onChange={(e) => NumChanged(e, j.id_each)}
                   />
-                  <label style={{ color: "red" }}>Disqualified :</label>
+                  {/* <label style={{ color: "red" }}>Disqualified :</label>
                   <input
                     name="j_status"
                     type="checkbox"
                     checked={temp?.j_status === 2}
                     value={2}
                     onChange={(e) => NumChanged(e, j.id_each)}
-                  />{" "}
+                  /> */}
                   <label style={{ color: "green" }}>Qualified : </label>
                   <input
                     name="j_status"
@@ -158,7 +174,7 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: tempPB[i]?.pb < 1 && "mistyrose",
+                  backgroundColor: tempPB[i]?.pb && "mistyrose",
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
@@ -171,8 +187,7 @@ export default function JobDiv3({
                     value={1}
                     onChange={(e) => NumChanged(e, j.id_each)}
                   />
-
-                  <label>Processing :</label>
+                  <label>Waiting :</label>
                   <input
                     name="pb"
                     type="checkbox"
@@ -180,7 +195,6 @@ export default function JobDiv3({
                     value={0}
                     onChange={(e) => NumChanged(e, j.id_each)}
                   />
-
                   <label>Approved : </label>
                   <input
                     name="pb"
@@ -189,7 +203,6 @@ export default function JobDiv3({
                     value={2}
                     onChange={(e) => NumChanged(e, j.id_each)}
                   />
-
                   <label>Amount : </label>
                   {showAmount ? (
                     <Num
@@ -206,7 +219,14 @@ export default function JobDiv3({
                       readOnly
                       value="✅"
                     />
-                  )}
+                  )}{" "}
+                  {j?.pb === 2 &&
+                    (tempPB[i]?.pb !== 2 ||
+                      tempPB[i]?.pb_amount !== j?.pb_amount) && (
+                      <small style={{ color: "red" }}>
+                        cannot change once approved
+                      </small>
+                    )}
                   <small>
                     {/*once approved cannot change*/}
                     {(userAuditL2 || userJobsL2) && pbChanged && j?.pb !== 2 ? (
@@ -217,11 +237,89 @@ export default function JobDiv3({
                       lastEditText
                     )}
                   </small>
-                  {tempPB[i]?.pb !== 2 && j?.pb === 2 && (
-                    <small style={{ color: "red" }}>
-                      cannot change once approved
-                    </small>
-                  )}
+                </small>
+              </li>
+            );
+          })}
+        </ul>
+      </li>
+      <li>
+        {`PO : `}
+        <small style={{ color: "firebrick" }}>
+          {pendingPO ? ` ${pendingPO} pending...` : "✅"}
+        </small>
+
+        <ul>
+          {eachJXDB.map((j, i) => {
+            //loop with eachJDB becasue it guaranted every element
+            const poChanged =
+              tempPO[i]?.po !== j?.po || tempPO[i]?.po_amount !== j?.po_amount;
+
+            const lastEditText = j.last_po_edit_by
+              ? `( last edit at ${j.last_po_edit_at_t} by ${
+                  allUsernames[j.last_po_edit_by]
+                } ) `
+              : "";
+
+            return (
+              <li
+                key={j.id_each}
+                style={{
+                  backgroundColor: !tempPO[i]?.po && "mistyrose",
+                }}
+              >
+                {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
+                <small>
+                  <label>Not Providing :</label>
+                  <input
+                    name="po"
+                    type="checkbox"
+                    checked={tempPO[i]?.po === 1}
+                    value={1}
+                    onChange={(e) => NumChanged(e, j.id_each)}
+                  />
+                  <label>Waiting :</label>
+                  <input
+                    name="po"
+                    type="checkbox"
+                    checked={!tempPO[i]?.po}
+                    value={0}
+                    onChange={(e) => NumChanged(e, j.id_each)}
+                  />
+                  <label>Recieved : </label>
+                  <input
+                    name="po"
+                    type="checkbox"
+                    checked={tempPO[i]?.po === 2}
+                    value={2}
+                    onChange={(e) => NumChanged(e, j.id_each)}
+                  />
+                  <label>Agreed Payment : </label>
+                  <Num
+                    name="po_amount"
+                    min={0}
+                    setTo={tempPO[i]?.po_amount || 0}
+                    changed={(e) => NumChanged(e, j.id_each)}
+                    width={100}
+                    deci={2}
+                  />{" "}
+                  {j?.po === 2 &&
+                    (tempPO[i]?.po !== 2 ||
+                      tempPO[i]?.po_amount !== j?.po_amount) && (
+                      <small style={{ color: "red" }}>
+                        cannot change once recieved
+                      </small>
+                    )}
+                  <small>
+                    {/*once approved cannot change*/}
+                    {(userAuditL2 || userJobsL2) && poChanged && j?.po !== 2 ? (
+                      <button name="po" onClick={(e) => onSubmit(e, i)}>
+                        Save
+                      </button>
+                    ) : (
+                      lastEditText
+                    )}
+                  </small>
                 </small>
               </li>
             );
@@ -229,7 +327,6 @@ export default function JobDiv3({
         </ul>
       </li>
 
-      <li>Payment Guarantee</li>
       <li>Artwork</li>
       <li>Printed Samples</li>
       <li>Proccesing</li>

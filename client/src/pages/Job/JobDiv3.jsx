@@ -234,7 +234,7 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: tempBB[i]?.bb < 1 && "mistyrose",
+                  backgroundColor: !tempBB[i]?.bb && "mistyrose",
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
@@ -247,7 +247,6 @@ export default function JobDiv3({
                     value={1}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
-
                   <label>Processing :</label>
                   <input
                     name="bb"
@@ -256,7 +255,6 @@ export default function JobDiv3({
                     value={0}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
-
                   <label>Approved : </label>
                   <input
                     name="bb"
@@ -265,7 +263,6 @@ export default function JobDiv3({
                     value={2}
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
-
                   <label>Amount : </label>
                   {showAmount ? (
                     <Num
@@ -283,6 +280,13 @@ export default function JobDiv3({
                       value="✅"
                     />
                   )}
+                  {j?.bb === 2 &&
+                    (tempBB[i]?.bb !== 2 ||
+                      tempBB[i]?.bb_amount !== j?.bb_amount) && (
+                      <small style={{ color: "red" }}>
+                        cannot change once approved
+                      </small>
+                    )}
                   <span style={{ marginLeft: "2.5%" }}>
                     {/*once approved cannot change*/}
                     {(userAuditL2 || userJobsL2) && bbChanged && j?.bb !== 2 ? (
@@ -293,11 +297,6 @@ export default function JobDiv3({
                       lastEditText
                     )}
                   </span>
-                  {tempBB[i]?.bb !== 2 && j?.bb === 2 && (
-                    <small style={{ color: "red" }}>
-                      cannot change once approved
-                    </small>
-                  )}
                 </small>
               </li>
             );
@@ -327,7 +326,9 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: tempSampPP[i]?.samp_pp < 2 && "mistyrose",
+                  backgroundColor:
+                    (tempSampPP[i]?.samp_pp < 2 || !tempSampPP[i]?.samp_pp) &&
+                    "mistyrose",
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
@@ -403,31 +404,38 @@ export default function JobDiv3({
               <option value={1}>email</option>
               <option value={2}>deliver</option>
               <option value={3}>post</option>
+              <option value={4}>not bidding</option>
             </select>
             {tempEstSub.submit_method > 0 && (
               <>
-                <span>to : </span>
+                <span>
+                  {tempEstSub.submit_method === 4 ? " reason : " : " to : "}
+                </span>
                 <input
                   type="text"
                   name="submit_note1"
                   onChange={strChanged_M}
                   value={tempEstSub.submit_note1 || ""}
                   style={{ width: "30%" }}
-                ></input>
-                <span>by : </span>
-                <input
-                  type="text"
-                  name="submit_note2"
-                  onChange={strChanged_M}
-                  value={tempEstSub.submit_note2 || ""}
-                ></input>{" "}
-                <span>at : </span>
-                <input
-                  type="date"
-                  name="submit_at_"
-                  onChange={strChanged_M}
-                  value={tempEstSub.submit_at_ || ""}
-                ></input>
+                />
+                {tempEstSub.submit_method !== 4 && (
+                  <>
+                    <span>by : </span>
+                    <input
+                      type="text"
+                      name="submit_note2"
+                      onChange={strChanged_M}
+                      value={tempEstSub.submit_note2 || ""}
+                    />
+                    <span>at : </span>
+                    <input
+                      type="date"
+                      name="submit_at_"
+                      onChange={strChanged_M}
+                      value={tempEstSub.submit_at_ || ""}
+                    />
+                  </>
+                )}
               </>
             )}
 

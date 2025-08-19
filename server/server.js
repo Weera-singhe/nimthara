@@ -276,6 +276,7 @@ const JobsXByIdM_SQL = `
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
       ${dateTimeCon("last_pb_edit_at")},
+      ${dateTimeCon("last_po_edit_at")},
       ${dateTimeCon("last_samppp_edit_at")},
       ${dateTimeCon("last_res_edit_at")}
       FROM jobs_eachx jx
@@ -309,6 +310,7 @@ const JobsXByIdE_SQL = `
       jx.*,
       ${dateTimeCon("last_bb_edit_at")},
       ${dateTimeCon("last_pb_edit_at")},
+      ${dateTimeCon("last_po_edit_at")},
       ${dateTimeCon("last_samppp_edit_at")},
       ${dateTimeCon("last_res_edit_at")}
       FROM jobs_eachx jx
@@ -708,6 +710,29 @@ app.post("/jobs/div4", async (req, res) => {
 
       const updtd = await JobsXByIdE(id_main, id_each);
       res.status(200).json(updtd);
+    } else if (form === "po") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_eachx
+          SET po=$3, po_amount=$4, last_po_edit_by=$5, last_po_edit_at=NOW()
+          WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_eachx 
+          (id_main, id_each, po, po_amount, last_po_edit_by, last_po_edit_at)
+          SELECT $1, $2, $3, $4, $5, NOW()`;
+
+      const { id_each, po, po_amount } = req.body;
+      const params = [id_main, id_each, po, po_amount, user_id];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+
+      const updtd = await JobsXByIdE(id_main, id_each);
+      res.status(200).json(updtd);
     }
   } catch (err) {
     console.error("DB Error:", err.message);
@@ -741,7 +766,7 @@ const BBPending_SQL = `
       ${date6Con("created_at")},
       c.customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
-      WHERE j.private = false
+      WHERE j.private = false AND j.submit_method!=4
       AND 
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) < j.total_jobs
       ORDER BY j.deadline ASC`;
