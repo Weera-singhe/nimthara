@@ -49,7 +49,7 @@ export default function JobDiv1({
           <option value={0}></option>
           {allCustomers.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.customer_name}
+              {c.cus_name_short || c.customer_name}
             </option>
           ))}
         </select>

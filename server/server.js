@@ -339,7 +339,7 @@ app.get("/jobs", async (req, res) => {
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status > 0 AND jx.id_each <= j.total_jobs) AS res_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 1 AND jx.id_each <= j.total_jobs) AS inc_private,
-      c.customer_name FROM jobs j
+      COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
       WHERE j.private = false
       ORDER BY j.deadline ASC`
@@ -750,7 +750,7 @@ const BB_SQL = `
       ${dateTimeCon("deadline")},
       ${dateCon("bb_op_at")},
       ${dateCon("bb_ref_at")},
-      c.customer_name
+      COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name
       FROM jobs_eachx jx
       JOIN jobs j 
       ON jx.id_main = j.id
@@ -764,7 +764,7 @@ const BBPending_SQL = `
       j.*,
       ${dateTimeCon("deadline")},
       ${date6Con("created_at")},
-      c.customer_name FROM jobs j
+      COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
       WHERE j.private = false AND j.submit_method!=4
       AND 
