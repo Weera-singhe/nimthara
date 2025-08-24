@@ -3,7 +3,6 @@ import Num from "../../elements/NumInput";
 import { toLKR } from "../../elements/cal";
 
 export default function JobDiv3({
-  allUsernames,
   mainJDB,
   eachJDB,
   eachJXDB,
@@ -94,7 +93,7 @@ export default function JobDiv3({
   function onSubmit(e, i) {
     const name = e.target.name;
     const exprt =
-      name === "estSub"
+      name === "est_sub"
         ? tempEstSub
         : name === "bb"
         ? tempBB[i]
@@ -134,9 +133,7 @@ export default function JobDiv3({
         Job ID :<b> {displayID}</b>
         <ul>
           <li>
-            <small>{`Created by : ${
-              allUsernames[mainJDB?.created_by] || "?"
-            } on ${mainJDB?.created_at_t || "?"}`}</small>
+            <small>{`Created at : ${mainJDB?.created_at_t || "?"}`}</small>
           </li>
         </ul>
       </li>
@@ -159,9 +156,9 @@ export default function JobDiv3({
                   <span>
                     <small>
                       <b style={{ color: "green" }}>Deployed. </b>
-                      {` ( last edit by : ${
+                      {/* {` ( last edit by : ${
                         allUsernames[j.last_qt_edit_by] || "loading..."
-                      } on ${j.last_qt_edit_at_t || "loading..."} )`}
+                      } on ${j.last_qt_edit_at_t || "loading..."} )`} */}
                     </small>
                   </span>
                   <ul>
@@ -222,11 +219,11 @@ export default function JobDiv3({
             const bbChanged =
               tempBB[i]?.bb !== j.bb || tempBB[i]?.bb_amount !== j.bb_amount;
 
-            const lastEditText = j.last_bb_edit_by
-              ? `( last edit at ${j.last_bb_edit_at_t} by ${
-                  allUsernames[j.last_bb_edit_by]
-                } ) `
-              : "";
+            // const lastEditText = j.last_bb_edit_by
+            //   ? `( last edit at ${j.last_bb_edit_at_t} by ${
+            //       allUsernames[j.last_bb_edit_by]
+            //     } ) `
+            //   : "";
 
             const showAmount = tempBB[i]?.bb !== 1;
 
@@ -289,13 +286,13 @@ export default function JobDiv3({
                     )}
                   <span style={{ marginLeft: "2.5%" }}>
                     {/*once approved cannot change*/}
-                    {(userAuditL2 || userJobsL2) && bbChanged && j?.bb !== 2 ? (
-                      <button name="bb" onClick={(e) => onSubmit(e, i)}>
-                        Save
-                      </button>
-                    ) : (
-                      lastEditText
-                    )}
+                    {(userAuditL2 || userJobsL2) &&
+                      bbChanged &&
+                      j?.bb !== 2 && (
+                        <button name="bb" onClick={(e) => onSubmit(e, i)}>
+                          Save
+                        </button>
+                      )}
                   </span>
                 </small>
               </li>
@@ -316,11 +313,11 @@ export default function JobDiv3({
             //loop with eachJDB becasue it guaranted every element
             const sppChanged = tempSampPP[i]?.samp_pp !== j.samp_pp;
 
-            const lastEditText = j.last_samppp_edit_by
-              ? ` ( last edit at ${j.last_samppp_edit_at_t} by ${
-                  allUsernames[j.last_samppp_edit_by]
-                } ) `
-              : "";
+            // const lastEditText = j.last_samppp_edit_by
+            //   ? ` ( last edit at ${j.last_samppp_edit_at_t} by ${
+            //       allUsernames[j.last_samppp_edit_by]
+            //     } ) `
+            //   : "";
 
             return (
               <li
@@ -366,12 +363,10 @@ export default function JobDiv3({
                     onChange={(e) => NumChanged_xtra(e, j.id_each)}
                   />
                   <span>
-                    {userJobsL2 && sppChanged ? (
+                    {userJobsL2 && sppChanged && (
                       <button name="samp_pp" onClick={(e) => onSubmit(e, i)}>
                         Save
                       </button>
-                    ) : (
-                      lastEditText
                     )}
                   </span>
                 </small>
@@ -382,12 +377,12 @@ export default function JobDiv3({
       </li>
       <li>
         {`Estimation Submission : `}
-        <small>
+        {/* <small>
           {mainJDB?.last_sub_edit_by &&
             ` ( last edit by ${allUsernames[mainJDB?.last_sub_edit_by]} at ${
               mainJDB?.last_sub_edit_at_t
             } ) `}
-        </small>
+        </small> */}
         <ul>
           <li
             style={{
@@ -440,7 +435,7 @@ export default function JobDiv3({
             )}
 
             {!estiSubDis && (
-              <button name="estSub" onClick={onSubmit}>
+              <button name="est_sub" onClick={onSubmit}>
                 save
               </button>
             )}
@@ -475,13 +470,13 @@ export default function JobDiv3({
                         ? "Private"
                         : "Published"}
                     </span>
-                    <small>
+                    {/* <small>
                       {j?.last_res_edit_by
                         ? ` ( last edit at ${j.last_res_edit_at_t} by ${
                             allUsernames[j.last_res_edit_by]
                           } ) `
                         : ""}
-                    </small>
+                    </small> */}
                     {j.res_status === 2 && (
                       <ol>
                         {Object.values(j.result || {})

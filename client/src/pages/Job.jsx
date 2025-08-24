@@ -26,7 +26,6 @@ export default function Job({ user }) {
   const [allCustomers, loadAllCustomers] = useState([]);
   const [qtsComponants, setQtsComponants] = useState([]);
   const [allPapers, setAllPapers] = useState([]);
-  const [allUsernames, setAllUsernames] = useState([]);
 
   const [showQTS, setShowQTS] = useState(false);
 
@@ -40,11 +39,11 @@ export default function Job({ user }) {
         loadAllCustomers(data.cus);
         setQtsComponants(data.qtsComps);
         setAllPapers(data.allPapers);
-        setAllUsernames(["", ...data.usernames]);
 
-        const { savedEachJob, savedEachXJ, qtsDefJsons, mainJobData } = data;
+        const { savedEachJob, savedEachXJ, qtsDefJsons, mainJobData, getAct } =
+          data;
         setMainJ(mainJobData);
-        console.log(mainJobData);
+        console.log("latest Activity : ", getAct);
 
         const totalJobs = mainJobData.total_jobs || 0;
 
@@ -158,7 +157,7 @@ export default function Job({ user }) {
     axios
       .post(`${JOBS_API_URL}/div3`, safeExport)
       .then((res) => {
-        if (form === "estSub") {
+        if (form === "est_sub") {
           setMainJ(res.data);
         } else if (form === "bb" || form === "samp_pp" || form === "result") {
           setEachJX((p) =>
@@ -264,7 +263,6 @@ export default function Job({ user }) {
             style={{ display: loadingEachJ && loadingMainJ ? "none" : "block" }}
           >
             <JobDiv3
-              allUsernames={allUsernames}
               mainJDB={mainJDB}
               eachJDB={eachJDB}
               eachJXDB={eachJXDB}
@@ -284,7 +282,6 @@ export default function Job({ user }) {
             style={{ display: loadingEachJ && loadingMainJ ? "none" : "block" }}
           >
             <JobDiv4
-              allUsernames={allUsernames}
               mainJDB={mainJDB}
               eachJDB={eachJDB}
               eachJXDB={eachJXDB}

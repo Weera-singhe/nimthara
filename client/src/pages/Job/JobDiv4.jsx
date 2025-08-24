@@ -3,7 +3,6 @@ import Num from "../../elements/NumInput";
 //import { toLKR } from "../../elements/cal";
 
 export default function JobDiv3({
-  allUsernames,
   mainJDB,
   eachJDB,
   eachJXDB,
@@ -96,11 +95,11 @@ export default function JobDiv3({
 
             const jstChanged = temp?.j_status !== j.j_status;
 
-            const lastEditText = j.last_jst_edit_by
-              ? `( last edit at ${j.last_jst_edit_at_t} by ${
-                  allUsernames[j.last_jst_edit_by]
-                } ) `
-              : "";
+            // const lastEditText = j.last_jst_edit_by
+            //   ? `( last edit at ${j.last_jst_edit_at_t} by ${
+            //       allUsernames[j.last_jst_edit_by]
+            //     } ) `
+            //   : "";
 
             return (
               <li
@@ -137,12 +136,10 @@ export default function JobDiv3({
                   />
                 </small>
                 <small>
-                  {userJobsL2 && jstChanged ? (
+                  {userJobsL2 && jstChanged && (
                     <button name="j_status" onClick={(e) => onSubmit(e, i)}>
                       Save
                     </button>
-                  ) : (
-                    lastEditText
                   )}
                 </small>
               </li>
@@ -162,11 +159,11 @@ export default function JobDiv3({
             const pbChanged =
               tempPB[i]?.pb !== j.pb || tempPB[i]?.pb_amount !== j.pb_amount;
 
-            const lastEditText = j.last_pb_edit_by
-              ? `( last edit at ${j.last_pb_edit_at_t} by ${
-                  allUsernames[j.last_pb_edit_by]
-                } ) `
-              : "";
+            // const lastEditText = j.last_pb_edit_by
+            //   ? `( last edit at ${j.last_pb_edit_at_t} by ${
+            //       allUsernames[j.last_pb_edit_by]
+            //     } ) `
+            //   : "";
 
             const showAmount = tempPB[i]?.pb !== 1;
 
@@ -174,7 +171,7 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: tempPB[i]?.pb && "mistyrose",
+                  backgroundColor: !tempPB[i]?.pb && "mistyrose",
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
@@ -229,13 +226,13 @@ export default function JobDiv3({
                     )}
                   <small>
                     {/*once approved cannot change*/}
-                    {(userAuditL2 || userJobsL2) && pbChanged && j?.pb !== 2 ? (
-                      <button name="pb" onClick={(e) => onSubmit(e, i)}>
-                        Save
-                      </button>
-                    ) : (
-                      lastEditText
-                    )}
+                    {(userAuditL2 || userJobsL2) &&
+                      pbChanged &&
+                      j?.pb !== 2 && (
+                        <button name="pb" onClick={(e) => onSubmit(e, i)}>
+                          Save
+                        </button>
+                      )}
                   </small>
                 </small>
               </li>
@@ -255,11 +252,11 @@ export default function JobDiv3({
             const poChanged =
               tempPO[i]?.po !== j?.po || tempPO[i]?.po_amount !== j?.po_amount;
 
-            const lastEditText = j.last_po_edit_by
-              ? `( last edit at ${j.last_po_edit_at_t} by ${
-                  allUsernames[j.last_po_edit_by]
-                } ) `
-              : "";
+            // const lastEditText = j.last_po_edit_by
+            //   ? `( last edit at ${j.last_po_edit_at_t} by ${
+            //       allUsernames[j.last_po_edit_by]
+            //     } ) `
+            //   : "";
 
             return (
               <li
@@ -312,13 +309,13 @@ export default function JobDiv3({
                     )}
                   <small>
                     {/*once approved cannot change*/}
-                    {(userAuditL2 || userJobsL2) && poChanged && j?.po !== 2 ? (
-                      <button name="po" onClick={(e) => onSubmit(e, i)}>
-                        Save
-                      </button>
-                    ) : (
-                      lastEditText
-                    )}
+                    {(userAuditL2 || userJobsL2) &&
+                      poChanged &&
+                      j?.po !== 2 && (
+                        <button name="po" onClick={(e) => onSubmit(e, i)}>
+                          Save
+                        </button>
+                      )}
                   </small>
                 </small>
               </li>

@@ -222,7 +222,7 @@ function JobDiv2({
         ) : (
           <button
             type="submit"
-            disabled={isDirty || !detailsTemp.created_by}
+            disabled={isDirty || !detailsTemp.created_at}
             name="dep"
             style={{ marginLeft: "1%" }}
           >
