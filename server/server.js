@@ -334,7 +334,18 @@ app.get("/jobs", async (req, res) => {
       WHERE j.private = false
       ORDER BY j.deadline ASC`
     );
-    res.json(jobs);
+    const { rows: qualified } = await pool.query(
+      `SELECT je.*, j.*, c.*,
+        ${date6Con("j_created_at")}
+        FROM jobs_each je
+        JOIN (SELECT j.*, j.created_at AS j_created_at FROM jobs j) j ON j.id = je.id_main
+        JOIN customers c ON c.id = j.customer
+        WHERE j.private = false
+        AND je.j_status = 1
+        ORDER BY j.deadline ASC`
+    );
+    console.log(qualified);
+    res.json({ jobs, qualified });
   } catch (err) {
     res.status(500).send("Error");
   }

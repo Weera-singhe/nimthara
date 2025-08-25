@@ -34,7 +34,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_1"}
             changed={changed}
             setTo={v?.[name + "_1"] || 0}
-            min={1}
+            // min={1}
             deci={0}
           />{" "}
           <b> x </b>
@@ -43,7 +43,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_2"}
             changed={changed}
             setTo={v?.[name + "_2"] || 0}
-            min={1}
+            // min={1}
             deci={0}
           />{" "}
           <b> x </b>
@@ -52,7 +52,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_3"}
             changed={changed}
             setTo={v?.[name + "_3"] || 0}
-            min={1}
+            //  min={1}
             deci={0}
           />
         </>
@@ -154,7 +154,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
                 name={name + "_4"}
                 changed={changed}
                 setTo={v?.[name + "_4"] || 0}
-                min={1}
+                // min={1}
                 deci={0}
               />
               <b> + </b>
@@ -171,7 +171,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
                 name={name + "_6"}
                 changed={changed}
                 setTo={v?.[name + "_6"] || 0}
-                min={1}
+                //  min={1}
                 deci={0}
               />
               <b> ) </b>
@@ -196,7 +196,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_1"}
             changed={changed}
             setTo={v?.[name + "_1"] || 0}
-            min={1}
+            // min={1}
             deci={0}
           />
           <b> x </b>
@@ -205,7 +205,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_2"}
             changed={changed}
             setTo={v?.[name + "_2"] || 0}
-            min={1}
+            // min={1}
             max={2}
             deci={0}
           />
@@ -226,7 +226,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_3"}
             changed={changed}
             setTo={v?.[name + "_3"] || 0}
-            min={1}
+            // min={1}
             deci={2}
           />
           <b> x </b>
@@ -317,7 +317,6 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_4"}
             changed={changed}
             setTo={v?.[name + "_4"] || 0}
-            min={0.01}
             deci={2}
           />{" "}
           <b> * </b>{" "}
@@ -326,7 +325,6 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_5"}
             changed={changed}
             setTo={v?.[name + "_5"] || 0}
-            min={0.01}
             deci={2}
           />
           <b> / </b>
@@ -335,7 +333,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_1"}
             changed={changed}
             setTo={v?.[name + "_1"] || 0}
-            min={0.01}
+            //  min={0.01}
             deci={2}
           />
           <b> / </b>
@@ -344,7 +342,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
             name={name + "_3"}
             changed={changed}
             setTo={v?.[name + "_3"] || 0}
-            min={0.01}
+            //  min={0.01}
             deci={2}
           />
         </>

@@ -1,42 +1,41 @@
 export function SumEachRow(name, v, compID, min_cal_res) {
-  const val0 = (key) => Number(v?.[`${name}_${key}`]) || 0; ////unlikely of use ||0
-  const val1 = (key) => Number(v?.[`${name}_${key}`]) || 1; ////unlikely of use ||1
+  const val = (key) => Number(v?.[`${name}_${key}`]) || 0;
   let calResult = 0;
 
   switch (compID) {
     case "Artwork":
     case "Delivery":
-      calResult = val0(0);
+      calResult = val(0);
       break;
 
     case "Plates":
-      calResult = val0(0) * val1(1) * val1(2) * val1(3);
+      calResult = val(0) * val(1) * val(2) * val(3);
       break;
 
     case "Paper":
-      const p_price = val0(1) / val1(2);
-      const p_qty = Math.ceil((val0(3) * val1(7)) / val1(4));
-      const p_qtyExta = Math.ceil(val0(5) / val1(6));
+      const p_price = val(1) / val(2);
+      const p_qty = Math.ceil((val(3) * val(7)) / val(4));
+      const p_qtyExta = Math.ceil(val(5) / val(6));
       calResult = p_price * (p_qty + p_qtyExta);
       break;
 
     case "Print":
-      const imp = (val0(0) / val1(1)) * val1(2) * val1(4);
-      calResult = imp < min_cal_res ? min_cal_res * val1(3) : imp * val1(3);
+      const imp = (val(0) / val(1)) * val(2) * val(4);
+      calResult = imp < min_cal_res ? min_cal_res * val(3) : imp * val(3);
       break;
 
     case "Cutting":
     case "Padding":
-      calResult = val0(0) * val1(1);
+      calResult = val(0) * val(1);
       break;
 
     case "Perforation":
     case "Numbering":
-      calResult = val0(0) + val0(1) * val1(2);
+      calResult = val(0) + val(1) * val(2);
       break;
 
     case "Other":
-      calResult = (val0(0) * val1(2) * val1(4) * val1(5)) / val1(1) / val1(3);
+      calResult = (val(0) * val(2) * val(4) * val(5)) / val(1) / val(3);
       break;
 
     default:
@@ -45,7 +44,7 @@ export function SumEachRow(name, v, compID, min_cal_res) {
 
   const isBelowMin =
     compID === "Print"
-      ? calResult <= min_cal_res * val1(3)
+      ? calResult <= min_cal_res * val(3)
       : calResult <= min_cal_res;
   return { calResult, isBelowMin };
 }
