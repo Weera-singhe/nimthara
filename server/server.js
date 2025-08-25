@@ -282,17 +282,22 @@ async function JobsXByIdM(id_main) {
 }
 
 const JobsEByIdE_SQL = `
-      SELECT 
-      je.*
-      FROM jobs_each je
-      JOIN jobs j ON je.id_main = j.id
-      WHERE je.id_main = $1 AND j.private = false AND id_each=$2
-      ORDER BY je.id_each ASC`;
+  SELECT je.*
+  FROM jobs_each je
+  JOIN jobs j ON je.id_main = j.id
+  WHERE je.id_main = $1
+    AND je.id_each = $2
+    AND j.private = false
+  LIMIT 1
+`;
 
 async function JobsEByIdE(id_main, id_each) {
   const { rows } = await pool.query(JobsEByIdE_SQL, [id_main, id_each]);
-  if (rows[0]) rows[0].profit = Number(rows[0].profit) || 0;
-  return rows[0] || null;
+  const row = rows[0] || null;
+  if (row) {
+    row.profit = Number(row.profit) || 0;
+  }
+  return row;
 }
 
 const JobsXByIdE_SQL = `
@@ -536,9 +541,13 @@ app.post("/jobs/div2", requireAuth, async (req, res) => {
       id_each,
     ];
 
-    const beforeU = await JobsEByIdE(id_main, id_each);
-
-    const { v: v1, notes_other: no1, loop_count: lc1, ...beforeMini } = beforeU;
+    const beforeU = (await JobsEByIdE(id_main, id_each)) || null;
+    const {
+      v: v1,
+      notes_other: no1,
+      loop_count: lc1,
+      ...beforeMini
+    } = beforeU ?? {};
 
     const updSQL = `
       UPDATE jobs_each
