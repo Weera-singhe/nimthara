@@ -53,6 +53,8 @@ export default function Job({ user }) {
           item_count: 1,
           profit: 0,
           j_status: 0,
+          aw: 0,
+          samp_pr: 0,
           deployed: false,
           id_main: Number(id),
         };
@@ -178,14 +180,14 @@ export default function Job({ user }) {
     isLoadingMainJ(true);
     isLoadingEachJ(true);
 
-    const safeExport = { ...exprt, user_id: user.id, id_main: +id, form };
+    const safeExport = { ...exprt, id_main: +id, form };
     console.log("safeExport : ", safeExport);
 
     axios
       .post(`${JOBS_API_URL}/div4`, safeExport)
       .then((res) => {
         console.log(res.data);
-        if (form === "j_status") {
+        if (form === "j_status" || form === "samp_pr" || form === "aw") {
           setEachJ((p) =>
             p.map((slot) =>
               slot.id_each === res.data.id_each ? res.data : slot

@@ -48,7 +48,7 @@ function JobDiv2({
         : { ...p, [name]: safeVal }
     );
   }
-  const { unit_price, the_sum, total_price, unit_vat, total_vat } = useMemo(
+  const { unit_price, the_sum, total_price } = useMemo(
     () => SumsEachQuot(qts_componants, detailsTemp),
     [qts_componants, detailsTemp]
   );
@@ -196,24 +196,16 @@ function JobDiv2({
           }}
         />
         <b>%</b>
-        <h4>
-          <small>
-            <small> Total Price: </small>{" "}
-          </small>
-          {toLKR(total_price)}
-          <small style={{ marginLeft: "2%" }}>
-            <small> Unit Price: </small>{" "}
-          </small>
-          {toLKR(unit_price)}
-          <small style={{ marginLeft: "4%" }}>
-            <small> Total +VAT: </small>{" "}
-          </small>
-          {toLKR(total_vat)}
-          <small style={{ marginLeft: "2%" }}>
-            <small> Unit +VAT: </small>
-          </small>
-          {toLKR(unit_vat)}
-        </h4>
+        <small style={{ marginLeft: "3%" }}>
+          <small> Total Price: </small>{" "}
+        </small>
+        {toLKR(total_price)}
+        <small style={{ marginLeft: "2%" }}>
+          <small> Unit Price: </small>{" "}
+        </small>
+        {toLKR(unit_price)}
+        <br />
+
         <button name="up" type="submit" disabled={!isDirty}>
           Update
         </button>

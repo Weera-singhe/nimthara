@@ -74,7 +74,8 @@ export function SumsEachQuot(components, data) {
 
   const unit_price = +(base / unitCount).toFixed(2);
   const safe_total = +(unit_price * unitCount).toFixed(2);
-  const vatRate = 1.18;
+  const vatRate = 0.18;
+  const ssclRate = 0.025;
 
   return {
     id_each: data.id_each,
@@ -83,6 +84,12 @@ export function SumsEachQuot(components, data) {
     total_price: safe_total,
     unit_vat: +(unit_price * vatRate).toFixed(2),
     total_vat: +(safe_total * vatRate).toFixed(2),
+    unit_sscl: +(unit_price * ssclRate).toFixed(2),
+    total_sscl: +(safe_total * ssclRate).toFixed(2),
+    unit_vat_: +(unit_price * (1 + vatRate)).toFixed(2),
+    total_vat_: +(safe_total * (1 + vatRate)).toFixed(2),
+    unit_ssclvat_: +(unit_price * (1 + ssclRate + vatRate)).toFixed(2),
+    total_ssclvat_: +(safe_total * (1 + ssclRate + vatRate)).toFixed(2),
   };
 }
 

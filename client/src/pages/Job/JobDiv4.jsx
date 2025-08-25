@@ -11,41 +11,34 @@ export default function JobDiv3({
   handleSubmit,
   user,
 }) {
-  const [tempJStatus, setTempJStatus] = useState([]);
-  const [tempPB, setTempPB] = useState([]);
-  const [tempPO, setTempPO] = useState([]);
+  const [tempEjx, setTempEjx] = useState([]);
+  const [tempEjb, setTempEjb] = useState([]);
 
   useEffect(() => {
-    !tempJStatus.length && setTempJStatus(eachJDB);
-  }, [eachJDB, tempJStatus.length]);
+    !tempEjb.length && setTempEjb(eachJDB);
+  }, [eachJDB, tempEjb.length]);
 
   useEffect(() => {
-    !tempPB.length && setTempPB(eachJXDB);
-  }, [eachJXDB, tempPB.length]);
-
-  useEffect(() => {
-    !tempPO.length && setTempPO(eachJXDB);
-  }, [eachJXDB, tempPO.length]);
+    !tempEjx.length && setTempEjx(eachJXDB);
+  }, [eachJXDB, tempEjx.length]);
 
   function NumChanged(e, id_each) {
     const { name, value } = e.target;
 
-    if (name === "j_status") {
-      setTempJStatus((prev) =>
+    if (name === "j_status" || name === "aw" || name === "samp_pr") {
+      setTempEjb((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
         )
       );
     }
-    if (name === "pb" || name === "pb_amount") {
-      setTempPB((prev) =>
-        prev.map((slot) =>
-          slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
-        )
-      );
-    }
-    if (name === "po" || name === "po_amount") {
-      setTempPO((prev) =>
+    if (
+      name === "pb" ||
+      name === "pb_amount" ||
+      name === "po" ||
+      name === "po_amount"
+    ) {
+      setTempEjx((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
         )
@@ -53,29 +46,33 @@ export default function JobDiv3({
     }
   }
 
-  function onSubmit(e, i) {
+  function onSubmit(e, exprt) {
     const name = e.target.name;
-    const exprt =
-      name === "job_status"
-        ? tempJStatus[i]
-        : name === "pb"
-        ? tempPB[i]
-        : name === "po"
-        ? tempPO[i]
-        : tempJStatus[i];
-
     handleSubmit(exprt, name);
   }
 
+  const userJobsL1 = user.level_jobs > 0 && user.loggedIn;
   const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
   //  const userJobsL3 = user.level_jobs > 2 && user.loggedIn;
   const userAuditL2 = user.level_audit > 1 && user.loggedIn;
 
   const totalJobs = mainJDB?.total_jobs;
-  const pendingConf = totalJobs - tempJStatus.filter((j) => j.j_status).length;
 
-  const pendingPB = totalJobs - tempPB.filter((j) => j.pb).length;
-  const pendingPO = totalJobs - tempPO.filter((j) => j.po).length;
+  const pendingQuali = totalJobs - tempEjb.filter((j) => j.j_status).length;
+
+  const donePB = tempEjx.filter((j, idx) => j.pb || !eachJDB[idx].j_status);
+  const pendingPB = totalJobs - donePB.length;
+
+  const donePO = tempEjx.filter((j, idx) => j.po || !eachJDB[idx].j_status);
+  const pendingPO = totalJobs - donePO.length;
+
+  const doneAW = tempEjb.filter((j, idx) => j.aw > 1 || !eachJDB[idx].j_status);
+  const pendingAW = totalJobs - doneAW.length;
+
+  const donesamp_pr = tempEjb.filter(
+    (j, idx) => j.samp_pr > 1 || !eachJDB[idx].j_status
+  );
+  const pendingSamp_pr = totalJobs - donesamp_pr.length;
 
   useEffect(() => {
     console.log("eachJXDB : ", eachJXDB);
@@ -86,12 +83,12 @@ export default function JobDiv3({
       <li>
         Customer Decision :
         <small style={{ color: "firebrick" }}>
-          {pendingConf ? ` ${pendingConf} pending...` : "✅"}
+          {pendingQuali ? ` ${pendingQuali} pending...` : "✅"}
         </small>
         <ul>
           {eachJDB.map((j, i) => {
             //loop with eachJDB becasue it guaranted every element
-            const temp = tempJStatus[i];
+            const temp = tempEjb[i];
 
             const jstChanged = temp?.j_status !== j.j_status;
 
@@ -137,7 +134,7 @@ export default function JobDiv3({
                 </small>
                 <small>
                   {userJobsL2 && jstChanged && (
-                    <button name="j_status" onClick={(e) => onSubmit(e, i)}>
+                    <button name="j_status" onClick={(e) => onSubmit(e, temp)}>
                       Save
                     </button>
                   )}
@@ -156,8 +153,10 @@ export default function JobDiv3({
         <ul>
           {eachJXDB.map((j, i) => {
             //loop with eachJDB becasue it guaranted every element
+            const temp = tempEjx[i];
             const pbChanged =
-              tempPB[i]?.pb !== j.pb || tempPB[i]?.pb_amount !== j.pb_amount;
+              temp?.pb !== j.pb || temp?.pb_amount !== j.pb_amount;
+            const qualified_ = eachJDB[i]?.j_status;
 
             // const lastEditText = j.last_pb_edit_by
             //   ? `( last edit at ${j.last_pb_edit_at_t} by ${
@@ -165,76 +164,79 @@ export default function JobDiv3({
             //     } ) `
             //   : "";
 
-            const showAmount = tempPB[i]?.pb !== 1;
+            const showAmount = temp?.pb !== 1;
 
             return (
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: !tempPB[i]?.pb && "mistyrose",
+                  backgroundColor: !temp?.pb && qualified_ && "mistyrose",
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
-                <small>
-                  <label>Not Needed :</label>
-                  <input
-                    name="pb"
-                    type="checkbox"
-                    checked={tempPB[i]?.pb === 1}
-                    value={1}
-                    onChange={(e) => NumChanged(e, j.id_each)}
-                  />
-                  <label>Waiting :</label>
-                  <input
-                    name="pb"
-                    type="checkbox"
-                    checked={!tempPB[i]?.pb}
-                    value={0}
-                    onChange={(e) => NumChanged(e, j.id_each)}
-                  />
-                  <label>Approved : </label>
-                  <input
-                    name="pb"
-                    type="checkbox"
-                    checked={tempPB[i]?.pb === 2}
-                    value={2}
-                    onChange={(e) => NumChanged(e, j.id_each)}
-                  />
-                  <label>Amount : </label>
-                  {showAmount ? (
-                    <Num
-                      name="pb_amount"
-                      min={0}
-                      setTo={tempPB[i]?.pb_amount || 0}
-                      changed={(e) => NumChanged(e, j.id_each)}
-                      width={100}
-                      deci={2}
-                    />
-                  ) : (
-                    <input
-                      style={{ width: "100px", marginRight: "0" }}
-                      readOnly
-                      value="✅"
-                    />
-                  )}{" "}
-                  {j?.pb === 2 &&
-                    (tempPB[i]?.pb !== 2 ||
-                      tempPB[i]?.pb_amount !== j?.pb_amount) && (
-                      <small style={{ color: "red" }}>
-                        cannot change once approved
-                      </small>
-                    )}
+                {qualified_ ? (
                   <small>
-                    {/*once approved cannot change*/}
-                    {(userAuditL2 || userJobsL2) &&
-                      pbChanged &&
-                      j?.pb !== 2 && (
-                        <button name="pb" onClick={(e) => onSubmit(e, i)}>
-                          Save
-                        </button>
+                    <label>Not Needed :</label>
+                    <input
+                      name="pb"
+                      type="checkbox"
+                      checked={temp?.pb === 1}
+                      value={1}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Waiting :</label>
+                    <input
+                      name="pb"
+                      type="checkbox"
+                      checked={!temp?.pb}
+                      value={0}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Approved : </label>
+                    <input
+                      name="pb"
+                      type="checkbox"
+                      checked={temp?.pb === 2}
+                      value={2}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Amount : </label>
+                    {showAmount ? (
+                      <Num
+                        name="pb_amount"
+                        min={0}
+                        setTo={temp?.pb_amount || 0}
+                        changed={(e) => NumChanged(e, j.id_each)}
+                        width={100}
+                        deci={2}
+                      />
+                    ) : (
+                      <input
+                        style={{ width: "100px", marginRight: "0" }}
+                        readOnly
+                        value="✅"
+                      />
+                    )}{" "}
+                    {j?.pb === 2 &&
+                      (temp?.pb !== 2 || temp?.pb_amount !== j?.pb_amount) && (
+                        <small style={{ color: "red" }}>
+                          cannot change once approved
+                        </small>
                       )}
+                    <small>
+                      {/*once approved cannot change*/}
+                      {(userAuditL2 || userJobsL2) &&
+                        pbChanged &&
+                        j?.pb !== 2 && (
+                          <button name="pb" onClick={(e) => onSubmit(e, temp)}>
+                            Save
+                          </button>
+                        )}
+                    </small>
                   </small>
-                </small>
+                ) : (
+                  <small style={{ color: "firebrick" }}>not Qualified</small>
+                )}
               </li>
             );
           })}
@@ -249,8 +251,10 @@ export default function JobDiv3({
         <ul>
           {eachJXDB.map((j, i) => {
             //loop with eachJDB becasue it guaranted every element
+            const temp = tempEjx[i];
             const poChanged =
-              tempPO[i]?.po !== j?.po || tempPO[i]?.po_amount !== j?.po_amount;
+              temp?.po !== j?.po || temp?.po_amount !== j?.po_amount;
+            const qualified_ = eachJDB[i]?.j_status;
 
             // const lastEditText = j.last_po_edit_by
             //   ? `( last edit at ${j.last_po_edit_at_t} by ${
@@ -262,70 +266,226 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: !tempPO[i]?.po && "mistyrose",
+                  backgroundColor: !temp?.po && qualified_ && "mistyrose",
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
-                <small>
-                  <label>Not Providing :</label>
-                  <input
-                    name="po"
-                    type="checkbox"
-                    checked={tempPO[i]?.po === 1}
-                    value={1}
-                    onChange={(e) => NumChanged(e, j.id_each)}
-                  />
-                  <label>Waiting :</label>
-                  <input
-                    name="po"
-                    type="checkbox"
-                    checked={!tempPO[i]?.po}
-                    value={0}
-                    onChange={(e) => NumChanged(e, j.id_each)}
-                  />
-                  <label>Recieved : </label>
-                  <input
-                    name="po"
-                    type="checkbox"
-                    checked={tempPO[i]?.po === 2}
-                    value={2}
-                    onChange={(e) => NumChanged(e, j.id_each)}
-                  />
-                  <label>Agreed Payment : </label>
-                  <Num
-                    name="po_amount"
-                    min={0}
-                    setTo={tempPO[i]?.po_amount || 0}
-                    changed={(e) => NumChanged(e, j.id_each)}
-                    width={100}
-                    deci={2}
-                  />{" "}
-                  {j?.po === 2 &&
-                    (tempPO[i]?.po !== 2 ||
-                      tempPO[i]?.po_amount !== j?.po_amount) && (
-                      <small style={{ color: "red" }}>
-                        cannot change once recieved
-                      </small>
-                    )}
+                {qualified_ ? (
                   <small>
-                    {/*once approved cannot change*/}
-                    {(userAuditL2 || userJobsL2) &&
-                      poChanged &&
-                      j?.po !== 2 && (
-                        <button name="po" onClick={(e) => onSubmit(e, i)}>
-                          Save
-                        </button>
+                    <label>Not Providing :</label>
+                    <input
+                      name="po"
+                      type="checkbox"
+                      checked={temp?.po === 1}
+                      value={1}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Waiting :</label>
+                    <input
+                      name="po"
+                      type="checkbox"
+                      checked={!temp?.po}
+                      value={0}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Recieved : </label>
+                    <input
+                      name="po"
+                      type="checkbox"
+                      checked={temp?.po === 2}
+                      value={2}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Agreed Payment : </label>
+                    <Num
+                      name="po_amount"
+                      min={0}
+                      setTo={temp?.po_amount || 0}
+                      changed={(e) => NumChanged(e, j.id_each)}
+                      width={100}
+                      deci={2}
+                    />{" "}
+                    {j?.po === 2 &&
+                      (temp?.po !== 2 || temp?.po_amount !== j?.po_amount) && (
+                        <small style={{ color: "red" }}>
+                          cannot change once recieved
+                        </small>
                       )}
+                    <small>
+                      {/*once approved cannot change*/}
+                      {(userAuditL2 || userJobsL2) &&
+                        poChanged &&
+                        j?.po !== 2 && (
+                          <button name="po" onClick={(e) => onSubmit(e, temp)}>
+                            Save
+                          </button>
+                        )}
+                    </small>
                   </small>
-                </small>
+                ) : (
+                  <small style={{ color: "firebrick" }}>not Qualified</small>
+                )}
               </li>
             );
           })}
         </ul>
       </li>
+      <li>
+        Approval :
+        <ul>
+          <li>
+            Artwork :
+            <small style={{ color: "firebrick" }}>
+              {pendingAW ? ` ${pendingAW} pending...` : "✅"}
+            </small>
+            <ul>
+              {eachJDB.map((j, i) => {
+                const temp = tempEjb[i];
+                const awChanged = temp?.aw !== j?.aw;
+                const qualified_ = eachJDB[i]?.j_status;
 
-      <li>Artwork</li>
-      <li>Printed Samples</li>
+                return (
+                  <li
+                    key={j.id_each}
+                    style={{
+                      backgroundColor:
+                        (temp?.aw === 1 || !temp?.aw) &&
+                        qualified_ &&
+                        "mistyrose",
+                    }}
+                  >
+                    {`# ${displayID}_${
+                      eachJDB[i]?.cus_id_each || j.id_each
+                    } : `}
+                    {qualified_ ? (
+                      <small>
+                        <label>Processing : </label>
+                        <input
+                          name="aw"
+                          type="checkbox"
+                          checked={!temp?.aw}
+                          value={0}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <label>Ready : </label>
+                        <input
+                          name="aw"
+                          type="checkbox"
+                          checked={temp?.aw === 1}
+                          value={1}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <label>Approved : </label>
+                        <input
+                          name="aw"
+                          type="checkbox"
+                          checked={temp?.aw === 2}
+                          value={2}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <span>
+                          {userJobsL1 && awChanged && (
+                            <button
+                              name="aw"
+                              onClick={(e) => onSubmit(e, temp)}
+                            >
+                              Save
+                            </button>
+                          )}
+                        </span>
+                      </small>
+                    ) : (
+                      <small style={{ color: "firebrick" }}>
+                        not Qualified
+                      </small>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+          <li>
+            Proof :
+            <small style={{ color: "firebrick" }}>
+              {pendingSamp_pr ? ` ${pendingSamp_pr} pending...` : "✅"}
+            </small>
+            <ul>
+              {eachJDB.map((j, i) => {
+                const temp = tempEjb[i];
+                const sampprChanged = temp?.samp_pr !== j?.samp_pr;
+                const qualified_ = eachJDB[i]?.j_status;
+
+                return (
+                  <li
+                    key={j.id_each}
+                    style={{
+                      backgroundColor:
+                        (temp?.samp_pr === 1 || !temp?.samp_pr) &&
+                        qualified_ &&
+                        "mistyrose",
+                    }}
+                  >
+                    {`# ${displayID}_${
+                      eachJDB[i]?.cus_id_each || j.id_each
+                    } : `}
+                    {qualified_ ? (
+                      <small>
+                        <label>Not Needed : </label>
+                        <input
+                          name="samp_pr"
+                          type="checkbox"
+                          checked={temp?.samp_pr === 3}
+                          value={3}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <label>Processing : </label>
+                        <input
+                          name="samp_pr"
+                          type="checkbox"
+                          checked={!temp?.samp_pr}
+                          value={0}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <label>Submitted : </label>
+                        <input
+                          name="samp_pr"
+                          type="checkbox"
+                          checked={temp?.samp_pr === 1}
+                          value={1}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <label>Approved : </label>
+                        <input
+                          name="samp_pr"
+                          type="checkbox"
+                          checked={temp?.samp_pr === 2}
+                          value={2}
+                          onChange={(e) => NumChanged(e, j.id_each)}
+                        />
+                        <span>
+                          {userJobsL1 && sampprChanged && (
+                            <button
+                              name="samp_pr"
+                              onClick={(e) => onSubmit(e, temp)}
+                            >
+                              Save
+                            </button>
+                          )}
+                        </span>
+                      </small>
+                    ) : (
+                      <small style={{ color: "firebrick" }}>
+                        not Qualified
+                      </small>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+        </ul>
+      </li>
+
       <li>Proccesing</li>
       <li>Job Completed</li>
       <li>Delivered</li>

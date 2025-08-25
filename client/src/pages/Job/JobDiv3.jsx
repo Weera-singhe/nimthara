@@ -162,32 +162,50 @@ export default function JobDiv3({
                     </small>
                   </span>
                   <ul>
-                    {" "}
                     <li>
-                      <small>
-                        <label>Total : </label>
-                      </small>
-                      {toLKR(allTotalPrices[i]?.total_price)}
-                      <small>
-                        <label>Total +VAT : </label>
-                      </small>
-                      {toLKR(allTotalPrices[i]?.total_vat)}
-                    </li>
-                    <li>
-                      <small style={{ color: "darkblue" }}>
-                        <label>Units :</label>
-                      </small>
-                      <b style={{ color: "darkblue" }}>
+                      <div className="cellx">UNITS</div>
+                      <div className="cellx">NET</div>
+                      <div className="cellx">VAT</div>
+                      <div className="cellx">+VAT</div>
+                      <div className="cellx">SSCL</div>
+                      <div className="cellx">+VAT+SSCL</div>
+                      <br />
+                      <div className="cellx">
                         {eachJDB[i].unit_count.toLocaleString()}
-                      </b>
-                      <small>
-                        <label>Unit : </label>
-                      </small>
-                      {toLKR(allTotalPrices[i]?.unit_price)}
-                      <small>
-                        <label>Unit +VAT : </label>
-                      </small>
-                      {toLKR(allTotalPrices[i]?.unit_vat)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.total_price)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.total_vat)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.total_vat_)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.total_sscl)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.total_ssclvat_)}
+                      </div>
+                      <br />
+                      <div className="cellx">1</div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.unit_price)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.unit_vat)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.unit_vat_)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.unit_sscl)}
+                      </div>
+                      <div className="cellx">
+                        {toLKR(allTotalPrices[i]?.unit_ssclvat_)}
+                      </div>
+                      <br />
                     </li>
                   </ul>
                 </>
@@ -197,7 +215,6 @@ export default function JobDiv3({
                     <b style={{ color: "firebrick" }}>pending.....</b>
                   </small>
                   <ul>
-                    <li></li>
                     <li></li>
                   </ul>
                 </>
@@ -303,7 +320,7 @@ export default function JobDiv3({
 
       {/*3_SubDiv_________________________________________*/}
       <li>
-        {`Paper Sample : `}
+        {`Samples (Paper/Dummy) : `}
         <small style={{ color: "firebrick" }}>
           {pendingSPP ? ` ${pendingSPP} pending...` : "✅"}
         </small>
@@ -596,20 +613,28 @@ export default function JobDiv3({
                             value={tempJ.result?.[0]?.v || 0}
                           >
                             <option></option>
-                            <option
-                              value={totRes?.total_price}
-                            >{`total : ${toLKR(totRes?.total_price)}`}</option>
-                            <option
-                              value={totRes?.total_vat}
-                            >{`total+VAT : ${toLKR(
-                              totRes?.total_vat
-                            )}`}</option>
-                            <option value={totRes?.unit_price}>{`unit : ${toLKR(
-                              totRes?.unit_price
-                            )}`}</option>
-                            <option
-                              value={totRes?.unit_vat}
-                            >{`unit+VAT : ${toLKR(totRes?.unit_vat)}`}</option>
+                            <option value={totRes?.total_price}>
+                              {`total : ${toLKR(totRes?.total_price)}`}
+                            </option>
+                            <option value={totRes?.total_vat_}>
+                              {`total+VAT : ${toLKR(totRes?.total_vat_)}`}
+                            </option>
+                            <option value={totRes?.total_ssclvat_}>
+                              {`total+VAT+SSCL : ${toLKR(
+                                totRes?.total_ssclvat_
+                              )}`}
+                            </option>
+                            <option value={totRes?.unit_price}>
+                              {`unit : ${toLKR(totRes?.unit_price)}`}
+                            </option>
+                            <option value={totRes?.unit_vat_}>
+                              {`unit+VAT : ${toLKR(totRes?.unit_vat_)}`}
+                            </option>
+                            <option value={totRes?.unit_ssclvat_}>
+                              {`unit+VAT+SSCL : ${toLKR(
+                                totRes?.unit_ssclvat_
+                              )}`}
+                            </option>
                           </select>
 
                           {[...Array(9)].map((_, idx) => (

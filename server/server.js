@@ -725,10 +725,10 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
   const user_id = getUser(req);
   try {
-    const beforeU =
-      form === "j_status"
-        ? await JobsEByIdE(id_main, id_each)
-        : await JobsXByIdE(id_main, id_each);
+    const ejx_ = form === "pb" || form === "po" ? true : false;
+    const beforeU = ejx_
+      ? await JobsXByIdE(id_main, id_each)
+      : await JobsEByIdE(id_main, id_each);
 
     if (form === "j_status") {
       //need both inser and update
@@ -787,20 +787,58 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
       if (upd.rowCount === 0) {
         await pool.query(insrt, params);
       }
+    } else if (form === "samp_pr") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_each
+          SET samp_pr=$3  WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_each
+          (id_main, id_each, samp_pr)
+          SELECT $1, $2, $3`;
+
+      const { samp_pr } = req.body;
+      const params = [id_main, id_each, samp_pr];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+    } else if (form === "aw") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_each
+          SET aw=$3 WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_each
+          (id_main, id_each, aw)
+          SELECT $1, $2, $3`;
+
+      const { aw } = req.body;
+      const params = [id_main, id_each, aw];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
     }
     /////////////////////
+    console.log(ejx_);
 
-    const afterU =
-      form === "j_status"
-        ? await JobsEByIdE(id_main, id_each)
-        : await JobsXByIdE(id_main, id_each);
+    const afterU = ejx_
+      ? await JobsXByIdE(id_main, id_each)
+      : await JobsEByIdE(id_main, id_each);
 
     const { old_v, new_v, add_v, del_v, chan_v } = WhatHappend(
       beforeU || {},
       afterU
     );
     const action = !beforeU ? "in" : "up";
-    const table_ = form === "j_status" ? "jobs_each" : "jobs_eachx";
+    const table_ = ejx_ ? "jobs_eachx" : "jobs_each";
 
     await RecActivity(
       user_id,

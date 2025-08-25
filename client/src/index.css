@@ -216,6 +216,23 @@ h6 {
 .jb small {
   margin-left: 1.5%;
 }
+
+.cellx {
+  border-radius: 0.3rem;
+  border: 1px solid rgb(220, 220, 220);
+  box-shadow: 3px 3px 5px 0 rgba(69, 69, 69, 0.192); /*15px   0.3*/
+  margin: 0.1rem;
+  width: 14%;
+  height: fit-content;
+  align-content: center;
+  text-align: center;
+  padding: 0.5rem;
+  display: inline-block;
+  font-size: smaller;
+}
+.tar {
+  text-align: right;
+}
 .bodyxx {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png");
