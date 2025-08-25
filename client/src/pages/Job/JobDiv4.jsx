@@ -304,22 +304,15 @@ export default function JobDiv3({
                       changed={(e) => NumChanged(e, j.id_each)}
                       width={100}
                       deci={2}
-                    />{" "}
-                    {j?.po === 2 &&
-                      (temp?.po !== 2 || temp?.po_amount !== j?.po_amount) && (
-                        <small style={{ color: "red" }}>
-                          cannot change once recieved
-                        </small>
-                      )}
+                    />
+
                     <small>
                       {/*once approved cannot change*/}
-                      {(userAuditL2 || userJobsL2) &&
-                        poChanged &&
-                        j?.po !== 2 && (
-                          <button name="po" onClick={(e) => onSubmit(e, temp)}>
-                            Save
-                          </button>
-                        )}
+                      {(userAuditL2 || userJobsL2) && poChanged && (
+                        <button name="po" onClick={(e) => onSubmit(e, temp)}>
+                          Save
+                        </button>
+                      )}
                     </small>
                   </small>
                 ) : (
