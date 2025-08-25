@@ -335,10 +335,11 @@ app.get("/jobs", async (req, res) => {
       ORDER BY j.deadline ASC`
     );
     const { rows: qualified } = await pool.query(
-      `SELECT je.*, j.*, c.*,
+      `SELECT je.*, j.*, c.*, jx.*,
         ${date6Con("j_created_at")}
         FROM jobs_each je
         JOIN (SELECT j.*, j.created_at AS j_created_at FROM jobs j) j ON j.id = je.id_main
+        JOIN jobs_eachx jx ON jx.id_main = je.id_main and jx.id_each=je.id_each
         JOIN customers c ON c.id = j.customer
         WHERE j.private = false
         AND je.j_status = 1

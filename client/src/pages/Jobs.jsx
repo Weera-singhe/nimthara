@@ -50,6 +50,22 @@ export default function Jobbs() {
                   </Link>
                   <b>{`- ${j.cus_name_short || j.customer_name || ""} : `}</b>
                   <span>{j?.reference || j?.contact_p || j?.contact_d}</span>
+                  <b>
+                    {!j.po && (
+                      <small style={{ color: "red" }}>{"PurchaseOrder"}</small>
+                    )}
+                    {!j.pb && (
+                      <small style={{ color: "darkred" }}>
+                        {"PerformanceBond"}
+                      </small>
+                    )}{" "}
+                    {!(j.aw > 1) && (
+                      <small style={{ color: "chocolate" }}>{"Artwork"}</small>
+                    )}{" "}
+                    {!(j.samp_pr > 1) && (
+                      <small style={{ color: "indianred" }}>{"Proof"}</small>
+                    )}
+                  </b>
                 </li>
               ))}
           </ul>
