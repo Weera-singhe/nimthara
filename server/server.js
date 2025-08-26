@@ -270,7 +270,8 @@ async function JobsEByIdM(id_main) {
 
 const JobsXByIdM_SQL = `
       SELECT 
-      jx.*
+      jx.*,
+      ${dateCon("po_date")}
       FROM jobs_eachx jx
       JOIN jobs j ON jx.id_main = j.id
       WHERE jx.id_main = $1 AND j.private = false
@@ -302,7 +303,8 @@ async function JobsEByIdE(id_main, id_each) {
 
 const JobsXByIdE_SQL = `
       SELECT 
-      jx.*
+      jx.*,
+      ${dateCon("po_date")}
       FROM jobs_eachx jx
       JOIN jobs j ON jx.id_main = j.id
       WHERE jx.id_main = $1 AND j.private = false AND id_each=$2
@@ -793,15 +795,15 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
       //need both inser and update
       const updt = `
           UPDATE jobs_eachx
-          SET po=$3, po_amount=$4 WHERE id_main=$1 AND id_each=$2`;
+          SET po=$3, po_date=$4 WHERE id_main=$1 AND id_each=$2`;
 
       const insrt = `
           INSERT INTO jobs_eachx 
-          (id_main, id_each, po, po_amount)
+          (id_main, id_each, po, po_date)
           SELECT $1, $2, $3, $4`;
 
-      const { po, po_amount } = req.body;
-      const params = [id_main, id_each, po, po_amount];
+      const { po, po_date_ } = req.body;
+      const params = [id_main, id_each, po, po_date_];
 
       const upd = await pool.query(updt, params);
 

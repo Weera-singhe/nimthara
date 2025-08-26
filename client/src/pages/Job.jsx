@@ -85,7 +85,7 @@ export default function Job({ user }) {
           pb: 0,
           pb_amount: 0,
           po: 0,
-          po_amount: 0,
+          po_date_: "",
         };
         const filledX = Array.from({ length: totalJobs }, (_, i) => ({
           id_each: i + 1,

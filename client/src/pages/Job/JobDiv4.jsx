@@ -32,15 +32,21 @@ export default function JobDiv3({
         )
       );
     }
-    if (
-      name === "pb" ||
-      name === "pb_amount" ||
-      name === "po" ||
-      name === "po_amount"
-    ) {
+    if (name === "pb" || name === "pb_amount" || name === "po") {
       setTempEjx((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
+        )
+      );
+    }
+  }
+  function StrChanged(e, id_each) {
+    const { name, value } = e.target;
+
+    if (name === "po_date_") {
+      setTempEjx((prev) =>
+        prev.map((slot) =>
+          slot.id_each === id_each ? { ...slot, [name]: value } : slot
         )
       );
     }
@@ -253,8 +259,10 @@ export default function JobDiv3({
             //loop with eachJDB becasue it guaranted every element
             const temp = tempEjx[i];
             const poChanged =
-              temp?.po !== j?.po || temp?.po_amount !== j?.po_amount;
+              temp?.po !== j?.po || temp?.po_date_ !== j?.po_date_;
             const qualified_ = eachJDB[i]?.j_status;
+
+            const null_date = temp?.po === 2 && !temp?.po_date_;
 
             // const lastEditText = j.last_po_edit_by
             //   ? `( last edit at ${j.last_po_edit_at_t} by ${
@@ -296,23 +304,23 @@ export default function JobDiv3({
                       value={2}
                       onChange={(e) => NumChanged(e, j.id_each)}
                     />
-                    <label>Agreed Payment : </label>
-                    <Num
-                      name="po_amount"
-                      min={0}
-                      setTo={temp?.po_amount || 0}
-                      changed={(e) => NumChanged(e, j.id_each)}
-                      width={100}
-                      deci={2}
+                    <label>Date : </label>
+                    <input
+                      type="date"
+                      name="po_date_"
+                      value={temp?.po_date_ || ""}
+                      onChange={(e) => StrChanged(e, j.id_each)}
                     />
 
                     <small>
                       {/*once approved cannot change*/}
-                      {(userAuditL2 || userJobsL2) && poChanged && (
-                        <button name="po" onClick={(e) => onSubmit(e, temp)}>
-                          Save
-                        </button>
-                      )}
+                      {(userAuditL2 || userJobsL2) &&
+                        poChanged &&
+                        !null_date && (
+                          <button name="po" onClick={(e) => onSubmit(e, temp)}>
+                            Save
+                          </button>
+                        )}
                     </small>
                   </small>
                 ) : (
