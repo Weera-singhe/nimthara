@@ -123,8 +123,8 @@ export default function JobDiv3({
   }, [tempRes]);
 
   useEffect(() => {
-    console.log("xchanged : ", eachJXDB);
-  }, [eachJXDB]);
+    console.log("xchanged : ", eachJDB);
+  }, [eachJDB]);
 
   return (
     <ul className="jb">
@@ -166,44 +166,48 @@ export default function JobDiv3({
                       <div className="cellx">UNITS</div>
                       <div className="cellx">NET</div>
                       <div className="cellx">VAT</div>
-                      <div className="cellx">+VAT</div>
+                      <div className="cellx">NET+VAT</div>
                       <div className="cellx">SSCL</div>
-                      <div className="cellx">+VAT+SSCL</div>
+                      <div className="cellx">NET+VAT+SSCL</div>
                       <br />
                       <div className="cellx">
                         {eachJDB[i].unit_count.toLocaleString()}
                       </div>
                       <div className="cellx">
-                        {toLKR(allTotalPrices[i]?.total_price)}
+                        <b>{toLKR(allTotalPrices[i]?.total_price)}</b>
                       </div>
                       <div className="cellx">
+                        <b>+</b>
                         {toLKR(allTotalPrices[i]?.total_vat)}
                       </div>
                       <div className="cellx">
-                        {toLKR(allTotalPrices[i]?.total_vat_)}
+                        <b>{toLKR(allTotalPrices[i]?.total_vat_)}</b>
                       </div>
                       <div className="cellx">
+                        <b>+</b>
                         {toLKR(allTotalPrices[i]?.total_sscl)}
                       </div>
                       <div className="cellx">
-                        {toLKR(allTotalPrices[i]?.total_ssclvat_)}
+                        <b>{toLKR(allTotalPrices[i]?.total_ssclvat_)}</b>
                       </div>
                       <br />
                       <div className="cellx">1</div>
                       <div className="cellx">
-                        {toLKR(allTotalPrices[i]?.unit_price)}
+                        <b>{toLKR(allTotalPrices[i]?.unit_price)}</b>
                       </div>
                       <div className="cellx">
+                        <b>+</b>
                         {toLKR(allTotalPrices[i]?.unit_vat)}
                       </div>
                       <div className="cellx">
-                        {toLKR(allTotalPrices[i]?.unit_vat_)}
+                        <b>{toLKR(allTotalPrices[i]?.unit_vat_)}</b>
                       </div>
                       <div className="cellx">
+                        <b>+</b>
                         {toLKR(allTotalPrices[i]?.unit_sscl)}
                       </div>
                       <div className="cellx">
-                        {toLKR(allTotalPrices[i]?.unit_ssclvat_)}
+                        <b>{toLKR(allTotalPrices[i]?.unit_ssclvat_)}</b>
                       </div>
                       <br />
                     </li>

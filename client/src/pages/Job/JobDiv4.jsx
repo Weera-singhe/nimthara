@@ -50,6 +50,13 @@ export default function JobDiv3({
         )
       );
     }
+    if (name === "deadline_dl_") {
+      setTempEjb((prev) =>
+        prev.map((slot) =>
+          slot.id_each === id_each ? { ...slot, [name]: value } : slot
+        )
+      );
+    }
   }
 
   function onSubmit(e, exprt) {
@@ -94,7 +101,11 @@ export default function JobDiv3({
             //loop with eachJDB becasue it guaranted every element
             const temp = tempEjb[i];
 
-            const jstChanged = temp?.j_status !== j.j_status;
+            const jstChanged =
+              temp?.j_status !== j.j_status ||
+              temp?.deadline_dl_ !== j?.deadline_dl_;
+
+            const null_date = temp?.j_status === 1 && !temp?.deadline_dl_;
 
             // const lastEditText = j.last_jst_edit_by
             //   ? `( last edit at ${j.last_jst_edit_at_t} by ${
@@ -135,9 +146,20 @@ export default function JobDiv3({
                     value={1}
                     onChange={(e) => NumChanged(e, j.id_each)}
                   />
+                  {temp?.j_status === 1 && (
+                    <>
+                      <label>Delivery Deadline : </label>
+                      <input
+                        type="date"
+                        name="deadline_dl_"
+                        value={temp?.deadline_dl_ || ""}
+                        onChange={(e) => StrChanged(e, j.id_each)}
+                      />
+                    </>
+                  )}
                 </small>
                 <small>
-                  {userJobsL2 && jstChanged && (
+                  {userJobsL2 && jstChanged && !null_date && (
                     <button name="j_status" onClick={(e) => onSubmit(e, temp)}>
                       Save
                     </button>
