@@ -26,8 +26,10 @@ export default function Job({ user }) {
   const [allCustomers, loadAllCustomers] = useState([]);
   const [qtsComponants, setQtsComponants] = useState([]);
   const [allPapers, setAllPapers] = useState([]);
+  const [userAct, setUserAct] = useState([]);
 
   const [showQTS, setShowQTS] = useState(false);
+  const [showACT, setShowACT] = useState(false);
 
   const fetchDB = useCallback(async () => {
     try {
@@ -39,6 +41,8 @@ export default function Job({ user }) {
         loadAllCustomers(data.cus);
         setQtsComponants(data.qtsComps);
         setAllPapers(data.allPapers);
+        setUserAct(data.activity_);
+        console.log("activity : ", data.activity_);
 
         const { savedEachJob, savedEachXJ, qtsDefJsons, mainJobData, getAct } =
           data;
@@ -300,14 +304,14 @@ export default function Job({ user }) {
         <div className="framed">
           <Link
             onClick={() =>
-              user.level_jobs >= 1 && user.loggedIn && setShowQTS((p) => !p)
+              user.level_jobs > 2 && user.loggedIn && setShowQTS((p) => !p)
             }
             style={{
               cursor:
-                user.level_jobs >= 1 && user.loggedIn
+                user.level_jobs > 2 && user.loggedIn
                   ? "pointer"
                   : "not-allowed",
-              color: user.level_jobs >= 1 && user.loggedIn ? "blue" : "gray",
+              color: user.level_jobs > 2 && user.loggedIn ? "blue" : "gray",
               textDecoration: "underline",
             }}
           >
@@ -336,6 +340,41 @@ export default function Job({ user }) {
             </>
           </div>
         ))}
+
+      {/*ACTIVITY_show_hide/////////////////////////*/}
+      {id && (
+        <div className="framed">
+          <Link
+            onClick={() =>
+              user.level_jobs > 2 && user.loggedIn && setShowACT((p) => !p)
+            }
+            style={{
+              cursor:
+                user.level_jobs > 2 && user.loggedIn
+                  ? "pointer"
+                  : "not-allowed",
+              color: user.level_jobs > 2 && user.loggedIn ? "blue" : "gray",
+              textDecoration: "underline",
+            }}
+          >
+            {showACT ? "Hide Activity" : "Show Activity"}
+          </Link>
+        </div>
+      )}
+      {/*ACTIVITY_/////////////////////////*/}
+      {id && showACT && (
+        <div className="framed jb">
+          <ul>
+            {userAct.map((a) => (
+              <>
+                <li key={a?.id}>{`${a?.display_name || "unknown"} ${
+                  a?.action === "in" ? "inserted" : "updated"
+                } ${a?.note3} on ${a.act_at_t}`}</li>
+              </>
+            ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 }

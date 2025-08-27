@@ -140,8 +140,8 @@ export default function Jobbs() {
               .filter(
                 (j) =>
                   j.total_jobs <= j.dep_count &&
-                  j.submit_method > 0 &&
-                  j.submit_method < 4 &&
+                  j.submit_method &&
+                  j.submit_method !== 5 &&
                   j.total_jobs > j.res_count
               )
               .sort((b, a) => new Date(a.deadline) - new Date(b.deadline))
@@ -175,6 +175,7 @@ export default function Jobbs() {
                 (j) =>
                   j.total_jobs <= j.dep_count &&
                   j.submit_method &&
+                  j.submit_method !== 5 &&
                   j.total_jobs <= j.res_count
               )
               .sort((b, a) => new Date(a.deadline) - new Date(b.deadline))
@@ -203,11 +204,11 @@ export default function Jobbs() {
           </ul>
           <br />
           <li>
-            <b>Removed</b>
+            <b>Not Bidding</b>
           </li>
           <ul>
             {allJobs
-              .filter((j) => j.submit_method === 4)
+              .filter((j) => j.submit_method === 5)
               .map((j) => (
                 <li key={j.id}>
                   <Link to={`/jobs/${j.id}`}>

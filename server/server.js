@@ -380,6 +380,17 @@ app.get("/jobs/:id", async (req, res) => {
     );
     const qtsComps = getQtsComp.rows;
 
+    const getActivity = await pool.query(
+      `SELECT 
+      user_act.*, 
+      u.display_name,
+      ${dateTimeCon("act_at")} 
+      FROM user_act 
+      LEFT JOIN users u ON user_act.act_user =  u.id
+      WHERE note1 = '${id}' ORDER BY act_at DESC`
+    );
+    const activity_ = getActivity.rows;
+
     const loop_count = {};
     const v = {};
     const notes_other = {};
@@ -417,6 +428,7 @@ app.get("/jobs/:id", async (req, res) => {
       qtsComps,
       allPapers,
       getAct,
+      activity_,
     });
   } catch (err) {
     console.error("Error:", err.message);

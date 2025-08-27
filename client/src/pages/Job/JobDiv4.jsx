@@ -56,8 +56,6 @@ export default function JobDiv3({
     const name = e.target.name;
     handleSubmit(exprt, name);
   }
-
-  const userJobsL1 = user.level_jobs > 0 && user.loggedIn;
   const userJobsL2 = user.level_jobs > 1 && user.loggedIn;
   //  const userJobsL3 = user.level_jobs > 2 && user.loggedIn;
   const userAuditL2 = user.level_audit > 1 && user.loggedIn;
@@ -385,7 +383,7 @@ export default function JobDiv3({
                           onChange={(e) => NumChanged(e, j.id_each)}
                         />
                         <span>
-                          {userJobsL1 && awChanged && (
+                          {userJobsL2 && awChanged && (
                             <button
                               name="aw"
                               onClick={(e) => onSubmit(e, temp)}
@@ -464,7 +462,7 @@ export default function JobDiv3({
                           onChange={(e) => NumChanged(e, j.id_each)}
                         />
                         <span>
-                          {userJobsL1 && sampprChanged && (
+                          {userJobsL2 && sampprChanged && (
                             <button
                               name="samp_pr"
                               onClick={(e) => onSubmit(e, temp)}

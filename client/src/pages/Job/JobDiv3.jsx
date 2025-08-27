@@ -416,12 +416,13 @@ export default function JobDiv3({
               <option value={1}>email</option>
               <option value={2}>deliver</option>
               <option value={3}>post</option>
-              <option value={4}>not bidding</option>
+              <option value={4}>direct</option>
+              <option value={5}>not bidding</option>
             </select>
             {tempEstSub.submit_method > 0 && (
               <>
                 <span>
-                  {tempEstSub.submit_method === 4 ? " reason : " : " to : "}
+                  {tempEstSub.submit_method === 5 ? " reason : " : " to : "}
                 </span>
                 <input
                   type="text"
@@ -430,7 +431,7 @@ export default function JobDiv3({
                   value={tempEstSub.submit_note1 || ""}
                   style={{ width: "30%" }}
                 />
-                {tempEstSub.submit_method !== 4 && (
+                {tempEstSub.submit_method !== 5 && (
                   <>
                     <span>by : </span>
                     <input
