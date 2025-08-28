@@ -59,6 +59,7 @@ export default function Job({ user }) {
           j_status: 0,
           aw: 0,
           samp_pr: 0,
+          deadline_dlty: 0,
           deployed: false,
           id_main: Number(id),
         };

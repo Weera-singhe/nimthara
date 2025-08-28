@@ -25,7 +25,12 @@ export default function JobDiv3({
   function NumChanged(e, id_each) {
     const { name, value } = e.target;
 
-    if (name === "j_status" || name === "aw" || name === "samp_pr") {
+    if (
+      name === "j_status" ||
+      name === "aw" ||
+      name === "samp_pr" ||
+      name === "deadline_dlty"
+    ) {
       setTempEjb((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
@@ -103,9 +108,12 @@ export default function JobDiv3({
 
             const jstChanged =
               temp?.j_status !== j.j_status ||
-              temp?.deadline_dl_ !== j?.deadline_dl_;
+              temp?.deadline_dl_ !== j?.deadline_dl_ ||
+              temp?.deadline_dlty !== j?.deadline_dlty;
 
-            const null_date = temp?.j_status === 1 && !temp?.deadline_dl_;
+            const null_date =
+              temp?.j_status === 1 &&
+              (!temp?.deadline_dl_ || !temp?.deadline_dlty);
 
             // const lastEditText = j.last_jst_edit_by
             //   ? `( last edit at ${j.last_jst_edit_at_t} by ${
@@ -148,13 +156,30 @@ export default function JobDiv3({
                   />
                   {temp?.j_status === 1 && (
                     <>
-                      <label>Delivery Deadline : </label>
-                      <input
-                        type="date"
-                        name="deadline_dl_"
-                        value={temp?.deadline_dl_ || ""}
-                        onChange={(e) => StrChanged(e, j.id_each)}
-                      />
+                      {" "}
+                      <label>Deadline Type : </label>
+                      <select
+                        name="deadline_dlty"
+                        value={temp?.deadline_dlty || 0}
+                        onChange={(e) => NumChanged(e, j.id_each)}
+                      >
+                        <option value={0}></option>
+                        <option value={1}>Exact</option>
+                        <option value={2}>Approximate</option>
+                      </select>
+                      {temp?.deadline_dlty ? (
+                        <>
+                          <label>Delivery Deadline : </label>
+                          <input
+                            type="date"
+                            name="deadline_dl_"
+                            value={temp?.deadline_dl_ || ""}
+                            onChange={(e) => StrChanged(e, j.id_each)}
+                          />
+                        </>
+                      ) : (
+                        <></>
+                      )}
                     </>
                   )}
                 </small>
@@ -406,6 +431,7 @@ export default function JobDiv3({
                           value={2}
                           onChange={(e) => NumChanged(e, j.id_each)}
                         />
+
                         <span>
                           {userJobsL2 && awChanged && (
                             <button

@@ -40,7 +40,7 @@ export default function JobDiv1({
   return (
     <div>
       <form onSubmit={onSubmit}>
-        <label>Customer: </label>
+        <label> Customer : </label>
         <select
           name="customer"
           value={mainJTemp.customer}
@@ -61,7 +61,7 @@ export default function JobDiv1({
           onChange={strChanged}
         />
 
-        <label>Deadline: </label>
+        <label>Deadline : </label>
         <input
           type="datetime-local"
           name="deadline_i"
@@ -69,7 +69,7 @@ export default function JobDiv1({
           onChange={strChanged}
         />
 
-        <label>Total Jobs: </label>
+        <label>Total Jobs : </label>
         <Num
           name={"total_jobs"}
           min={1}

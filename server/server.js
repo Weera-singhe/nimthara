@@ -771,15 +771,15 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
       //need both inser and update
       const updt = `
           UPDATE jobs_each
-          SET j_status=$3, deadline_dl=$4 WHERE id_main=$1 AND id_each=$2`;
+          SET j_status=$3, deadline_dl=$4, deadline_dlty=$5 WHERE id_main=$1 AND id_each=$2`;
 
       const insrt = `
           INSERT INTO jobs_each 
-          (id_main, id_each, j_status, deadline_dl)
-          SELECT $1, $2, $3, $4`;
+          (id_main, id_each, j_status, deadline_dl, deadline_dlty)
+          SELECT $1, $2, $3, $4, $5`;
 
-      const { j_status, deadline_dl_ } = req.body;
-      const params = [id_main, id_each, j_status, deadline_dl_];
+      const { j_status, deadline_dl_, deadline_dlty } = req.body;
+      const params = [id_main, id_each, j_status, deadline_dl_, deadline_dlty];
 
       const upd = await pool.query(updt, params);
 
