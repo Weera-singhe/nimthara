@@ -1041,7 +1041,7 @@ const BBPending_SQL = `
       ${date6Con("created_at")},
       COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
-      WHERE j.private = false AND j.submit_method!=4
+      WHERE j.private = false AND j.submit_method!=5
       AND 
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) < j.total_jobs
       ORDER BY j.deadline ASC`;

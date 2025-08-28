@@ -117,7 +117,7 @@ export default function JobDiv3({
               <li
                 key={i}
                 style={{
-                  backgroundColor: !temp?.j_status && "mistyrose",
+                  backgroundColor: !temp?.j_status ? "mistyrose" : undefined,
                 }}
               >
                 {`# ${displayID}_${j.cus_id_each || j.id_each}`}
@@ -196,7 +196,8 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: !temp?.pb && qualified_ && "mistyrose",
+                  backgroundColor:
+                    !temp?.pb && qualified_ ? "mistyrose" : undefined,
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
@@ -294,7 +295,8 @@ export default function JobDiv3({
               <li
                 key={j.id_each}
                 style={{
-                  backgroundColor: !temp?.po && qualified_ && "mistyrose",
+                  backgroundColor:
+                    !temp?.po && qualified_ ? "mistyrose" : undefined,
                 }}
               >
                 {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
@@ -370,9 +372,9 @@ export default function JobDiv3({
                     key={j.id_each}
                     style={{
                       backgroundColor:
-                        (temp?.aw === 1 || !temp?.aw) &&
-                        qualified_ &&
-                        "mistyrose",
+                        (temp?.aw === 1 || !temp?.aw) && qualified_
+                          ? "mistyrose"
+                          : undefined,
                     }}
                   >
                     {`# ${displayID}_${
@@ -396,7 +398,7 @@ export default function JobDiv3({
                           value={1}
                           onChange={(e) => NumChanged(e, j.id_each)}
                         />
-                        <label>Approved : </label>
+                        <label>Approved / Received : </label>
                         <input
                           name="aw"
                           type="checkbox"
@@ -441,9 +443,9 @@ export default function JobDiv3({
                     key={j.id_each}
                     style={{
                       backgroundColor:
-                        (temp?.samp_pr === 1 || !temp?.samp_pr) &&
-                        qualified_ &&
-                        "mistyrose",
+                        (temp?.samp_pr === 1 || !temp?.samp_pr) && qualified_
+                          ? "mistyrose"
+                          : undefined,
                     }}
                   >
                     {`# ${displayID}_${
