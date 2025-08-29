@@ -38,7 +38,7 @@ export default function Jobbs() {
           <li>
             <b style={{ color: "green" }}>Qualified</b>
           </li>
-          <ul>
+          <ul className="jblist">
             {allJobsQu
               .sort((b, a) => new Date(a.deadline) - new Date(b.deadline))
               .map((j) => (
@@ -73,7 +73,7 @@ export default function Jobbs() {
           <li>
             <b>Estimation Pending</b>
           </li>
-          <ul>
+          <ul className="jblist">
             {allJobs
               .filter((j) => j.total_jobs > j.dep_count)
               .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
@@ -104,7 +104,7 @@ export default function Jobbs() {
           <li>
             <b>Submit Pending</b>
           </li>
-          <ul>
+          <ul className="jblist">
             {allJobs
               .filter((j) => j.total_jobs <= j.dep_count && !j.submit_method)
               .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
@@ -135,7 +135,7 @@ export default function Jobbs() {
           <li>
             <b>Results Pending</b>
           </li>
-          <ul>
+          <ul className="jblist">
             {allJobs
               .filter(
                 (j) =>
@@ -167,9 +167,9 @@ export default function Jobbs() {
           </ul>
           <br />
           <li>
-            <b>Results Published</b>
+            <b>Customer Desicion Pending </b>
           </li>
-          <ul>
+          <ul className="jblist">
             {allJobs
               .filter(
                 (j) =>
@@ -195,8 +195,12 @@ export default function Jobbs() {
                         {"paper samples"}
                       </small>
                     )}
-                    <small style={{ color: "darkblue" }}>
-                      {j.inc_private ? "Private Results" : ""}
+                    <small
+                      style={{
+                        color: "green",
+                      }}
+                    >
+                      {j.inc_respub ? " Results  Published " : ""}
                     </small>
                   </b>
                 </li>
@@ -206,7 +210,7 @@ export default function Jobbs() {
           <li>
             <b>Not Bidding</b>
           </li>
-          <ul>
+          <ul className="jblist">
             {allJobs
               .filter((j) => j.submit_method === 5)
               .map((j) => (

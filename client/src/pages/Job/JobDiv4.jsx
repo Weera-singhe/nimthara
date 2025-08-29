@@ -55,7 +55,11 @@ export default function JobDiv3({
         )
       );
     }
-    if (name === "deadline_dl_") {
+    if (
+      name === "deadline_dl_" ||
+      name === "j_start_at_" ||
+      name === "j_end_at_"
+    ) {
       setTempEjb((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: value } : slot
@@ -84,6 +88,9 @@ export default function JobDiv3({
 
   const doneAW = tempEjb.filter((j, idx) => j.aw > 1 || !eachJDB[idx].j_status);
   const pendingAW = totalJobs - doneAW.length;
+
+  const doneJobPrc = tempEjb.filter((j) => j.j_status > 2);
+  const pendingJobPrc = totalJobs - doneJobPrc.length;
 
   const donesamp_pr = tempEjb.filter(
     (j, idx) => j.samp_pr > 1 || !eachJDB[idx].j_status
@@ -114,6 +121,8 @@ export default function JobDiv3({
             const null_date =
               temp?.j_status === 1 &&
               (!temp?.deadline_dl_ || !temp?.deadline_dlty);
+
+            const here_ = !temp?.j_status || temp?.j_status === 1;
 
             // const lastEditText = j.last_jst_edit_by
             //   ? `( last edit at ${j.last_jst_edit_at_t} by ${
@@ -150,11 +159,11 @@ export default function JobDiv3({
                   <input
                     name="j_status"
                     type="checkbox"
-                    checked={temp?.j_status === 1}
+                    checked={!!temp?.j_status}
                     value={1}
                     onChange={(e) => NumChanged(e, j.id_each)}
                   />
-                  {temp?.j_status === 1 && (
+                  {temp?.j_status ? (
                     <>
                       {" "}
                       <label>Deadline Type : </label>
@@ -181,10 +190,12 @@ export default function JobDiv3({
                         <></>
                       )}
                     </>
+                  ) : (
+                    <></>
                   )}
                 </small>
                 <small>
-                  {userJobsL2 && jstChanged && !null_date && (
+                  {userJobsL2 && jstChanged && !null_date && here_ && (
                     <button name="j_status" onClick={(e) => onSubmit(e, temp)}>
                       Save
                     </button>
@@ -535,8 +546,114 @@ export default function JobDiv3({
         </ul>
       </li>
 
-      <li>Proccesing</li>
-      <li>Job Completed</li>
+      <li>
+        Job Process :
+        <small style={{ color: "firebrick" }}>
+          {pendingJobPrc ? ` ${pendingJobPrc} pending...` : "✅"}
+        </small>
+        <ul>
+          {eachJDB.map((j, i) => {
+            const temp = tempEjb[i];
+
+            const jstChanged =
+              temp?.j_status !== j.j_status ||
+              temp?.j_start_at_ !== j?.j_start_at_ ||
+              temp?.j_end_at_ !== j?.j_end_at_;
+
+            const null_date1 = temp?.j_status === 2 && !temp?.j_start_at_;
+            const null_date2 =
+              temp?.j_status === 3 && (!temp?.j_end_at_ || !temp?.j_start_at_);
+
+            const here_ = temp?.j_status > 1;
+
+            const qualified_ = eachJDB[i]?.j_status;
+
+            return (
+              <li
+                key={i}
+                style={{
+                  backgroundColor:
+                    temp?.j_status !== 3 && qualified_
+                      ? "mistyrose"
+                      : undefined,
+                }}
+              >
+                {`# ${displayID}_${j.cus_id_each || j.id_each}`}
+                {qualified_ ? (
+                  <small>
+                    <label>Waiting :</label>
+                    <input
+                      name="j_status"
+                      type="checkbox"
+                      checked={temp?.j_status === 1 || false}
+                      value={1}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label style={{ color: "darkgreen" }}>Processing : </label>
+                    <input
+                      name="j_status"
+                      type="checkbox"
+                      checked={temp?.j_status === 2 || false}
+                      value={2}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    {temp?.j_status > 1 && (
+                      <>
+                        <label>Started Date :</label>
+                        <input
+                          type="date"
+                          name="j_start_at_"
+                          value={temp?.j_start_at_ || ""}
+                          onChange={(e) => StrChanged(e, j.id_each)}
+                        />
+                        {j?.j_status > 1 && (
+                          <>
+                            <label style={{ color: "green" }}>
+                              Finished :{" "}
+                            </label>
+                            <input
+                              name="j_status"
+                              type="checkbox"
+                              checked={temp?.j_status === 3 || false}
+                              value={3}
+                              onChange={(e) => NumChanged(e, j.id_each)}
+                            />
+                            {temp?.j_status > 2 && (
+                              <>
+                                <label>End Date : </label>
+                                <input
+                                  type="date"
+                                  name="j_end_at_"
+                                  value={temp?.j_end_at_ || ""}
+                                  onChange={(e) => StrChanged(e, j.id_each)}
+                                />
+                              </>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                    {userJobsL2 &&
+                      jstChanged &&
+                      !null_date1 &&
+                      !null_date2 &&
+                      here_ && (
+                        <button
+                          name="j_statusmain"
+                          onClick={(e) => onSubmit(e, temp)}
+                        >
+                          Save
+                        </button>
+                      )}
+                  </small>
+                ) : (
+                  <small style={{ color: "firebrick" }}>not Qualified</small>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </li>
       <li>Delivered</li>
       <li>Payment Recieved</li>
     </ul>

@@ -233,6 +233,10 @@ h6 {
 .tar {
   text-align: right;
 }
+.jblist li {
+  border: 1px solid gainsboro;
+  border-radius: 0.3rem;
+}
 .bodyxx {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png");

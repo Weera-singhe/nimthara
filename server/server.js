@@ -255,7 +255,9 @@ async function JobsById(id) {
 const JobsEByIdM_SQL = `
       SELECT 
       je.*,
-      ${dateCon("deadline_dl")}
+      ${dateCon("deadline_dl")},
+      ${dateCon("j_start_at")},
+      ${dateCon("j_end_at")}
       FROM jobs_each je
       JOIN jobs j ON je.id_main = j.id
       WHERE je.id_main = $1 AND j.private = false
@@ -285,7 +287,9 @@ async function JobsXByIdM(id_main) {
 
 const JobsEByIdE_SQL = `
   SELECT je.*,
-  ${dateCon("deadline_dl")}
+  ${dateCon("deadline_dl")},
+  ${dateCon("j_start_at")},
+  ${dateCon("j_end_at")}
   FROM jobs_each je
   JOIN jobs j ON je.id_main = j.id
   WHERE je.id_main = $1
@@ -332,7 +336,7 @@ app.get("/jobs", async (req, res) => {
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_ready_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status > 0 AND jx.id_each <= j.total_jobs) AS res_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 1 AND jx.id_each <= j.total_jobs) AS inc_private,
+      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 2 AND jx.id_each <= j.total_jobs) AS inc_respub,
       COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
       WHERE j.private = false
@@ -863,8 +867,27 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
         await pool.query(insrt, params);
       }
     }
-    /////////////////////
-    console.log(ejx_);
+
+    if (form === "j_statusmain") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_each
+          SET j_status=$3, j_start_at =$4, j_end_at =$5 WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_each 
+          (id_main, id_each, j_status, j_start_at, j_end_at)
+          SELECT $1, $2, $3, $4, $5`;
+
+      const { j_status, j_start_at_, j_end_at_ } = req.body;
+      const params = [id_main, id_each, j_status, j_start_at_, j_end_at_];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+    }
 
     const afterU = ejx_
       ? await JobsXByIdE(id_main, id_each)

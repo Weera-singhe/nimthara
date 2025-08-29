@@ -192,7 +192,12 @@ export default function Job({ user }) {
       .post(`${JOBS_API_URL}/div4`, safeExport)
       .then((res) => {
         console.log(res.data);
-        if (form === "j_status" || form === "samp_pr" || form === "aw") {
+        if (
+          form === "j_status" ||
+          form === "j_statusmain" ||
+          form === "samp_pr" ||
+          form === "aw"
+        ) {
           setEachJ((p) =>
             p.map((slot) =>
               slot.id_each === res.data.id_each ? res.data : slot
