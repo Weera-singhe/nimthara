@@ -62,6 +62,7 @@ export default function Job({ user }) {
           deadline_dlty: 0,
           deployed: false,
           id_main: Number(id),
+          deli_times: 0,
         };
 
         const savedEachMap = Object.fromEntries(
@@ -91,6 +92,8 @@ export default function Job({ user }) {
           pb_amount: 0,
           po: 0,
           po_date_: "",
+          fp_amount: 0,
+          full_paym: 0,
         };
         const filledX = Array.from({ length: totalJobs }, (_, i) => ({
           id_each: i + 1,
@@ -187,6 +190,7 @@ export default function Job({ user }) {
 
     const safeExport = { ...exprt, id_main: +id, form };
     console.log("safeExport : ", safeExport);
+    console.log("form", form);
 
     axios
       .post(`${JOBS_API_URL}/div4`, safeExport)
@@ -196,14 +200,15 @@ export default function Job({ user }) {
           form === "j_status" ||
           form === "j_statusmain" ||
           form === "samp_pr" ||
-          form === "aw"
+          form === "aw" ||
+          form === "delivery"
         ) {
           setEachJ((p) =>
             p.map((slot) =>
               slot.id_each === res.data.id_each ? res.data : slot
             )
           );
-        } else if (form === "pb" || form === "po") {
+        } else if (form === "pb" || form === "po" || form === "full_payment") {
           setEachJX((p) =>
             p.map((slot) =>
               slot.id_each === res.data.id_each ? res.data : slot
@@ -372,11 +377,9 @@ export default function Job({ user }) {
         <div className="framed jb">
           <ul>
             {userAct.map((a) => (
-              <>
-                <li key={a?.id}>{`${a?.display_name || "unknown"} ${
-                  a?.action === "in" ? "inserted" : "updated"
-                } ${a?.note3} on ${a.act_at_t}`}</li>
-              </>
+              <li key={a?.id}>{`${a?.display_name || "unknown"} ${
+                a?.action === "in" ? "inserted" : "updated"
+              } ${a?.note3} on ${a.act_at_t}`}</li>
             ))}
           </ul>
         </div>

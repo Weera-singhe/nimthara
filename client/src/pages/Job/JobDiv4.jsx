@@ -29,7 +29,8 @@ export default function JobDiv3({
       name === "j_status" ||
       name === "aw" ||
       name === "samp_pr" ||
-      name === "deadline_dlty"
+      name === "deadline_dlty" ||
+      name === "deli_times"
     ) {
       setTempEjb((prev) =>
         prev.map((slot) =>
@@ -37,7 +38,13 @@ export default function JobDiv3({
         )
       );
     }
-    if (name === "pb" || name === "pb_amount" || name === "po") {
+    if (
+      name === "pb" ||
+      name === "pb_amount" ||
+      name === "po" ||
+      name === "full_paym" ||
+      name === "fp_amount"
+    ) {
       setTempEjx((prev) =>
         prev.map((slot) =>
           slot.id_each === id_each ? { ...slot, [name]: Number(value) } : slot
@@ -68,6 +75,28 @@ export default function JobDiv3({
     }
   }
 
+  function deliChanged(e, id_each, i) {
+    const { name, value } = e.target;
+    const safeval = name === "deli_date" ? value : Number(value);
+
+    setTempEjb((prev) =>
+      prev.map((slot) =>
+        slot.id_each === id_each
+          ? {
+              ...slot,
+              delivery: {
+                ...(slot.delivery || {}),
+                [i]: {
+                  ...((slot.delivery && slot.delivery[i]) || {}),
+                  [name]: safeval,
+                },
+              },
+              deli_ch: true,
+            }
+          : slot
+      )
+    );
+  }
   function onSubmit(e, exprt) {
     const name = e.target.name;
     handleSubmit(exprt, name);
@@ -86,11 +115,19 @@ export default function JobDiv3({
   const donePO = tempEjx.filter((j, idx) => j.po || !eachJDB[idx].j_status);
   const pendingPO = totalJobs - donePO.length;
 
+  const donefpaym = tempEjx.filter(
+    (j, idx) => j.full_paym || !eachJDB[idx].j_status
+  );
+  const pendingfpaym = totalJobs - donefpaym.length;
+
   const doneAW = tempEjb.filter((j, idx) => j.aw > 1 || !eachJDB[idx].j_status);
   const pendingAW = totalJobs - doneAW.length;
 
   const doneJobPrc = tempEjb.filter((j) => j.j_status > 2);
   const pendingJobPrc = totalJobs - doneJobPrc.length;
+
+  const doneDeli = tempEjb.filter((j) => j.delivered);
+  const pendingDeli = totalJobs - doneDeli.length;
 
   const donesamp_pr = tempEjb.filter(
     (j, idx) => j.samp_pr > 1 || !eachJDB[idx].j_status
@@ -98,8 +135,11 @@ export default function JobDiv3({
   const pendingSamp_pr = totalJobs - donesamp_pr.length;
 
   useEffect(() => {
-    console.log("eachJXDB : ", eachJXDB);
-  }, [eachJXDB]);
+    console.log("tempchanged : ", tempEjb);
+  }, [tempEjb]);
+  useEffect(() => {
+    console.log("eachJDB : ", eachJDB);
+  }, [eachJDB]);
 
   return (
     <ul className="jb">
@@ -122,7 +162,9 @@ export default function JobDiv3({
               temp?.j_status === 1 &&
               (!temp?.deadline_dl_ || !temp?.deadline_dlty);
 
-            const here_ = !temp?.j_status || temp?.j_status === 1;
+            const here_ =
+              (!j?.j_status || j?.j_status === 1) &&
+              (!temp?.j_status || temp?.j_status === 1);
 
             // const lastEditText = j.last_jst_edit_by
             //   ? `( last edit at ${j.last_jst_edit_at_t} by ${
@@ -401,7 +443,7 @@ export default function JobDiv3({
               {eachJDB.map((j, i) => {
                 const temp = tempEjb[i];
                 const awChanged = temp?.aw !== j?.aw;
-                const qualified_ = eachJDB[i]?.j_status;
+                const qualified_ = j?.j_status;
 
                 return (
                   <li
@@ -413,9 +455,7 @@ export default function JobDiv3({
                           : undefined,
                     }}
                   >
-                    {`# ${displayID}_${
-                      eachJDB[i]?.cus_id_each || j.id_each
-                    } : `}
+                    {`# ${displayID}_${j?.cus_id_each || j.id_each} : `}
                     {qualified_ ? (
                       <small>
                         <label>Processing : </label>
@@ -473,7 +513,7 @@ export default function JobDiv3({
               {eachJDB.map((j, i) => {
                 const temp = tempEjb[i];
                 const sampprChanged = temp?.samp_pr !== j?.samp_pr;
-                const qualified_ = eachJDB[i]?.j_status;
+                const qualified_ = j?.j_status;
 
                 return (
                   <li
@@ -485,9 +525,7 @@ export default function JobDiv3({
                           : undefined,
                     }}
                   >
-                    {`# ${displayID}_${
-                      eachJDB[i]?.cus_id_each || j.id_each
-                    } : `}
+                    {`# ${displayID}_${j?.cus_id_each || j.id_each} : `}
                     {qualified_ ? (
                       <small>
                         <label>Not Needed : </label>
@@ -564,9 +602,9 @@ export default function JobDiv3({
             const null_date2 =
               temp?.j_status === 3 && (!temp?.j_end_at_ || !temp?.j_start_at_);
 
-            const here_ = temp?.j_status > 1;
+            const here_ = j?.j_status >= 1 && temp?.j_status >= 1;
 
-            const qualified_ = eachJDB[i]?.j_status;
+            const qualified_ = j?.j_status;
 
             return (
               <li
@@ -654,8 +692,212 @@ export default function JobDiv3({
           })}
         </ul>
       </li>
-      <li>Delivered</li>
-      <li>Payment Recieved</li>
+      <li>
+        Deliver / Collect :
+        <small style={{ color: "firebrick" }}>
+          {pendingDeli ? ` ${pendingDeli} pending...` : "✅"}
+        </small>
+        <ul>
+          {eachJDB.map((j, i) => {
+            const temp = tempEjb[i];
+            const times = Number(temp?.deli_times ?? 0);
+
+            const changed_ = times !== j?.deli_times || temp?.deli_ch;
+
+            const jprccsd = j?.j_status > 1;
+
+            const allow_ =
+              times > 0 &&
+              Array.from({ length: times }).every((_, idx) => {
+                const row = temp?.delivery?.[idx];
+                return (
+                  row &&
+                  Number(row.deli_meth) > 0 &&
+                  (row.deli_date ?? "") !== "" &&
+                  Number(row.deli_qty) > 0
+                );
+              });
+
+            return (
+              <li
+                key={i}
+                style={{
+                  backgroundColor: !times && jprccsd ? "mistyrose" : undefined,
+                }}
+              >
+                {`# ${displayID}_${j.cus_id_each || j.id_each}`}
+                {jprccsd ? (
+                  <>
+                    {" "}
+                    <small>
+                      {userJobsL2 && allow_ && changed_ && (
+                        <button
+                          name="delivery"
+                          onClick={(e) => {
+                            onSubmit(e, temp);
+
+                            setTempEjb((prev) =>
+                              prev.map((slot) =>
+                                slot.id_each === temp?.id_each
+                                  ? { ...slot, deli_ch: false }
+                                  : slot
+                              )
+                            );
+                          }}
+                        >
+                          Save
+                        </button>
+                      )}
+                    </small>
+                    <br />
+                    <br />
+                    <small>
+                      <label>times {temp?.deli_changed ? "y" : "n"}: </label>
+
+                      <Num
+                        name="deli_times"
+                        setTo={times}
+                        min={times}
+                        changed={(e) => NumChanged(e, j.id_each)}
+                        width={30}
+                        max={10}
+                      />
+                      <br />
+                      <br />
+
+                      {[...Array(Number(temp?.deli_times ?? 0))].map(
+                        (_, idx) => (
+                          <div key={`${j.id_each}-${idx}`}>
+                            <span>{` ${idx + 1} . `}</span>
+                            <select
+                              name="deli_meth"
+                              value={temp?.delivery?.[idx]?.deli_meth || ""}
+                              onChange={(e) => deliChanged(e, j.id_each, idx)}
+                            >
+                              <option value={0}></option>
+                              <option value={1}>delivered</option>
+                              <option value={2}>collected</option>
+                            </select>
+                            <input
+                              type="date"
+                              name="deli_date"
+                              value={temp?.delivery?.[idx]?.deli_date || ""}
+                              onChange={(e) => deliChanged(e, j.id_each, idx)}
+                            />
+                            <Num
+                              name="deli_qty"
+                              setTo={temp?.delivery?.[idx]?.deli_qty || 0}
+                              changed={(e) => deliChanged(e, j.id_each, idx)}
+                              width={80}
+                              max={j?.unit_count}
+                            />
+                            <small>
+                              {(
+                                (temp?.delivery?.[idx]?.deli_qty /
+                                  j?.unit_count) *
+                                  100 || 0
+                              ).toFixed(2)}{" "}
+                              %
+                            </small>
+                          </div>
+                        )
+                      )}
+                    </small>
+                  </>
+                ) : (
+                  <small style={{ color: "firebrick" }}>
+                    Job Process not Started
+                  </small>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </li>
+      <li>
+        {`Full Payment : `}
+        <small style={{ color: "firebrick" }}>
+          {pendingfpaym ? ` ${pendingfpaym} pending...` : "✅"}
+        </small>
+
+        <ul>
+          {eachJXDB.map((j, i) => {
+            const temp = tempEjx[i];
+            const changed_ =
+              temp?.full_paym !== j.full_paym ||
+              temp?.fp_amount !== j.fp_amount;
+            const notnull_ = temp?.fp_amount || !temp?.full_paym;
+            const qualified_ = eachJDB[i]?.j_status > 2;
+
+            return (
+              <li
+                key={j.id_each}
+                style={{
+                  backgroundColor:
+                    !temp?.full_paym && qualified_ ? "mistyrose" : undefined,
+                }}
+              >
+                {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
+                {qualified_ ? (
+                  <small>
+                    <label>Waiting :</label>
+                    <input
+                      name="full_paym"
+                      type="checkbox"
+                      checked={!temp?.full_paym}
+                      value={0}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+                    <label>Fully Received :</label>
+                    <input
+                      name="full_paym"
+                      type="checkbox"
+                      checked={temp?.full_paym === 1}
+                      value={1}
+                      onChange={(e) => NumChanged(e, j.id_each)}
+                    />
+
+                    <label>Amount : </label>
+                    <Num
+                      name="fp_amount"
+                      min={0}
+                      setTo={temp?.fp_amount || 0}
+                      changed={(e) => NumChanged(e, j.id_each)}
+                      width={100}
+                      deci={2}
+                    />
+                    {j?.full_paym === 1 &&
+                      (temp?.full_paym !== 1 ||
+                        temp?.fp_amount !== j?.fp_amount) && (
+                        <small style={{ color: "red" }}>
+                          cannot change once approved
+                        </small>
+                      )}
+                    <small>
+                      {/*once approved cannot change*/}
+                      {(userAuditL2 || userJobsL2) &&
+                        changed_ &&
+                        j?.full_paym !== 1 &&
+                        notnull_ && (
+                          <button
+                            name="full_payment"
+                            onClick={(e) => onSubmit(e, temp)}
+                          >
+                            Save
+                          </button>
+                        )}
+                    </small>
+                  </small>
+                ) : (
+                  <small style={{ color: "firebrick" }}>
+                    Job Not Completed
+                  </small>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </li>
     </ul>
   );
 }

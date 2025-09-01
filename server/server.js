@@ -350,7 +350,7 @@ app.get("/jobs", async (req, res) => {
         JOIN jobs_eachx jx ON jx.id_main = je.id_main and jx.id_each=je.id_each
         JOIN customers c ON c.id = j.customer
         WHERE j.private = false
-        AND je.j_status = 1
+        AND je.j_status > 0
         ORDER BY j.deadline ASC`
     );
     console.log(qualified);
@@ -766,7 +766,8 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
   const user_id = getUser(req);
   try {
-    const ejx_ = form === "pb" || form === "po" ? true : false;
+    const ejx_ =
+      form === "pb" || form === "po" || form === "full_payment" ? true : false;
     const beforeU = ejx_
       ? await JobsXByIdE(id_main, id_each)
       : await JobsEByIdE(id_main, id_each);
@@ -866,9 +867,7 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
       if (upd.rowCount === 0) {
         await pool.query(insrt, params);
       }
-    }
-
-    if (form === "j_statusmain") {
+    } else if (form === "j_statusmain") {
       //need both inser and update
       const updt = `
           UPDATE jobs_each
@@ -881,6 +880,44 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
       const { j_status, j_start_at_, j_end_at_ } = req.body;
       const params = [id_main, id_each, j_status, j_start_at_, j_end_at_];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+    } else if (form === "delivery") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_each
+          SET deli_times=$3, delivery=$4 WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_each
+          (id_main, id_each, deli_times, delivery)
+          SELECT $1, $2, $3, $4`;
+
+      const { deli_times, delivery } = req.body;
+      const params = [id_main, id_each, deli_times, delivery];
+
+      const upd = await pool.query(updt, params);
+
+      if (upd.rowCount === 0) {
+        await pool.query(insrt, params);
+      }
+    } else if (form === "full_payment") {
+      //need both inser and update
+      const updt = `
+          UPDATE jobs_eachx
+          SET fp_amount=$3, full_paym=$4 WHERE id_main=$1 AND id_each=$2`;
+
+      const insrt = `
+          INSERT INTO jobs_eachx 
+          (id_main, id_each, fp_amount, full_paym)
+          SELECT $1, $2, $3, $4`;
+
+      const { fp_amount, full_paym } = req.body;
+      const params = [id_main, id_each, fp_amount, full_paym];
 
       const upd = await pool.query(updt, params);
 
