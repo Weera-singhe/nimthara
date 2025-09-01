@@ -344,7 +344,8 @@ app.get("/jobs", async (req, res) => {
     );
     const { rows: qualified } = await pool.query(
       `SELECT je.*, j.*, c.*, jx.*,
-        ${date6Con("j_created_at")}
+        ${date6Con("j_created_at")},
+        ${dateCon("deadline_dl")}
         FROM jobs_each je
         JOIN (SELECT j.*, j.created_at AS j_created_at FROM jobs j) j ON j.id = je.id_main
         JOIN jobs_eachx jx ON jx.id_main = je.id_main and jx.id_each=je.id_each
