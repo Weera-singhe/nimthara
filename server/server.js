@@ -694,7 +694,7 @@ app.post("/jobs/div3", requireAuth, async (req, res) => {
       const insrt = `
           INSERT INTO jobs_eachx 
           (id_main, id_each, samp_pp)
-          SELECT $1, $2, $3,`;
+          SELECT $1, $2, $3`;
 
       const { samp_pp } = req.body;
       const params = [id_main, id_each, samp_pp];
@@ -781,16 +781,33 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
       const insrt = `
           INSERT INTO jobs_each 
-          (id_main, id_each, j_status, deadline_dl, deadline_dlty)
-          SELECT $1, $2, $3, $4, $5`;
+          (id_main, id_each, j_status, deadline_dl, deadline_dlty, loop_count, v, notes_other)
+          SELECT $1, $2, $3, $4, $5, $6, $7, $8`;
 
-      const { j_status, deadline_dl_, deadline_dlty } = req.body;
-      const params = [id_main, id_each, j_status, deadline_dl_, deadline_dlty];
+      const {
+        j_status,
+        deadline_dl_,
+        deadline_dlty,
+        loop_count,
+        v,
+        notes_other,
+      } = req.body;
+      const paramsU = [id_main, id_each, j_status, deadline_dl_, deadline_dlty];
+      const paramsI = [
+        id_main,
+        id_each,
+        j_status,
+        deadline_dl_,
+        deadline_dlty,
+        loop_count,
+        v,
+        notes_other,
+      ];
 
-      const upd = await pool.query(updt, params);
+      const upd = await pool.query(updt, paramsU);
 
       if (upd.rowCount === 0) {
-        await pool.query(insrt, params);
+        await pool.query(insrt, paramsI);
       }
     } else if (form === "pb") {
       //need both inser and update
@@ -838,16 +855,17 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
       const insrt = `
           INSERT INTO jobs_each
-          (id_main, id_each, samp_pr)
-          SELECT $1, $2, $3`;
+          (id_main, id_each, samp_pr, loop_count, v, notes_other)
+          SELECT $1, $2, $3, $4, $5, $6`;
 
-      const { samp_pr } = req.body;
-      const params = [id_main, id_each, samp_pr];
+      const { samp_pr, loop_count, v, notes_other } = req.body;
+      const paramsU = [id_main, id_each, samp_pr];
+      const paramsI = [id_main, id_each, samp_pr, loop_count, v, notes_other];
 
-      const upd = await pool.query(updt, params);
+      const upd = await pool.query(updt, paramsU);
 
       if (upd.rowCount === 0) {
-        await pool.query(insrt, params);
+        await pool.query(insrt, paramsI);
       }
     } else if (form === "aw") {
       //need both inser and update
@@ -857,16 +875,17 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
       const insrt = `
           INSERT INTO jobs_each
-          (id_main, id_each, aw)
-          SELECT $1, $2, $3`;
+          (id_main, id_each, aw,loop_count, v, notes_other)
+          SELECT $1, $2, $3, $4, $5, $6`;
 
-      const { aw } = req.body;
-      const params = [id_main, id_each, aw];
+      const { aw, loop_count, v, notes_other } = req.body;
+      const paramsU = [id_main, id_each, aw];
+      const paramsI = [id_main, id_each, aw, loop_count, v, notes_other];
 
-      const upd = await pool.query(updt, params);
+      const upd = await pool.query(updt, paramsU);
 
       if (upd.rowCount === 0) {
-        await pool.query(insrt, params);
+        await pool.query(insrt, paramsI);
       }
     } else if (form === "j_statusmain") {
       //need both inser and update
@@ -876,16 +895,27 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
       const insrt = `
           INSERT INTO jobs_each 
-          (id_main, id_each, j_status, j_start_at, j_end_at)
-          SELECT $1, $2, $3, $4, $5`;
+          (id_main, id_each, j_status, j_start_at, j_end_at, loop_count, v, notes_other)
+          SELECT $1, $2, $3, $4, $5, $6, $7, $8`;
 
-      const { j_status, j_start_at_, j_end_at_ } = req.body;
-      const params = [id_main, id_each, j_status, j_start_at_, j_end_at_];
+      const { j_status, j_start_at_, j_end_at_, loop_count, v, notes_other } =
+        req.body;
+      const paramsU = [id_main, id_each, j_status, j_start_at_, j_end_at_];
+      const paramsI = [
+        id_main,
+        id_each,
+        j_status,
+        j_start_at_,
+        j_end_at_,
+        loop_count,
+        v,
+        notes_other,
+      ];
 
-      const upd = await pool.query(updt, params);
+      const upd = await pool.query(updt, paramsU);
 
       if (upd.rowCount === 0) {
-        await pool.query(insrt, params);
+        await pool.query(insrt, paramsI);
       }
     } else if (form === "delivery") {
       //need both inser and update
@@ -895,16 +925,25 @@ app.post("/jobs/div4", requireAuth, async (req, res) => {
 
       const insrt = `
           INSERT INTO jobs_each
-          (id_main, id_each, deli_times, delivery)
-          SELECT $1, $2, $3, $4`;
+          (id_main, id_each, deli_times, delivery, loop_count, v, notes_other)
+          SELECT $1, $2, $3, $4, $5, $6, $7`;
 
-      const { deli_times, delivery } = req.body;
-      const params = [id_main, id_each, deli_times, delivery];
+      const { deli_times, delivery, loop_count, v, notes_other } = req.body;
+      const paramsU = [id_main, id_each, deli_times, delivery];
+      const paramsI = [
+        id_main,
+        id_each,
+        deli_times,
+        delivery,
+        loop_count,
+        v,
+        notes_other,
+      ];
 
-      const upd = await pool.query(updt, params);
+      const upd = await pool.query(updt, paramsU);
 
       if (upd.rowCount === 0) {
-        await pool.query(insrt, params);
+        await pool.query(insrt, paramsI);
       }
     } else if (form === "full_payment") {
       //need both inser and update
