@@ -25,6 +25,8 @@ export default function Jobbs() {
         isAllJobsLoading(false);
       });
   }, []);
+  const deliveredQty = (j) =>
+    Object.values(j.delivery || {}).reduce((s, d) => s + (d?.deli_qty || 0), 0);
 
   return (
     <div>
@@ -57,7 +59,7 @@ export default function Jobbs() {
                     .map((j) => (
                       <li key={j.id_je}>
                         <Link to={`/jobs/${j.id_main}`}>
-                          {`${j.j_created_at_x}_${String(j.id).padStart(
+                          {`${j.j_created_at_x}_${String(j.id_main).padStart(
                             4,
                             "0"
                           )}_${j.cus_id_each || j.id_each}`}
@@ -110,7 +112,7 @@ export default function Jobbs() {
                     .map((j) => (
                       <li key={j.id_je}>
                         <Link to={`/jobs/${j.id_main}`}>
-                          {`${j.j_created_at_x}_${String(j.id).padStart(
+                          {`${j.j_created_at_x}_${String(j.id_main).padStart(
                             4,
                             "0"
                           )}_${j.cus_id_each || j.id_each}`}
@@ -151,11 +153,12 @@ export default function Jobbs() {
                 </ul>
                 <br />
                 <li>
-                  <b>Waiting For Payment</b>
+                  <b>Finished & Not Delivered</b>
                 </li>
                 <ul className="jblist">
                   {allJobsQu
                     .filter((j) => j.j_status === 3 && !j.full_paym)
+                    .filter((j) => deliveredQty(j) < (j.unit_count || 0))
                     .sort(
                       (b, a) =>
                         new Date(a.deadline_dl) - new Date(b.deadline_dl)
@@ -163,7 +166,7 @@ export default function Jobbs() {
                     .map((j) => (
                       <li key={j.id_je}>
                         <Link to={`/jobs/${j.id_main}`}>
-                          {`${j.j_created_at_x}_${String(j.id).padStart(
+                          {`${j.j_created_at_x}_${String(j.id_main).padStart(
                             4,
                             "0"
                           )}_${j.cus_id_each || j.id_each}`}
@@ -174,8 +177,53 @@ export default function Jobbs() {
                         <span>
                           {j?.reference || j?.contact_p || j?.contact_d}
                         </span>
+                        <b>
+                          <small style={{ color: "tomato" }}>
+                            deliver @ {j?.deadline_dl_ || "no deadline"}
+                          </small>
+                        </b>
                       </li>
                     ))}
+                </ul>
+                <br />
+                <li>
+                  <b>Waiting For Payment</b>
+                </li>
+                <ul className="jblist">
+                  {allJobsQu
+                    .filter((j) => j.j_status === 3 && !j.full_paym)
+
+                    .filter((j) => deliveredQty(j) >= (j.unit_count || 0))
+                    .sort(
+                      (b, a) =>
+                        new Date(a.deadline_dl) - new Date(b.deadline_dl)
+                    )
+                    .map((j) => {
+                      const delivered = deliveredQty(j);
+                      const unit = j.unit_count || 0;
+                      const qtyError = delivered > unit; // flag only if over-delivered
+                      return (
+                        <li key={j.id_je}>
+                          <Link to={`/jobs/${j.id_main}`}>
+                            {`${j.j_created_at_x}_${String(j.id_main).padStart(
+                              4,
+                              "0"
+                            )}_${j.cus_id_each || j.id_each}`}
+                          </Link>
+                          <b>{`- ${
+                            j.cus_name_short || j.customer_name || ""
+                          } : `}</b>
+                          <span>
+                            {j?.reference || j?.contact_p || j?.contact_d}
+                          </span>
+                          {qtyError && (
+                            <small style={{ color: "red" }}>
+                              {"quantity error"}
+                            </small>
+                          )}
+                        </li>
+                      );
+                    })}
                 </ul>
                 <br />
                 <li>
@@ -191,7 +239,7 @@ export default function Jobbs() {
                     .map((j) => (
                       <li key={j.id_je}>
                         <Link to={`/jobs/${j.id_main}`}>
-                          {`${j.j_created_at_x}_${String(j.id).padStart(
+                          {`${j.j_created_at_x}_${String(j.id_main).padStart(
                             4,
                             "0"
                           )}_${j.cus_id_each || j.id_each}`}
