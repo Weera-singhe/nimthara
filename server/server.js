@@ -1179,8 +1179,8 @@ app.post("/audit/bb", async (req, res) => {
 
     const updt = `
           UPDATE jobs_eachx
-          SET bb=$1, bb_code=$3,bb_op_at=$4,bb_bank=$5,bb_ref_at=$6,bb_ref=$7
-          WHERE idx=$8`;
+          SET bb=$1, bb_code=$2,bb_op_at=$3,bb_bank=$4,bb_ref_at=$5,bb_ref=$6
+          WHERE idx=$7`;
 
     const p = [
       bbtemp || bb,

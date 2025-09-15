@@ -122,7 +122,7 @@ export default function Login({ user, setUser }) {
               </Link>
             ) : (
               <>
-                <h1>Register / Change Paaword</h1>{" "}
+                <h1>Register / Change Password</h1>{" "}
                 <form onSubmit={userRegister}>
                   <label>name : </label>
                   <input

@@ -9,8 +9,8 @@ export default function Jobbs() {
   const [allJobsQu, loadAllJobsQu] = useState([]);
   const [allJobsLoading, isAllJobsLoading] = useState(true);
 
-  const [showQ, setShowQ] = useState(false);
-  const [showNotQ, setShowNotQ] = useState(false);
+  const [showQ, setShowQ] = useState(true);
+  const [showNotQ, setShowNotQ] = useState(true);
 
   useEffect(() => {
     axios
@@ -76,9 +76,11 @@ export default function Jobbs() {
                               {"PurchaseOrder"}
                             </small>
                           )}
-                          <small style={{ color: "tomato" }}>
-                            deliver @ {j?.deadline_dl_ || "no deadline"}
-                          </small>
+                          {j.deadline_dlty === 1 && (
+                            <small style={{ color: "tomato" }}>
+                              deliver @ {j?.deadline_dl_ || "no deadline"}
+                            </small>
+                          )}
                           {!j.pb && (
                             <small style={{ color: "darkred" }}>
                               {"PerformanceBond"}
@@ -129,9 +131,11 @@ export default function Jobbs() {
                               {"PurchaseOrder"}
                             </small>
                           )}
-                          <small style={{ color: "tomato" }}>
-                            deliver @ {j?.deadline_dl_ || "no deadline"}
-                          </small>
+                          {j.deadline_dlty === 1 && (
+                            <small style={{ color: "tomato" }}>
+                              deliver @ {j?.deadline_dl_ || "no deadline"}
+                            </small>
+                          )}
                           {!j.pb && (
                             <small style={{ color: "darkred" }}>
                               {"PerformanceBond"}
@@ -178,9 +182,11 @@ export default function Jobbs() {
                           {j?.reference || j?.contact_p || j?.contact_d}
                         </span>
                         <b>
-                          <small style={{ color: "tomato" }}>
-                            deliver @ {j?.deadline_dl_ || "no deadline"}
-                          </small>
+                          {j.deadline_dlty === 1 && (
+                            <small style={{ color: "tomato" }}>
+                              deliver @ {j?.deadline_dl_ || "no deadline"}
+                            </small>
+                          )}
                         </b>
                       </li>
                     ))}
