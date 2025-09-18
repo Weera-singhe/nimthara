@@ -40,7 +40,7 @@ export default function Jobbs() {
         </>
       ) : (
         <>
-          <div className="framed">
+          <div className="framed" style={{ background: "aliceblue" }}>
             <Link onClick={() => setShowQ((p) => !p)}>
               {showQ ? "Hide Qualified  Jobs" : "Show Qualified  Jobs"}
             </Link>
@@ -68,8 +68,11 @@ export default function Jobbs() {
                           j.cus_name_short || j.customer_name || ""
                         } : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
                           {!j.po && (
                             <small style={{ color: "red" }}>
@@ -123,8 +126,11 @@ export default function Jobbs() {
                           j.cus_name_short || j.customer_name || ""
                         } : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
                           {!j.po && (
                             <small style={{ color: "red" }}>
@@ -179,8 +185,11 @@ export default function Jobbs() {
                           j.cus_name_short || j.customer_name || ""
                         } : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
                           {j.deadline_dlty === 1 && (
                             <small style={{ color: "tomato" }}>
@@ -220,8 +229,11 @@ export default function Jobbs() {
                             j.cus_name_short || j.customer_name || ""
                           } : `}</b>
                           <span>
-                            {j?.reference || j?.contact_p || j?.contact_d}
+                            {`${j?.reference || j?.contact_p || ""}${
+                              j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                            }`}
                           </span>
+
                           {qtyError && (
                             <small style={{ color: "red" }}>
                               {"quantity error"}
@@ -254,7 +266,9 @@ export default function Jobbs() {
                           j.cus_name_short || j.customer_name || ""
                         } : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
                       </li>
                     ))}
@@ -263,7 +277,7 @@ export default function Jobbs() {
               </ul>
             )}
           </div>
-          <div className="framed">
+          <div className="framed" style={{ background: "oldlace" }}>
             <Link onClick={() => setShowNotQ((p) => !p)}>
               {showNotQ ? "Hide Unconfirmed Jobs" : "Show Unconfirmed Jobs"}
             </Link>
@@ -283,10 +297,13 @@ export default function Jobbs() {
                         </Link>
                         <b>{`- ${j.customer_name || ""} : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
-                          {j.bb_done_count < j.total_jobs && (
+                          {!j.bb && (
                             <small style={{ color: "red" }}>{"bid bond"}</small>
                           )}{" "}
                           {j.spp_ready_count < j.total_jobs && (
@@ -318,10 +335,13 @@ export default function Jobbs() {
                         </Link>
                         <b>{`- ${j.customer_name || ""} : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
-                          {j.bb_done_count < j.total_jobs && (
+                          {!j.bb && (
                             <small style={{ color: "red" }}>{"bid bond"}</small>
                           )}{" "}
                           {j.spp_ready_count < j.total_jobs && (
@@ -357,10 +377,13 @@ export default function Jobbs() {
                         </Link>
                         <b>{`- ${j.customer_name || ""} : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
-                          {j.bb_done_count < j.total_jobs && (
+                          {!j.bb && (
                             <small style={{ color: "red" }}>{"bid bond"}</small>
                           )}
                           {j.spp_ready_count < j.total_jobs && (
@@ -393,10 +416,13 @@ export default function Jobbs() {
                         </Link>
                         <b>{`- ${j.customer_name || ""} : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
+
                         <b>
-                          {j.bb_done_count < j.total_jobs && (
+                          {!j.bb && (
                             <small style={{ color: "red" }}>{"bid bond"}</small>
                           )}
                           {j.spp_ready_count < j.total_jobs && (
@@ -429,7 +455,9 @@ export default function Jobbs() {
                         </Link>
                         <b>{`- ${j.customer_name || ""} : `}</b>
                         <span>
-                          {j?.reference || j?.contact_p || j?.contact_d}
+                          {`${j?.reference || j?.contact_p || ""}${
+                            j?.unq_name ? ` ( ${j.unq_name} )` : ""
+                          }`}
                         </span>
                       </li>
                     ))}

@@ -114,7 +114,6 @@ export default function JobDiv3({
     !userJobsL2;
   const totalJobs = mainJDB?.total_jobs;
   const pendingDep = totalJobs - eachJDB.filter((j) => j.deployed).length;
-  const pendingBB = totalJobs - tempBB.filter((j) => j.bb).length;
   const pendingSPP = totalJobs - tempSampPP.filter((j) => j.samp_pp > 1).length;
   const pendingRes = totalJobs - tempRes.filter((j) => j.res_status).length;
 
@@ -231,94 +230,78 @@ export default function JobDiv3({
       <li>
         {`Bid Bond : `}
         <small style={{ color: "firebrick" }}>
-          {pendingBB ? ` ${pendingBB} pending...` : "✅"}
+          {tempBB[0]?.bb === 2 ? "✅" : "pending..."}
         </small>
 
         <ul>
-          {eachJXDB.map((j, i) => {
-            //loop with eachJDB becasue it guaranted every element
-            const bbChanged =
-              tempBB[i]?.bb !== j.bb || tempBB[i]?.bb_amount !== j.bb_amount;
-
-            // const lastEditText = j.last_bb_edit_by
-            //   ? `( last edit at ${j.last_bb_edit_at_t} by ${
-            //       allUsernames[j.last_bb_edit_by]
-            //     } ) `
-            //   : "";
-
-            const showAmount = tempBB[i]?.bb !== 1;
-
-            return (
-              <li
-                key={j.id_each}
-                style={{
-                  backgroundColor: !tempBB[i]?.bb && "mistyrose",
-                }}
-              >
-                {`# ${displayID}_${eachJDB[i]?.cus_id_each || j.id_each} : `}
-                <small>
-                  <label>Not Needed :</label>
-                  <input
-                    name="bb"
-                    type="checkbox"
-                    checked={tempBB[i]?.bb === 1}
-                    value={1}
-                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                  />
-                  <label>Processing :</label>
-                  <input
-                    name="bb"
-                    type="checkbox"
-                    checked={!tempBB[i]?.bb}
-                    value={0}
-                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                  />
-                  <label>Approved : </label>
-                  <input
-                    name="bb"
-                    type="checkbox"
-                    checked={tempBB[i]?.bb === 2}
-                    value={2}
-                    onChange={(e) => NumChanged_xtra(e, j.id_each)}
-                  />
-                  <label>Amount : </label>
-                  {showAmount ? (
-                    <Num
-                      name="bb_amount"
-                      min={0}
-                      setTo={tempBB[i]?.bb_amount || 0}
-                      changed={(e) => NumChanged_xtra(e, j.id_each)}
-                      width={100}
-                      deci={2}
-                    />
-                  ) : (
-                    <input
-                      style={{ width: "100px", marginRight: "0" }}
-                      readOnly
-                      value="✅"
-                    />
+          <li
+            style={{
+              backgroundColor: !tempBB[0]?.bb && "mistyrose",
+            }}
+          >
+            {`# ${displayID} : `}
+            <small>
+              <label>Not Needed :</label>
+              <input
+                name="bb"
+                type="checkbox"
+                checked={tempBB[0]?.bb === 1}
+                value={1}
+                onChange={(e) => NumChanged_xtra(e, 1)}
+              />
+              <label>Processing :</label>
+              <input
+                name="bb"
+                type="checkbox"
+                checked={!tempBB[0]?.bb}
+                value={0}
+                onChange={(e) => NumChanged_xtra(e, 1)}
+              />
+              <label>Approved : </label>
+              <input
+                name="bb"
+                type="checkbox"
+                checked={tempBB[0]?.bb === 2}
+                value={2}
+                onChange={(e) => NumChanged_xtra(e, 1)}
+              />
+              <label>Amount : </label>
+              {tempBB[0]?.bb !== 1 ? (
+                <Num
+                  name="bb_amount"
+                  min={0}
+                  setTo={tempBB[0]?.bb_amount || 0}
+                  changed={(e) => NumChanged_xtra(e, 1)}
+                  width={100}
+                  deci={2}
+                />
+              ) : (
+                <input
+                  style={{ width: "100px", marginRight: "0" }}
+                  readOnly
+                  value="✅"
+                />
+              )}
+              {eachJXDB[0]?.bb === 2 &&
+                (tempBB[0]?.bb !== 2 ||
+                  tempBB[0]?.bb_amount !== eachJXDB[0]?.bb_amount) && (
+                  <small style={{ color: "red" }}>
+                    cannot change once approved
+                  </small>
+                )}
+              <span style={{ marginLeft: "2.5%" }}>
+                {/*once approved cannot change*/}
+                {(userAuditL2 || userJobsL2) &&
+                  (tempBB[0]?.bb !== eachJXDB[0]?.bb ||
+                    tempBB[0]?.bb_amount !== eachJXDB[0]?.bb_amount) &&
+                  eachJXDB[0]?.bb !== 2 && (
+                    <button name="bb" onClick={(e) => onSubmit(e, 0)}>
+                      Save
+                    </button>
                   )}
-                  {j?.bb === 2 &&
-                    (tempBB[i]?.bb !== 2 ||
-                      tempBB[i]?.bb_amount !== j?.bb_amount) && (
-                      <small style={{ color: "red" }}>
-                        cannot change once approved
-                      </small>
-                    )}
-                  <span style={{ marginLeft: "2.5%" }}>
-                    {/*once approved cannot change*/}
-                    {(userAuditL2 || userJobsL2) &&
-                      bbChanged &&
-                      j?.bb !== 2 && (
-                        <button name="bb" onClick={(e) => onSubmit(e, i)}>
-                          Save
-                        </button>
-                      )}
-                  </span>
-                </small>
-              </li>
-            );
-          })}
+              </span>
+            </small>
+          </li>
         </ul>
       </li>
 

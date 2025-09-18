@@ -35,7 +35,7 @@ export default function JobDiv1({
     !user.loggedIn ||
     !mainJTemp.customer ||
     !mainJTemp.deadline_i ||
-    (!mainJTemp.reference && !mainJTemp.contact_p && !mainJTemp.contact_d);
+    (!mainJTemp.reference && !mainJTemp.unq_name);
 
   return (
     <div>
@@ -49,7 +49,7 @@ export default function JobDiv1({
           <option value={0}></option>
           {allCustomers.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.cus_name_short || c.customer_name}
+              {c.customer_name || c.cus_name_short}
             </option>
           ))}
         </select>
@@ -60,7 +60,12 @@ export default function JobDiv1({
           value={mainJTemp.reference || ""}
           onChange={strChanged}
         />
-
+        <label>Unique Name : </label>
+        <input
+          name="unq_name"
+          value={mainJTemp.unq_name || ""}
+          onChange={strChanged}
+        />
         <label>Deadline : </label>
         <input
           type="datetime-local"
@@ -69,6 +74,8 @@ export default function JobDiv1({
           onChange={strChanged}
         />
 
+        <br />
+        <br />
         <label>Total Jobs : </label>
         <Num
           name={"total_jobs"}
@@ -79,8 +86,7 @@ export default function JobDiv1({
           width={100}
           deci={0}
         />
-        <br />
-        <br />
+        <span className="needgap" />
 
         <label>Contact Person : </label>
         <input

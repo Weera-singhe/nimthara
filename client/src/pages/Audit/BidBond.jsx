@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 
 export default function BidBond({ user }) {
   const [bbDB, setBBDB] = useState([]);
-  const [bbPendigDB, setBBPDB] = useState([]);
   const [banks, setBanks] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -15,7 +14,6 @@ export default function BidBond({ user }) {
       .get(BB_Audit_API_URL)
       .then((res) => {
         setBBDB(res.data.bb);
-        setBBPDB(res.data.bbPending);
         setBanks(res.data.banks);
       })
       .catch((err) => console.error("Error fetching papers:", err))
@@ -67,8 +65,8 @@ export default function BidBond({ user }) {
   }
 
   useEffect(() => {
-    console.log(bbPendigDB);
-  }, [bbPendigDB]);
+    console.log(bbDB);
+  }, [bbDB]);
 
   //displayID
 
@@ -81,6 +79,36 @@ export default function BidBond({ user }) {
   return (
     <>
       <div className="framed jb">
+        <h4>Proccessing</h4>
+        {loading ? (
+          "loading"
+        ) : (
+          <ul>
+            {bbDB
+              .filter((b) => !b.bb)
+              .map((b) => (
+                <li key={b.id_main}>
+                  <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
+                    {displayID(b.created_at_x, b.id_main)}
+                  </Link>
+                  <small>
+                    <b> {b.customer_name}</b>
+                  </small>
+                  <small>
+                    {" "}
+                    {`${b?.reference || b?.contact_p || ""}${
+                      b?.unq_name ? ` ( ${b.unq_name} )` : ""
+                    }`}
+                  </small>
+                  <small
+                    style={{ color: "firebrick" }}
+                  >{`deadline : ${b.deadline_t}`}</small>
+                </li>
+              ))}
+          </ul>
+        )}
+      </div>
+      <div className="framed jb">
         <h4>Approved and Not Refunded</h4>
         {loading ? (
           "loading"
@@ -92,21 +120,21 @@ export default function BidBond({ user }) {
                 const empty = !b.bb_code || !b.bb_op_at_ || !b.bb_bank;
                 const empty3 = b.bbtemp === 3 && (!b.bb_ref_at_ || !b.bb_ref);
                 ///////
-                const displayID = b?.created_at_x
-                  ? `${b?.created_at_x}_${b?.id_main
-                      .toString()
-                      .padStart(4, "0")}_${b?.cus_id_each || b?.id_each}`
-                  : "loading...";
 
                 return (
                   <li key={b.idx}>
                     <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
-                      {displayID}
+                      {displayID(b.created_at_x, b.id_main)}
                     </Link>
                     <small>
                       <b> {b.customer_name}</b>
                     </small>
-                    <small>{b.reference || b.contact_p || b.contact_d}</small>
+                    <small>
+                      {" "}
+                      {`${b?.reference || b?.contact_p || ""}${
+                        b?.unq_name ? ` ( ${b.unq_name} )` : ""
+                      }`}
+                    </small>
                     <small>{toLKR(b.bb_amount)}</small>
                     {!empty && !empty3 && b.samp_pp === "x" && userAuditL2 && (
                       <button
@@ -162,6 +190,8 @@ export default function BidBond({ user }) {
                           />
                           {b?.bbtemp === 3 && (
                             <>
+                              <br />
+                              <br />
                               <label>Refunded on : </label>
                               <input
                                 type="date"
@@ -190,31 +220,7 @@ export default function BidBond({ user }) {
           </ul>
         )}
       </div>
-      <div className="framed jb">
-        <h4>Proccessing</h4>
-        {loading ? (
-          "loading"
-        ) : (
-          <ul>
-            {bbPendigDB
-              .filter((b) => !b.bb)
-              .map((b) => (
-                <li key={b.id}>
-                  <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
-                    {displayID(b.created_at_x, b.id)}
-                  </Link>
-                  <small>
-                    <b> {b.customer_name}</b>
-                  </small>
-                  <small>{b.reference || b.contact_p || b.contact_d}</small>
-                  <small
-                    style={{ color: "firebrick" }}
-                  >{`deadline : ${b.deadline_t}`}</small>
-                </li>
-              ))}
-          </ul>
-        )}
-      </div>
+
       <div className="framed jb">
         <h4>Refunded</h4>
         {loading ? (
@@ -227,30 +233,22 @@ export default function BidBond({ user }) {
                 const empty = !b.bb_code || !b.bb_op_at_ || !b.bb_bank;
                 const empty3 = b.bbtemp === 3 && (!b.bb_ref_at_ || !b.bb_ref);
                 ///////
-                const displayID = b?.created_at_x
-                  ? `${b?.created_at_x}_${b?.id_main
-                      .toString()
-                      .padStart(4, "0")}_${b?.cus_id_each || b?.id_each}`
-                  : "loading...";
 
                 return (
                   <li key={b.idx}>
                     <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
-                      {displayID}
+                      {displayID(b.created_at_x, b.id_main)}
                     </Link>
                     <small>
                       <b> {b.customer_name}</b>
                     </small>
-                    <small>{b.reference || b.contact_p || b.contact_d}</small>
+                    <small>
+                      {`${b?.reference || b?.contact_p || ""}${
+                        b?.unq_name ? ` ( ${b.unq_name} )` : ""
+                      }`}
+                    </small>
                     <small>{toLKR(b.bb_amount)}</small>
-                    {/* {!empty && !empty3 && b.samp_pp === "x" && (
-                      <button
-                        onClick={() => SubmitStage2(b)}
-                        style={{ marginLeft: "2%" }}
-                      >
-                        save
-                      </button>
-                    )} */}
+
                     <ul
                       style={{
                         backgroundColor: (empty || empty3) && "mistyrose",

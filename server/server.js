@@ -332,10 +332,10 @@ app.get("/jobs", async (req, res) => {
       ${date6Con("created_at")},
       (SELECT COUNT(*)::int FROM jobs_each je WHERE je.id_main = j.id AND je.deployed AND je.id_each <= j.total_jobs) AS dep_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.pb > 0 AND jx.id_each <= j.total_jobs) AS pb_done_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) AS bb_done_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_ready_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status > 0 AND jx.id_each <= j.total_jobs) AS res_count,
+      (SELECT bb FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.id_each = 1) AS bb,
       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 2 AND jx.id_each <= j.total_jobs) AS inc_respub,
       COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
       LEFT JOIN customers c ON c.id = j.customer
@@ -453,6 +453,7 @@ app.post("/jobs/div1", requireAuth, async (req, res) => {
       total_jobs,
       contact_p,
       contact_d,
+      unq_name,
     } = req.body;
 
     let load_this_id;
@@ -472,9 +473,19 @@ app.post("/jobs/div1", requireAuth, async (req, res) => {
         deadline = $3,
         total_jobs=$4,
         contact_p=$5,
-        contact_d=$6 
-        WHERE id = $7 RETURNING *`,
-        [customer, reference, deadline_i, total_jobs, contact_p, contact_d, id]
+        contact_d=$6,
+        unq_name = $7 
+        WHERE id = $8 RETURNING *`,
+        [
+          customer,
+          reference,
+          deadline_i,
+          total_jobs,
+          contact_p,
+          contact_d,
+          unq_name,
+          id,
+        ]
       );
       load_this_id = id;
 
@@ -507,8 +518,9 @@ app.post("/jobs/div1", requireAuth, async (req, res) => {
         total_jobs,
         contact_p,
         contact_d,
+        unq_name,
         created_by
-        ) VALUES ($1, $2,$3,$4,$5,$6,$7) RETURNING id`,
+        ) VALUES ($1, $2,$3,$4,$5,$6,$7,$8) RETURNING id`,
         [
           customer,
           reference,
@@ -516,6 +528,7 @@ app.post("/jobs/div1", requireAuth, async (req, res) => {
           total_jobs || 1,
           contact_p,
           contact_d,
+          unq_name,
           user_id,
         ]
       );
@@ -1132,27 +1145,12 @@ const BB_SQL = `
       LEFT JOIN customers c 
       ON c.id = j.customer
       WHERE j.private = false
-      AND jx.bb !=1`;
-
-const BBPending_SQL = `
-      SELECT 
-      j.*,
-      ${dateTimeCon("deadline")},
-      ${date6Con("created_at")},
-      COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
-      LEFT JOIN customers c ON c.id = j.customer
-      WHERE j.private = false AND j.submit_method!=5
-      AND 
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.bb > 0 AND jx.id_each <= j.total_jobs) < j.total_jobs
-      ORDER BY j.deadline ASC`;
+      AND j.submit_method!=5
+      AND jx.bb !=1 AND jx.id_each=1`;
 
 //giving saved once only. no problem because bb=2,and bb=3 always saved
 async function BBAll() {
   const { rows } = await pool.query(`${BB_SQL} ORDER BY jx.idx ASC`);
-  return rows || null;
-}
-async function BBPending() {
-  const { rows } = await pool.query(BBPending_SQL);
   return rows || null;
 }
 async function BBOne(idx) {
@@ -1163,9 +1161,8 @@ async function BBOne(idx) {
 app.get("/audit/bb", async (req, res) => {
   try {
     const bb = await BBAll();
-    const bbPending = await BBPending();
     const banks = await GetBanks();
-    res.json({ bb, banks, bbPending });
+    res.json({ bb, banks });
   } catch (err) {
     res.status(500).send("Error");
   }
