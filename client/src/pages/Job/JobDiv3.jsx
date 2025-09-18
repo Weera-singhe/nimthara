@@ -230,7 +230,7 @@ export default function JobDiv3({
       <li>
         {`Bid Bond : `}
         <small style={{ color: "firebrick" }}>
-          {tempBB[0]?.bb === 2 ? "✅" : "pending..."}
+          {!tempBB[0]?.bb ? "pending..." : "✅"}
         </small>
 
         <ul>
