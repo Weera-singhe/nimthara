@@ -12,6 +12,9 @@ export default function Audit({ user }) {
       <div className="new-division jb">
         <ul>
           <li>
+            <Link to={`/audit/ledger`}>Ledger</Link>
+          </li>{" "}
+          <li>
             <Link to={`/audit/bb`}>Bid Bond</Link>
           </li>
           <li>Petty Cash</li>

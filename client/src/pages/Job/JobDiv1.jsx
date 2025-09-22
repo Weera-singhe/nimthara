@@ -35,7 +35,7 @@ export default function JobDiv1({
     !user.loggedIn ||
     !mainJTemp.customer ||
     !mainJTemp.deadline_i ||
-    (!mainJTemp.reference && !mainJTemp.unq_name);
+    (!mainJTemp.reference && !mainJTemp.unq_name && !mainJTemp.contact_p);
 
   return (
     <div>

@@ -13,6 +13,7 @@ import Jobs from "./pages/Jobs";
 import Job from "./pages/Job";
 import Audit from "./pages/Audit";
 import BidBond from "./pages/Audit/BidBond";
+import Ledger from "./pages/Audit/Ledger";
 
 import { CHECK_AUTH_API_URL } from "./api/urls";
 import axios from "axios";
@@ -65,6 +66,7 @@ const App = () => {
 
         <Route path="audit" element={<Audit user={user} />} />
         <Route path="audit/bb" element={<BidBond user={user} />} />
+        <Route path="audit/ledger" element={<Ledger user={user} />} />
 
         <Route
           path="/login"

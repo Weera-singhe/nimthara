@@ -1130,27 +1130,28 @@ async function GetJobsAct(id) {
 
 //AUDIT       //////////////////////////////////////////
 
-const BB_SQL = `
+const BB_SQL = `      
       SELECT 
-      jx.*,
       j.*,
+      jx.*,
       ${date6Con("created_at")},
       ${dateTimeCon("deadline")},
       ${dateCon("bb_op_at")},
       ${dateCon("bb_ref_at")},
       COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name
-      FROM jobs_eachx jx
-      JOIN jobs j 
+      FROM jobs j 
+      LEFT JOIN jobs_eachx jx 
       ON jx.id_main = j.id
       LEFT JOIN customers c 
       ON c.id = j.customer
       WHERE j.private = false
       AND j.submit_method!=5
-      AND jx.bb !=1 AND jx.id_each=1`;
+	    AND (jx.bb IS NULL OR jx.bb != 1)
+	    AND (jx.id_each IS NULL OR jx.id_each = 1)`;
 
 //giving saved once only. no problem because bb=2,and bb=3 always saved
 async function BBAll() {
-  const { rows } = await pool.query(`${BB_SQL} ORDER BY jx.idx ASC`);
+  const { rows } = await pool.query(`${BB_SQL} ORDER BY deadline ASC`);
   return rows || null;
 }
 async function BBOne(idx) {
@@ -1192,6 +1193,52 @@ app.post("/audit/bb", async (req, res) => {
     const ret = await BBOne(idx);
 
     res.status(200).json(ret);
+  } catch (err) {
+    res.status(500).send("Error");
+    console.error("Error fetching papers:", err);
+  }
+});
+async function LedgAll() {
+  const { rows } = await pool.query(`SELECT * FROM ledger ORDER BY id ASC`);
+  return rows || null;
+}
+async function CatAll() {
+  const { rows } = await pool.query(
+    `SELECT * FROM ledger_cat ORDER BY id_cat ASC`
+  );
+  return rows || null;
+}
+async function AccAll() {
+  const { rows } = await pool.query(`SELECT * FROM ledger_acc ORDER BY id ASC`);
+  return rows || null;
+}
+
+app.get("/audit/ledger", async (req, res) => {
+  try {
+    const recsAll = await LedgAll();
+    const catAll = await CatAll();
+    const accAll = await AccAll();
+    res.json({ recsAll, catAll, accAll });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
+});
+
+app.post("/audit/ledger/add_acc", async (req, res) => {
+  console.log(req.body);
+  try {
+    const { name, holder, institute, type } = req.body;
+
+    const ins = `
+          INSERT INTO ledger_acc 
+          ( name, holder, institute, type)
+          SELECT $1, $2, $3, $4`;
+
+    const p = [name, holder, institute, type];
+    await pool.query(ins, p);
+    const accAll = await AccAll();
+
+    res.status(200).json({ accAll });
   } catch (err) {
     res.status(500).send("Error");
     console.error("Error fetching papers:", err);
