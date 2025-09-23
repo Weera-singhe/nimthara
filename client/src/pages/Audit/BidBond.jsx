@@ -87,9 +87,9 @@ export default function BidBond({ user }) {
             {bbDB
               .filter((b) => !b.bb)
               .map((b) => (
-                <li key={b.id_main}>
-                  <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
-                    {displayID(b.created_at_x, b.id_main)}
+                <li key={b.id}>
+                  <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                    {displayID(b.created_at_x, b.id)}
                   </Link>
                   <small>
                     <b> {b.customer_name}</b>
@@ -123,8 +123,8 @@ export default function BidBond({ user }) {
 
                 return (
                   <li key={b.idx}>
-                    <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
-                      {displayID(b.created_at_x, b.id_main)}
+                    <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                      {displayID(b.created_at_x, b.id)}
                     </Link>
                     <small>
                       <b> {b.customer_name}</b>
@@ -236,8 +236,8 @@ export default function BidBond({ user }) {
 
                 return (
                   <li key={b.idx}>
-                    <Link to={`/jobs/${encodeURIComponent(b.id_main)}`}>
-                      {displayID(b.created_at_x, b.id_main)}
+                    <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                      {displayID(b.created_at_x, b.id)}
                     </Link>
                     <small>
                       <b> {b.customer_name}</b>

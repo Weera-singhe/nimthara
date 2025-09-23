@@ -875,7 +875,7 @@ export default function JobDiv3({
                       )}
                     <small>
                       {/*once approved cannot change*/}
-                      {(userAuditL2 || userJobsL2) &&
+                      {userAuditL2 &&
                         changed_ &&
                         j?.full_paym !== 1 &&
                         notnull_ && (
