@@ -77,252 +77,261 @@ export default function BidBond({ user }) {
 
   const userAuditL2 = user.level_audit > 1 && user.loggedIn;
   return (
-    <>
-      <div className="framed jb">
-        <h4>Proccessing</h4>
-        {loading ? (
-          "loading"
-        ) : (
-          <ul>
-            {bbDB
-              .filter((b) => !b.bb)
-              .map((b) => (
-                <li key={b.id}>
-                  <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
-                    {displayID(b.created_at_x, b.id)}
-                  </Link>
-                  <small>
-                    <b> {b.customer_name}</b>
-                  </small>
-                  <small>
-                    {" "}
-                    {`${b?.reference || b?.contact_p || ""}${
-                      b?.unq_name ? ` ( ${b.unq_name} )` : ""
-                    }`}
-                  </small>
-                  <small
-                    style={{ color: "firebrick" }}
-                  >{`deadline : ${b.deadline_t}`}</small>
-                </li>
-              ))}
-          </ul>
-        )}
-      </div>
-      <div className="framed jb">
-        <h4>Approved and Not Refunded</h4>
-        {loading ? (
-          "loading"
-        ) : (
-          <ul>
-            {bbDB
-              .filter((b) => b.bb === 2)
-              .map((b) => {
-                const empty = !b.bb_code || !b.bb_op_at_ || !b.bb_bank;
-                const empty3 = b.bbtemp === 3 && (!b.bb_ref_at_ || !b.bb_ref);
-                ///////
+    <div>
+      {user?.loggedIn && (
+        <>
+          <div className="framed jb">
+            <h4>Proccessing</h4>
+            {loading ? (
+              "loading"
+            ) : (
+              <ul>
+                {bbDB
+                  .filter((b) => !b.bb)
+                  .map((b) => (
+                    <li key={b.id}>
+                      <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                        {displayID(b.created_at_x, b.id)}
+                      </Link>
+                      <small>
+                        <b> {b.customer_name}</b>
+                      </small>
+                      <small>
+                        {" "}
+                        {`${b?.reference || b?.contact_p || ""}${
+                          b?.unq_name ? ` ( ${b.unq_name} )` : ""
+                        }`}
+                      </small>
+                      <small
+                        style={{ color: "firebrick" }}
+                      >{`deadline : ${b.deadline_t}`}</small>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+          <div className="framed jb">
+            <h4>Approved and Not Refunded</h4>
+            {loading ? (
+              "loading"
+            ) : (
+              <ul>
+                {bbDB
+                  .filter((b) => b.bb === 2)
+                  .map((b) => {
+                    const empty = !b.bb_code || !b.bb_op_at_ || !b.bb_bank;
+                    const empty3 =
+                      b.bbtemp === 3 && (!b.bb_ref_at_ || !b.bb_ref);
+                    ///////
 
-                return (
-                  <li key={b.idx}>
-                    <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
-                      {displayID(b.created_at_x, b.id)}
-                    </Link>
-                    <small>
-                      <b> {b.customer_name}</b>
-                    </small>
-                    <small>
-                      {" "}
-                      {`${b?.reference || b?.contact_p || ""}${
-                        b?.unq_name ? ` ( ${b.unq_name} )` : ""
-                      }`}
-                    </small>
-                    <small>{toLKR(b.bb_amount)}</small>
-                    {!empty && !empty3 && b.samp_pp === "x" && userAuditL2 && (
-                      <button
-                        onClick={() => SubmitStage2(b)}
-                        style={{ marginLeft: "2%" }}
-                      >
-                        save
-                      </button>
-                    )}
-                    <ul
-                      style={{
-                        backgroundColor: (empty || empty3) && "mistyrose",
-                      }}
-                    >
-                      <li>
-                        <small style={{ marginLeft: 0 }}>
-                          <label>Code : </label>
-                          <input
-                            type="text"
-                            name="bb_code"
-                            value={b?.bb_code || ""}
-                            onChange={(e) => StrChanged(e, b.idx)}
-                          />
-
-                          <label>Approved on: </label>
-                          <input
-                            type="date"
-                            name="bb_op_at_"
-                            value={b?.bb_op_at_ || ""}
-                            onChange={(e) => StrChanged(e, b.idx)}
-                          />
-
-                          <label>Bank : </label>
-                          <select
-                            name="bb_bank"
-                            value={b?.bb_bank || 0}
-                            onChange={(e) => NumChanged(e, b.idx)}
-                          >
-                            <option value={0}></option>
-                            {banks.map((bk) => (
-                              <option key={bk.id} value={bk.id}>
-                                {bk.customer_name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <label>Refunded : </label>
-                          <input
-                            name="bbtemp"
-                            type="checkbox"
-                            checked={b?.bbtemp === 3 || false}
-                            onChange={(e) => RefChanged(e, b.idx)}
-                          />
-                          {b?.bbtemp === 3 && (
-                            <>
-                              <br />
-                              <br />
-                              <label>Refunded on : </label>
+                    return (
+                      <li key={b.idx}>
+                        <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                          {displayID(b.created_at_x, b.id)}
+                        </Link>
+                        <small>
+                          <b> {b.customer_name}</b>
+                        </small>
+                        <small>
+                          {" "}
+                          {`${b?.reference || b?.contact_p || ""}${
+                            b?.unq_name ? ` ( ${b.unq_name} )` : ""
+                          }`}
+                        </small>
+                        <small>{toLKR(b.bb_amount)}</small>
+                        {!empty &&
+                          !empty3 &&
+                          b.samp_pp === "x" &&
+                          userAuditL2 && (
+                            <button
+                              onClick={() => SubmitStage2(b)}
+                              style={{ marginLeft: "2%" }}
+                            >
+                              save
+                            </button>
+                          )}
+                        <ul
+                          style={{
+                            backgroundColor: (empty || empty3) && "mistyrose",
+                          }}
+                        >
+                          <li>
+                            <small style={{ marginLeft: 0 }}>
+                              <label>Code : </label>
                               <input
-                                type="date"
-                                name="bb_ref_at_"
-                                value={b?.bb_ref_at_ || ""}
+                                type="text"
+                                name="bb_code"
+                                value={b?.bb_code || ""}
                                 onChange={(e) => StrChanged(e, b.idx)}
                               />
 
-                              <label>Amount : </label>
-                              <Num
-                                min={0}
-                                max={b.bb_amount}
-                                name="bb_ref"
-                                setTo={b?.bb_ref}
-                                deci={2}
-                                changed={(e) => NumChanged(e, b.idx)}
-                              />
-                            </>
-                          )}
-                        </small>
-                      </li>
-                    </ul>
-                  </li>
-                );
-              })}
-          </ul>
-        )}
-      </div>
-
-      <div className="framed jb">
-        <h4>Refunded</h4>
-        {loading ? (
-          "loading"
-        ) : (
-          <ul>
-            {bbDB
-              .filter((b) => b.bb === 3)
-              .map((b) => {
-                const empty = !b.bb_code || !b.bb_op_at_ || !b.bb_bank;
-                const empty3 = b.bbtemp === 3 && (!b.bb_ref_at_ || !b.bb_ref);
-                ///////
-
-                return (
-                  <li key={b.idx}>
-                    <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
-                      {displayID(b.created_at_x, b.id)}
-                    </Link>
-                    <small>
-                      <b> {b.customer_name}</b>
-                    </small>
-                    <small>
-                      {`${b?.reference || b?.contact_p || ""}${
-                        b?.unq_name ? ` ( ${b.unq_name} )` : ""
-                      }`}
-                    </small>
-                    <small>{toLKR(b.bb_amount)}</small>
-
-                    <ul
-                      style={{
-                        backgroundColor: (empty || empty3) && "mistyrose",
-                      }}
-                    >
-                      <li>
-                        <small style={{ marginLeft: 0 }}>
-                          <label>Code : </label>
-                          <input
-                            type="text"
-                            name="bb_code"
-                            value={b?.bb_code || ""}
-                            onChange={(e) => StrChanged(e, b.idx)}
-                          />
-
-                          <label>Approved on: </label>
-                          <input
-                            type="date"
-                            name="bb_op_at_"
-                            value={b?.bb_op_at_ || ""}
-                            onChange={(e) => StrChanged(e, b.idx)}
-                          />
-
-                          <label>Bank : </label>
-                          <select
-                            name="bb_bank"
-                            value={b?.bb_bank || 0}
-                            onChange={(e) => NumChanged(e, b.idx)}
-                          >
-                            <option value={0}></option>
-                            {banks.map((bk) => (
-                              <option key={bk.id} value={bk.id}>
-                                {bk.customer_name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <label>Refunded : </label>
-                          <input
-                            name="bbtemp"
-                            type="checkbox"
-                            checked={b?.bb === 3 || false}
-                            onChange={(e) => RefChanged(e, b.idx)}
-                          />
-                          {b?.bb === 3 && (
-                            <>
-                              <label>Refunded on : </label>
+                              <label>Approved on: </label>
                               <input
                                 type="date"
-                                name="bb_ref_at_"
-                                value={b?.bb_ref_at_ || ""}
+                                name="bb_op_at_"
+                                value={b?.bb_op_at_ || ""}
                                 onChange={(e) => StrChanged(e, b.idx)}
                               />
 
-                              <label>Amount : </label>
-                              <Num
-                                min={0}
-                                max={b.bb_amount}
-                                name="bb_ref"
-                                setTo={b?.bb_ref}
-                                deci={2}
-                                changed={(e) => NumChanged(e, b.idx)}
+                              <label>Bank : </label>
+                              <select
+                                name="bb_bank"
+                                value={b?.bb_bank || 0}
+                                onChange={(e) => NumChanged(e, b.idx)}
+                              >
+                                <option value={0}></option>
+                                {banks.map((bk) => (
+                                  <option key={bk.id} value={bk.id}>
+                                    {bk.customer_name}
+                                  </option>
+                                ))}
+                              </select>
+
+                              <label>Refunded : </label>
+                              <input
+                                name="bbtemp"
+                                type="checkbox"
+                                checked={b?.bbtemp === 3 || false}
+                                onChange={(e) => RefChanged(e, b.idx)}
                               />
-                            </>
-                          )}
-                        </small>
+                              {b?.bbtemp === 3 && (
+                                <>
+                                  <br />
+                                  <br />
+                                  <label>Refunded on : </label>
+                                  <input
+                                    type="date"
+                                    name="bb_ref_at_"
+                                    value={b?.bb_ref_at_ || ""}
+                                    onChange={(e) => StrChanged(e, b.idx)}
+                                  />
+
+                                  <label>Amount : </label>
+                                  <Num
+                                    min={0}
+                                    max={b.bb_amount}
+                                    name="bb_ref"
+                                    setTo={b?.bb_ref}
+                                    deci={2}
+                                    changed={(e) => NumChanged(e, b.idx)}
+                                  />
+                                </>
+                              )}
+                            </small>
+                          </li>
+                        </ul>
                       </li>
-                    </ul>
-                  </li>
-                );
-              })}
-          </ul>
-        )}
-      </div>
-    </>
+                    );
+                  })}
+              </ul>
+            )}
+          </div>
+
+          <div className="framed jb">
+            <h4>Refunded</h4>
+            {loading ? (
+              "loading"
+            ) : (
+              <ul>
+                {bbDB
+                  .filter((b) => b.bb === 3)
+                  .map((b) => {
+                    const empty = !b.bb_code || !b.bb_op_at_ || !b.bb_bank;
+                    const empty3 =
+                      b.bbtemp === 3 && (!b.bb_ref_at_ || !b.bb_ref);
+                    ///////
+
+                    return (
+                      <li key={b.idx}>
+                        <Link to={`/jobs/${encodeURIComponent(b.id)}`}>
+                          {displayID(b.created_at_x, b.id)}
+                        </Link>
+                        <small>
+                          <b> {b.customer_name}</b>
+                        </small>
+                        <small>
+                          {`${b?.reference || b?.contact_p || ""}${
+                            b?.unq_name ? ` ( ${b.unq_name} )` : ""
+                          }`}
+                        </small>
+                        <small>{toLKR(b.bb_amount)}</small>
+
+                        <ul
+                          style={{
+                            backgroundColor: (empty || empty3) && "mistyrose",
+                          }}
+                        >
+                          <li>
+                            <small style={{ marginLeft: 0 }}>
+                              <label>Code : </label>
+                              <input
+                                type="text"
+                                name="bb_code"
+                                value={b?.bb_code || ""}
+                                onChange={(e) => StrChanged(e, b.idx)}
+                              />
+
+                              <label>Approved on: </label>
+                              <input
+                                type="date"
+                                name="bb_op_at_"
+                                value={b?.bb_op_at_ || ""}
+                                onChange={(e) => StrChanged(e, b.idx)}
+                              />
+
+                              <label>Bank : </label>
+                              <select
+                                name="bb_bank"
+                                value={b?.bb_bank || 0}
+                                onChange={(e) => NumChanged(e, b.idx)}
+                              >
+                                <option value={0}></option>
+                                {banks.map((bk) => (
+                                  <option key={bk.id} value={bk.id}>
+                                    {bk.customer_name}
+                                  </option>
+                                ))}
+                              </select>
+
+                              <label>Refunded : </label>
+                              <input
+                                name="bbtemp"
+                                type="checkbox"
+                                checked={b?.bb === 3 || false}
+                                onChange={(e) => RefChanged(e, b.idx)}
+                              />
+                              {b?.bb === 3 && (
+                                <>
+                                  <label>Refunded on : </label>
+                                  <input
+                                    type="date"
+                                    name="bb_ref_at_"
+                                    value={b?.bb_ref_at_ || ""}
+                                    onChange={(e) => StrChanged(e, b.idx)}
+                                  />
+
+                                  <label>Amount : </label>
+                                  <Num
+                                    min={0}
+                                    max={b.bb_amount}
+                                    name="bb_ref"
+                                    setTo={b?.bb_ref}
+                                    deci={2}
+                                    changed={(e) => NumChanged(e, b.idx)}
+                                  />
+                                </>
+                              )}
+                            </small>
+                          </li>
+                        </ul>
+                      </li>
+                    );
+                  })}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

@@ -44,106 +44,115 @@ export default function BidBond({ user }) {
   }
 
   return (
-    <>
-      <h2>LEDGER</h2>
-      <div className="framed jb">
-        <Link
-          onClick={() => {
-            setShowAddAcc((p) => !p);
-            setAccForm([]);
-          }}
-        >
-          {showAddAcc ? "Cancle" : "Add New Account"}
-        </Link>
-        {showAddAcc && (
-          <>
-            <br />
-            <br />
-            <label>Name : </label>
-            <input
-              type="text"
-              name="name"
-              value={accForm.name || ""}
-              onChange={ChangeAddAcc}
-            />
-            <label>Holder : </label>
-            <input
-              type="text"
-              name="holder"
-              value={accForm.holder || ""}
-              onChange={ChangeAddAcc}
-            />
-
-            <label>Institute : </label>
-            <select
-              name="institute"
-              value={accForm.institute || ""}
-              onChange={ChangeAddAcc}
+    <div>
+      {user?.loggedIn && (
+        <>
+          <h2>LEDGER</h2>
+          <div className="framed jb">
+            <Link
+              onClick={() => {
+                setShowAddAcc((p) => !p);
+                setAccForm([]);
+              }}
             >
-              {[
-                "",
-                "Nimthara Printers",
-                "Sampath Bank",
-                "Peoples Bank",
-                "Commercial Bank",
-              ].map((opt, i) => (
-                <option key={i} value={opt}>
-                  {opt}
-                </option>
+              {showAddAcc ? "Cancle" : "Add New Account"}
+            </Link>
+            {showAddAcc && (
+              <>
+                <br />
+                <br />
+                <label>Name : </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={accForm.name || ""}
+                  onChange={ChangeAddAcc}
+                />
+                <label>Holder : </label>
+                <input
+                  type="text"
+                  name="holder"
+                  value={accForm.holder || ""}
+                  onChange={ChangeAddAcc}
+                />
+
+                <label>Institute : </label>
+                <select
+                  name="institute"
+                  value={accForm.institute || ""}
+                  onChange={ChangeAddAcc}
+                >
+                  {[
+                    "",
+                    "Nimthara Printers",
+                    "Sampath Bank",
+                    "Peoples Bank",
+                    "Commercial Bank",
+                  ].map((opt, i) => (
+                    <option key={i} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+
+                <label>Type : </label>
+                <select
+                  name="type"
+                  value={accForm.type || ""}
+                  onChange={ChangeAddAcc}
+                >
+                  {[
+                    "",
+                    "Asset",
+                    "Liability",
+                    "Equity",
+                    "Income",
+                    "Expense",
+                  ].map((opt, i) => (
+                    <option key={i} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+                {accForm.type &&
+                  accForm.name &&
+                  user.loggedIn &&
+                  user.level_audit > 2 &&
+                  !loading && (
+                    <>
+                      <br />
+                      <br />
+                      <button onClick={AddAcc}>add</button>
+                    </>
+                  )}
+                <br />
+                <br />
+              </>
+            )}
+          </div>
+          <div className="framed jb">
+            <label>Account : </label>
+            <select>
+              <option></option>
+              {allAccounts.map((a) => (
+                <option key={a.id} value={a.id}>{`${a?.institute || ""} ${
+                  a?.name || ""
+                } ( ${a?.holder || ""} ) `}</option>
               ))}
             </select>
-
-            <label>Type : </label>
-            <select
-              name="type"
-              value={accForm.type || ""}
-              onChange={ChangeAddAcc}
-            >
-              {["", "Asset", "Liability", "Equity", "Income", "Expense"].map(
-                (opt, i) => (
-                  <option key={i} value={opt}>
-                    {opt}
-                  </option>
-                )
-              )}
-            </select>
-            {accForm.type &&
-              accForm.name &&
-              user.loggedIn &&
-              user.level_audit > 2 &&
-              !loading && (
-                <>
-                  <br />
-                  <br />
-                  <button onClick={AddAcc}>add</button>
-                </>
-              )}
-            <br />
-            <br />
-          </>
-        )}
-      </div>
-      <div className="framed jb">
-        <label>Account : </label>
-        <select>
-          <option></option>
-          {allAccounts.map((a) => (
-            <option key={a.id} value={a.id}>{`${a?.institute || ""} ${
-              a?.name || ""
-            } ( ${a?.holder || ""} ) `}</option>
-          ))}
-        </select>
-      </div>
-      <div className="framed jb">
-        <h4>Ledger</h4>
-        {loading ? (
-          "loading"
-        ) : (
-          <ul>
-            <li>hi</li>
-          </ul>
-        )}
-      </div>
-    </>
+          </div>
+          <div className="framed jb">
+            <h4>Ledger</h4>
+            {loading ? (
+              "loading"
+            ) : (
+              <ul>
+                <li>hi</li>
+              </ul>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
