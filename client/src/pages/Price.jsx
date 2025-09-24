@@ -72,63 +72,73 @@ export default function Price({ user }) {
     fromDate.getFullYear() < 2020;
 
   return (
-    <>
-      <div className="new-division">
-        <div className="formbox">
-          {serverLoading ? (
-            "loading..........."
-          ) : (
-            <form onSubmit={newPriceRecord}>
-              <select
-                name="id"
-                value={newRecForm.id}
-                onChange={(e) => {
-                  changedNum(e);
-                  changeSelected(Number(e.target.value));
-                }}
-              >
-                <option></option>
-                {allPapersData.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {`  ${p.name} - ${p.unit_val}${
-                      p.unit === "sheets" && p.unit_val === 1 ? "sheet" : p.unit
-                    }  `}
-                  </option> //if one sheet,many sheets
-                ))}
-              </select>
-              <span className="gap3"></span>
-              <label>effects from : </label>
-              <input name="from" type="datetime-local" onChange={changedStr} />
+    <div>
+      {user?.loggedIn && (
+        <>
+          <div className="new-division">
+            <div className="formbox">
+              {serverLoading ? (
+                "loading..........."
+              ) : (
+                <form onSubmit={newPriceRecord}>
+                  <select
+                    name="id"
+                    value={newRecForm.id}
+                    onChange={(e) => {
+                      changedNum(e);
+                      changeSelected(Number(e.target.value));
+                    }}
+                  >
+                    <option></option>
+                    {allPapersData.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {`  ${p.name} - ${p.unit_val}${
+                          p.unit === "sheets" && p.unit_val === 1
+                            ? "sheet"
+                            : p.unit
+                        }  `}
+                      </option> //if one sheet,many sheets
+                    ))}
+                  </select>
+                  <span className="gap3"></span>
+                  <label>effects from : </label>
+                  <input
+                    name="from"
+                    type="datetime-local"
+                    onChange={changedStr}
+                  />
 
-              <span className="gap3">LKR </span>
-              <Num
-                width={100}
-                name="price"
-                changed={changedNum}
-                min={0}
-                max={500000}
-                deci={2}
-                setTo={newRecForm.price}
-              />
-              <span className="gap3"></span>
-              <button
-                disabled={disableBtn}
-                type="submit"
-                style={{ marginLeft: "1em" }}
-              >
-                Add New Price Record
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-      <ul>
-        {serverLoading
-          ? "loading..."
-          : selectedRecs.map((r, i) => (
-              <li key={i}>{`${r.date_} = ${toLKR(r.price)}`}</li>
-            ))}
-      </ul>
-    </>
+                  <span className="gap3">LKR </span>
+                  <Num
+                    width={100}
+                    name="price"
+                    changed={changedNum}
+                    min={0}
+                    max={500000}
+                    deci={2}
+                    setTo={newRecForm.price}
+                  />
+                  <span className="gap3"></span>
+                  <button
+                    disabled={disableBtn}
+                    type="submit"
+                    style={{ marginLeft: "1em" }}
+                  >
+                    Add New Price Record
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+          <ul>
+            {serverLoading
+              ? "loading..."
+              : selectedRecs.map((r, i) => (
+                  <li key={i}>{`${r.date_} = ${toLKR(r.price)}`}</li>
+                ))}
+          </ul>
+        </>
+      )}
+    </div>
   );
 }

@@ -234,156 +234,164 @@ export default function Job({ user }) {
       : "loading...";
 
   return (
-    <>
-      <div className="new-division">
-        <button onClick={() => navigate("/jobs")}>Back</button>
+    <div>
+      {user?.loggedIn && (
+        <>
+          <div className="new-division">
+            <button onClick={() => navigate("/jobs")}>Back</button>
 
-        <h2>{id ? `Job # ${displayID}` : "Submit a New Job"}</h2>
-      </div>
-      {/*DIV_1_/////////////////////////*/}
-      <div className="framed">
-        {loadingMainJ ? (
-          "loading..."
-        ) : (
-          <JobDiv1
-            id={id}
-            mainJDB={mainJDB}
-            allCustomers={allCustomers}
-            handleSubmit={SubmitDiv1}
-            user={user}
-            currentTime={currentTime}
-          />
-        )}
-      </div>
-      {id && (
-        <div className="framed">
-          <h3>Related Documents</h3>{" "}
-          {loadingMainJ || loadingEachJ ? (
-            "loading..."
-          ) : (
-            <Docs
-              id={id}
-              can_upload={user.level_jobs >= 2 && user.loggedIn}
-              can_delete={user.level_jobs >= 3 && user.loggedIn}
-              can_view={user.level_jobs >= 1 && user.loggedIn}
-              folder_name={"jobs"}
-              prefix={displayID}
-            />
+            <h2>{id ? `Job # ${displayID}` : "Submit a New Job"}</h2>
+          </div>
+          {/*DIV_1_/////////////////////////*/}
+          <div className="framed">
+            {loadingMainJ ? (
+              "loading..."
+            ) : (
+              <JobDiv1
+                id={id}
+                mainJDB={mainJDB}
+                allCustomers={allCustomers}
+                handleSubmit={SubmitDiv1}
+                user={user}
+                currentTime={currentTime}
+              />
+            )}
+          </div>
+          {id && (
+            <div className="framed">
+              <h3>Related Documents</h3>{" "}
+              {loadingMainJ || loadingEachJ ? (
+                "loading..."
+              ) : (
+                <Docs
+                  id={id}
+                  can_upload={user.level_jobs >= 2 && user.loggedIn}
+                  can_delete={user.level_jobs >= 3 && user.loggedIn}
+                  can_view={user.level_jobs >= 1 && user.loggedIn}
+                  folder_name={"jobs"}
+                  prefix={displayID}
+                />
+              )}
+            </div>
           )}
-        </div>
-      )}
-      {/*DIV_3_/////////////////////////*/}
-      {id && (
-        <div className="framed">
-          {loadingEachJ && loadingMainJ && "loading..."}
-          <div
-            style={{ display: loadingEachJ && loadingMainJ ? "none" : "block" }}
-          >
-            <JobDiv3
-              mainJDB={mainJDB}
-              eachJDB={eachJDB}
-              eachJXDB={eachJXDB}
-              allTotalPrices={allTotalPrices}
-              displayID={displayID}
-              handleSubmit={SubmitDiv3}
-              user={user}
-            />
-          </div>
-        </div>
-      )}
-      {/*DIV_4_/////////////////////////*/}
-      {id && (
-        <div className="framed">
-          {loadingEachJ && loadingMainJ && "loading..."}
-          <div
-            style={{ display: loadingEachJ && loadingMainJ ? "none" : "block" }}
-          >
-            <JobDiv4
-              mainJDB={mainJDB}
-              eachJDB={eachJDB}
-              eachJXDB={eachJXDB}
-              allTotalPrices={allTotalPrices}
-              displayID={displayID}
-              handleSubmit={SubmitDiv4}
-              user={user}
-            />
-          </div>
-        </div>
-      )}
-      {/*DIV_2_show_hide/////////////////////////*/}
-      {id && (
-        <div className="framed">
-          <Link
-            onClick={() =>
-              user.level_jobs > 2 && user.loggedIn && setShowQTS((p) => !p)
-            }
-            style={{
-              cursor:
-                user.level_jobs > 2 && user.loggedIn
-                  ? "pointer"
-                  : "not-allowed",
-              color: user.level_jobs > 2 && user.loggedIn ? "blue" : "gray",
-              textDecoration: "underline",
-            }}
-          >
-            {showQTS ? "Hide All Quotations" : "Show All Quotations"}
-          </Link>
-        </div>
-      )}
-      {/*DIV_2_/////////////////////////*/}
-      {id &&
-        showQTS &&
-        Array.from({ length: mainJDB.total_jobs }, (_, loopIndex) => (
-          <div key={loopIndex} className="framed">
-            <>
-              {loadingEachJ && "loading..."}
-              <div style={{ display: loadingEachJ ? "none" : "block" }}>
-                <JobDiv2
-                  qts_componants={qtsComponants || []}
-                  eachJDB={eachJDB[loopIndex] || []}
-                  allPapers={allPapers || []}
-                  handleSubmit={SubmitDiv2}
+          {/*DIV_3_/////////////////////////*/}
+          {id && (
+            <div className="framed">
+              {loadingEachJ && loadingMainJ && "loading..."}
+              <div
+                style={{
+                  display: loadingEachJ && loadingMainJ ? "none" : "block",
+                }}
+              >
+                <JobDiv3
+                  mainJDB={mainJDB}
+                  eachJDB={eachJDB}
+                  eachJXDB={eachJXDB}
+                  allTotalPrices={allTotalPrices}
                   displayID={displayID}
-                  loopIndex={loopIndex}
-                  loading={loadingEachJ}
+                  handleSubmit={SubmitDiv3}
+                  user={user}
                 />
               </div>
-            </>
-          </div>
-        ))}
-
-      {/*ACTIVITY_show_hide/////////////////////////*/}
-      {id && (
-        <div className="framed">
-          <Link
-            onClick={() =>
-              user.level_jobs > 2 && user.loggedIn && setShowACT((p) => !p)
-            }
-            style={{
-              cursor:
-                user.level_jobs > 2 && user.loggedIn
-                  ? "pointer"
-                  : "not-allowed",
-              color: user.level_jobs > 2 && user.loggedIn ? "blue" : "gray",
-              textDecoration: "underline",
-            }}
-          >
-            {showACT ? "Hide Activity" : "Show Activity"}
-          </Link>
-        </div>
-      )}
-      {/*ACTIVITY_/////////////////////////*/}
-      {id && showACT && (
-        <div className="framed jb">
-          <ul>
-            {userAct.map((a) => (
-              <li key={a?.id}>{`${a?.display_name || "unknown"} ${
-                a?.action === "in" ? "inserted" : "updated"
-              } ${a?.note3} on ${a.act_at_t}`}</li>
+            </div>
+          )}
+          {/*DIV_4_/////////////////////////*/}
+          {id && (
+            <div className="framed">
+              {loadingEachJ && loadingMainJ && "loading..."}
+              <div
+                style={{
+                  display: loadingEachJ && loadingMainJ ? "none" : "block",
+                }}
+              >
+                <JobDiv4
+                  mainJDB={mainJDB}
+                  eachJDB={eachJDB}
+                  eachJXDB={eachJXDB}
+                  allTotalPrices={allTotalPrices}
+                  displayID={displayID}
+                  handleSubmit={SubmitDiv4}
+                  user={user}
+                />
+              </div>
+            </div>
+          )}
+          {/*DIV_2_show_hide/////////////////////////*/}
+          {id && (
+            <div className="framed">
+              <Link
+                onClick={() =>
+                  user.level_jobs > 2 && user.loggedIn && setShowQTS((p) => !p)
+                }
+                style={{
+                  cursor:
+                    user.level_jobs > 2 && user.loggedIn
+                      ? "pointer"
+                      : "not-allowed",
+                  color: user.level_jobs > 2 && user.loggedIn ? "blue" : "gray",
+                  textDecoration: "underline",
+                }}
+              >
+                {showQTS ? "Hide All Quotations" : "Show All Quotations"}
+              </Link>
+            </div>
+          )}
+          {/*DIV_2_/////////////////////////*/}
+          {id &&
+            showQTS &&
+            Array.from({ length: mainJDB.total_jobs }, (_, loopIndex) => (
+              <div key={loopIndex} className="framed">
+                <>
+                  {loadingEachJ && "loading..."}
+                  <div style={{ display: loadingEachJ ? "none" : "block" }}>
+                    <JobDiv2
+                      qts_componants={qtsComponants || []}
+                      eachJDB={eachJDB[loopIndex] || []}
+                      allPapers={allPapers || []}
+                      handleSubmit={SubmitDiv2}
+                      displayID={displayID}
+                      loopIndex={loopIndex}
+                      loading={loadingEachJ}
+                    />
+                  </div>
+                </>
+              </div>
             ))}
-          </ul>
-        </div>
+
+          {/*ACTIVITY_show_hide/////////////////////////*/}
+          {id && (
+            <div className="framed">
+              <Link
+                onClick={() =>
+                  user.level_jobs > 2 && user.loggedIn && setShowACT((p) => !p)
+                }
+                style={{
+                  cursor:
+                    user.level_jobs > 2 && user.loggedIn
+                      ? "pointer"
+                      : "not-allowed",
+                  color: user.level_jobs > 2 && user.loggedIn ? "blue" : "gray",
+                  textDecoration: "underline",
+                }}
+              >
+                {showACT ? "Hide Activity" : "Show Activity"}
+              </Link>
+            </div>
+          )}
+          {/*ACTIVITY_/////////////////////////*/}
+          {id && showACT && (
+            <div className="framed jb">
+              <ul>
+                {userAct.map((a) => (
+                  <li key={a?.id}>{`${a?.display_name || "unknown"} ${
+                    a?.action === "in" ? "inserted" : "updated"
+                  } ${a?.note3} on ${a.act_at_t}`}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
-    </>
+    </div>
   );
 }

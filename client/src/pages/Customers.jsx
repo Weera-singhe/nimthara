@@ -95,143 +95,145 @@ export default function Customers({ user }) {
   }, [form_Uni]);
 
   return (
-    <>
-      <div className="new-division">
-        <div className="formbox">
-          <span
-            onClick={() => setOpertation(0)}
-            style={{
-              cursor: "pointer",
-              fontWeight: opertation ? "lighter" : "normal",
-              textDecoration: "underline",
-            }}
-          >
-            ADD
-          </span>
-          <span className="gap3"></span>
-          <span
-            onClick={() => setOpertation(1)}
-            style={{
-              cursor: "pointer",
-              fontWeight: opertation ? "normal" : "lighter",
-              textDecoration: "underline",
-            }}
-          >
-            EDIT
-          </span>
-          {serverLoading ? (
-            <>
-              <br />
-              <br />
-              loading...
-            </>
-          ) : (
-            <>
-              <br />
-              <br />
-              <div style={{ display: opertation ? "block" : "none" }}>
-                <select
-                  value={form_Edit?.id || 0}
-                  onChange={(e) =>
-                    setForm_Edit(
-                      savedCustomers.find(
-                        (c) => c.id === Number(e.target.value)
-                      )
-                    )
-                  }
-                >
-                  <option value={0}></option>
-                  {savedCustomers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.customer_name}
-                    </option>
-                  ))}
-                </select>
-                <br />
-                <br />
-              </div>
-              <form onSubmit={(e) => handleSubmit(e, form_Uni)}>
-                <label>customer name : </label>
-                <input
-                  type="text"
-                  name="customer_name"
-                  value={form_Uni?.customer_name || ""}
-                  onChange={strChanged}
-                  style={{ width: "20%" }}
-                />
-
-                <span className="gap3"></span>
-                <label>short name : </label>
-                <input
-                  type="text"
-                  name="cus_name_short"
-                  value={form_Uni?.cus_name_short || ""}
-                  onChange={strChanged}
-                  style={{ width: "10%" }}
-                />
-
-                <span className="gap3"></span>
-                <label>extra name : </label>
-                <input
-                  type="text"
-                  name="cus_name_other"
-                  value={form_Uni?.cus_name_other || ""}
-                  onChange={strChanged}
-                  style={{ width: "20%" }}
-                />
-                <br />
-                <br />
-                <label>registration required:</label>
-                <input
-                  type="checkbox"
-                  name="reg_must"
-                  checked={form_Uni?.reg_must || false}
-                  onChange={checkChanged}
-                />
-
-                <span className="gap3"></span>
-                {form_Uni?.reg_must && (
-                  <>
-                    <label>registered until:</label>
+    <div>
+      {user?.loggedIn && (
+        <>
+          <div className="new-division">
+            <div className="formbox">
+              <span
+                onClick={() => setOpertation(0)}
+                style={{
+                  cursor: "pointer",
+                  fontWeight: opertation ? "lighter" : "normal",
+                  textDecoration: "underline",
+                }}
+              >
+                ADD
+              </span>
+              <span className="gap3"></span>
+              <span
+                onClick={() => setOpertation(1)}
+                style={{
+                  cursor: "pointer",
+                  fontWeight: opertation ? "normal" : "lighter",
+                  textDecoration: "underline",
+                }}
+              >
+                EDIT
+              </span>
+              {serverLoading ? (
+                <>
+                  <br />
+                  <br />
+                  loading...
+                </>
+              ) : (
+                <>
+                  <br />
+                  <br />
+                  <div style={{ display: opertation ? "block" : "none" }}>
+                    <select
+                      value={form_Edit?.id || 0}
+                      onChange={(e) =>
+                        setForm_Edit(
+                          savedCustomers.find(
+                            (c) => c.id === Number(e.target.value)
+                          )
+                        )
+                      }
+                    >
+                      <option value={0}></option>
+                      {savedCustomers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.customer_name}
+                        </option>
+                      ))}
+                    </select>
+                    <br />
+                    <br />
+                  </div>
+                  <form onSubmit={(e) => handleSubmit(e, form_Uni)}>
+                    <label>customer name : </label>
                     <input
-                      type="date"
-                      name="reg_till_"
-                      value={form_Uni?.reg_till_ || ""}
+                      type="text"
+                      name="customer_name"
+                      value={form_Uni?.customer_name || ""}
                       onChange={strChanged}
+                      style={{ width: "20%" }}
                     />
-                  </>
-                )}
 
-                <br />
-                <br />
-                <button type="submit" disabled={disableSubmit}>
-                  {opertation ? "EDIT" : "ADD"}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      </div>
+                    <span className="gap3"></span>
+                    <label>short name : </label>
+                    <input
+                      type="text"
+                      name="cus_name_short"
+                      value={form_Uni?.cus_name_short || ""}
+                      onChange={strChanged}
+                      style={{ width: "10%" }}
+                    />
 
-      {/* Customer List */}
-      <div className="new-division">
-        {savedCustomers.map((c) => (
-          <div key={c.id}>
-            <div>
-              <div className="boxyy" style={{ width: "40%" }}>
-                {c.customer_name}{" "}
-                {c.cus_name_short && ` / ${c.cus_name_short} `}
-                {c.cus_name_other && ` ( ${c.cus_name_other} ) `}
-              </div>
-              <div className="boxyy" style={{ width: "15%" }}>
-                {!c.reg_must ? "done" : c.reg_till_ || "pending..."}
-              </div>
+                    <span className="gap3"></span>
+                    <label>extra name : </label>
+                    <input
+                      type="text"
+                      name="cus_name_other"
+                      value={form_Uni?.cus_name_other || ""}
+                      onChange={strChanged}
+                      style={{ width: "20%" }}
+                    />
+                    <br />
+                    <br />
+                    <label>registration required:</label>
+                    <input
+                      type="checkbox"
+                      name="reg_must"
+                      checked={form_Uni?.reg_must || false}
+                      onChange={checkChanged}
+                    />
+
+                    <span className="gap3"></span>
+                    {form_Uni?.reg_must && (
+                      <>
+                        <label>registered until:</label>
+                        <input
+                          type="date"
+                          name="reg_till_"
+                          value={form_Uni?.reg_till_ || ""}
+                          onChange={strChanged}
+                        />
+                      </>
+                    )}
+
+                    <br />
+                    <br />
+                    <button type="submit" disabled={disableSubmit}>
+                      {opertation ? "EDIT" : "ADD"}
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Edit Popup
+          {/* Customer List */}
+          <div className="new-division">
+            {savedCustomers.map((c) => (
+              <div key={c.id}>
+                <div>
+                  <div className="boxyy" style={{ width: "40%" }}>
+                    {c.customer_name}{" "}
+                    {c.cus_name_short && ` / ${c.cus_name_short} `}
+                    {c.cus_name_other && ` ( ${c.cus_name_other} ) `}
+                  </div>
+                  <div className="boxyy" style={{ width: "15%" }}>
+                    {!c.reg_must ? "done" : c.reg_till_ || "pending..."}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Edit Popup
       {formData_Edit && (
         <div className="backdrop" onClick={() => setFormData_Edit(null)}>
           <div className="boxyy" onClick={(e) => e.stopPropagation()}>
@@ -282,6 +284,8 @@ export default function Customers({ user }) {
           </div>
         </div>
       )} */}
-    </>
+        </>
+      )}
+    </div>
   );
 }
