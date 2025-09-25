@@ -16,18 +16,11 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
       )}
       {compID === "Plates" && (
         <>
-          <select
+          <Num
             name={name + "_0"}
-            onChange={changed}
-            value={v?.[name + "_0"] || 0}
-          >
-            <option value={0}></option>
-            <option value={1810}>Web</option>
-            <option value={2530}>SORSZ special</option>
-            <option value={2400}>Plate 24x36</option>
-            <option value={2200}>Plate 20x30</option>
-          </select>
-          <b>{toLKR(v?.[name + "_0"])}</b>
+            changed={changed}
+            setTo={v?.[name + "_0"] || 0}
+          />
           <b> x </b>
           <Num
             width={40}

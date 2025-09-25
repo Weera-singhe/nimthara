@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import Num from "../../elements/NumInput";
+//import Num from "../../elements/NumInput";
 import axios from "axios";
 import { LEDG_Audit_API_URL } from "../../api/urls";
-import { toLKR } from "../../elements/cal";
+//import { toLKR } from "../../elements/cal";
 import { Link } from "react-router-dom";
 
 export default function BidBond({ user }) {
