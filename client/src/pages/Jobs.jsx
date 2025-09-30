@@ -295,7 +295,10 @@ export default function Jobbs({ user }) {
                     </li>
                     <ul className="jblist">
                       {allJobs
-                        .filter((j) => j.total_jobs > j.dep_count)
+                        .filter(
+                          (j) =>
+                            j.total_jobs > j.dep_count && j.submit_method !== 5
+                        )
                         .sort(
                           (a, b) => new Date(a.deadline) - new Date(b.deadline)
                         )
