@@ -122,6 +122,7 @@ export default function JobDiv2Mid({ name, changed, v, compID, allPapers }) {
                 <option value={500}>500</option>
                 <option value={100}>100</option>
                 <option value={250}>250</option>
+                <option value={125}>125</option>
                 <option value={1000}>1000</option>
                 <option value={1}>1</option>
               </select>
