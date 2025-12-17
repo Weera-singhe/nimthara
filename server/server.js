@@ -30,6 +30,7 @@ app.use(
       maxAge: 1000 * 60 * 60 * 3,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      httpOnly: true, // <-- ADDED: prevent JS from reading the cookie (XSS protection)
     },
   })
 );
@@ -64,7 +65,7 @@ const date6Con = (h) => {
 const dateTimeCon = (h) => {
   return ` TO_CHAR(${h}, 'YYYY-MM-DD @ HH24:MI') AS ${h}_t`;
 };
-const dateInpCon = (h) => {
+const dateTimeInpCon = (h) => {
   return `TO_CHAR(${h}, 'YYYY-MM-DD"T"HH24:MI') AS ${h}_i`;
 };
 const dateCon = (h) => {
@@ -240,7 +241,7 @@ app.post("/add_new_paper", async (req, res) => {
 const JobsById_SQL = `
       SELECT
       *,
-      ${dateInpCon("deadline")},
+      ${dateTimeInpCon("deadline")},
       ${date6Con("created_at")},
       ${dateTimeCon("created_at")},
       ${dateCon("submit_at")}
@@ -322,128 +323,857 @@ async function JobsXByIdE(id_main, id_each) {
 }
 
 ///////////////////////////////////////////////////
+//##################################################################################
 
-app.get("/jobs", async (req, res) => {
+///###########################################################
+// ✅ ADVANCED LEVEL GUARD (NEW CODE)
+//
+
+// EXTRA SECURITY   //////////////////////////////////////////////////////
+
+function getUserID(req) {
+  return req.user?.id || null;
+}
+function requiredLogged(req, res, next) {
+  if (req.isAuthenticated?.() && req.user) return next();
+  return res.status(401).json({ error: "NotLogged" });
+}
+function requiredLevel(req, res, fieldName, minLevel) {
+  const raw = req.user?.[fieldName];
+  const lvl = Number.isInteger(raw) ? raw : Number(raw) || 0;
+
+  if (lvl < minLevel) {
+    res.status(403).json({
+      error: `Forbidden: need ${fieldName} >= ${minLevel}`,
+    });
+    return false;
+  }
+
+  return true;
+}
+
+//
+//UPLOAD      //////////////////////////////////////////////////////
+
+const GetUploadedDocs_SQL = `SELECT * FROM uploads WHERE located_id = $1`;
+
+async function GetUploadedDocs(located_id) {
+  const { rows } = await pool.query(GetUploadedDocs_SQL, [located_id]);
+  return rows || null;
+}
+app.get("/upload/:locatedid", requiredLogged, async (req, res) => {
+  const { locatedid } = req.params;
   try {
-    const { rows: jobs } = await pool.query(
-      `SELECT
-      j.*,
-      ${dateTimeCon("deadline")},
-      ${date6Con("created_at")},
-      (SELECT COUNT(*)::int FROM jobs_each je WHERE je.id_main = j.id AND je.deployed AND je.id_each <= j.total_jobs) AS dep_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.pb > 0 AND jx.id_each <= j.total_jobs) AS pb_done_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_ready_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status > 0 AND jx.id_each <= j.total_jobs) AS res_count,
-      (SELECT bb FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.id_each = 1) AS bb,
-      (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 2 AND jx.id_each <= j.total_jobs) AS inc_respub,
-      COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
-      LEFT JOIN customers c ON c.id = j.customer
-      WHERE j.private = false
-      ORDER BY j.deadline ASC`
+    const uploads = await GetUploadedDocs(locatedid);
+    res.json(uploads);
+  } catch (err) {
+    console.error("Error fetching uploaded docs:", err.message);
+    res.status(500).json({ error: "fetch failed" });
+  }
+});
+
+app.post(
+  "/upload/:locatedid",
+  requiredLogged,
+  upload.array("files"),
+  async (req, res) => {
+    const { locatedid } = req.params;
+    const folderName = req.body.folder_name || "doc";
+    const prefix = req.body.prefix;
+    const safePrefix = prefix ? `${prefix}_` : "";
+    const renamedAs = req.body?.renamedAs?.trim();
+
+    console.log(req.body);
+
+    try {
+      await Promise.all(
+        req.files.map(async (file) => {
+          const rawName =
+            renamedAs && renamedAs.length > 0 ? renamedAs : file.originalname;
+
+          const baseName = rawName.replace(/\.[^/.]+$/, "");
+
+          const publicId = `${safePrefix}${baseName}_${Date.now()}`;
+
+          const uploadResult = await cloudinary.uploader.upload(file.path, {
+            folder: folderName,
+            resource_type: "auto",
+            public_id: publicId,
+          });
+
+          try {
+            await fs.unlink(file.path); // safely clean up temp file
+          } catch (err) {
+            console.warn("Temp file deletion failed:", file.path, err.message);
+          }
+
+          await pool.query(
+            `INSERT INTO uploads (located_id, filename, url, public_id, format)
+           VALUES ($1, $2, $3, $4, $5)`,
+            [
+              locatedid,
+              safePrefix + baseName,
+              uploadResult.secure_url,
+              uploadResult.public_id,
+              uploadResult.format,
+            ]
+          );
+        })
+      );
+      const uploads = await GetUploadedDocs(locatedid);
+      res.json({ success: true, uploads });
+    } catch (err) {
+      console.error("Upload failed:", err.message);
+      res.status(500).json({ error: "upload failed" });
+    }
+  }
+);
+
+app.delete("/upload/:doc_id", requiredLogged, async (req, res) => {
+  const { doc_id } = req.params;
+
+  if (!requiredLevel(req, res, "level", 3)) return;
+  try {
+    const {
+      rows: [upload],
+    } = await pool.query(
+      `
+      SELECT doc_id, public_id, located_id
+      FROM uploads
+      WHERE doc_id = $1
+      `,
+      [doc_id]
     );
-    const { rows: qualified } = await pool.query(
-      `SELECT je.*, j.*, c.*, jx.*,
-        ${date6Con("j_created_at")},
-        ${dateCon("deadline_dl")}
-        FROM jobs_each je
-        JOIN (SELECT j.*, j.created_at AS j_created_at FROM jobs j) j ON j.id = je.id_main
-        JOIN jobs_eachx jx ON jx.id_main = je.id_main and jx.id_each=je.id_each
-        JOIN customers c ON c.id = j.customer
-        WHERE j.private = false
-        AND je.j_status > 0
-        ORDER BY j.deadline ASC`
+
+    if (!upload) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    await cloudinary.uploader.destroy(upload.public_id);
+    await pool.query("DELETE FROM uploads WHERE doc_id = $1", [upload.doc_id]);
+
+    const uploads = await GetUploadedDocs(upload.located_id);
+
+    res.json({ success: true, uploads });
+  } catch (err) {
+    console.error("Delete failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//#######################################################################################
+
+app.get("/jobs", requiredLogged, async (req, res) => {
+  try {
+    const { rows: allJobFiles } = await pool.query(
+      `
+      SELECT
+        jf.*,
+        cs.cus_name_short,
+        cs.customer_name
+      FROM job_files jf
+      JOIN customers cs
+        ON cs.id = jf.customer_id
+      WHERE jf.hide_file = FALSE
+      `
     );
-    console.log(qualified);
-    res.json({ jobs, qualified });
+    const { rows: allJobs } = await pool.query(
+      `
+      SELECT
+        jj.*,
+        jf.*,
+        cs.cus_name_short,
+        cs.customer_name
+      FROM job_jobs     AS jj
+      JOIN job_files    AS jf
+        ON jf.file_id   = jj.jobfile_id
+      AND jf.hide_file = FALSE
+      JOIN customers    AS cs
+        ON cs.id        = jf.customer_id
+      WHERE jj.hide_job = FALSE 
+      AND jj.job_index <= jf.jobs_count
+      `
+    );
+    res.json({ allJobFiles, allJobs });
   } catch (err) {
     res.status(500).send("Error");
   }
 });
 
-app.get("/jobs/:id", async (req, res) => {
+const GetJobFile_SQL = `
+      SELECT
+      *,
+      ${dateTimeInpCon("bid_deadline")}
+      FROM job_files
+      WHERE file_id = $1 AND hide_file = false`;
+
+async function GetJobFile(id) {
+  const { rows } = await pool.query(GetJobFile_SQL, [id]);
+  return rows[0] || null;
+}
+const GetJobsUnderFile_SQL = `
+      SELECT jj.*
+      FROM job_jobs jj
+      JOIN job_files jf
+        ON jf.file_id = jj.jobfile_id
+      WHERE jj.jobfile_id = $1
+        AND jf.hide_file = false
+        AND jj.hide_job = false
+        AND jj.job_index <= jf.jobs_count
+      `;
+
+async function GetJobsUnderFile(id) {
+  const { rows } = await pool.query(GetJobsUnderFile_SQL, [id]);
+  return rows || null;
+}
+
+app.get("/jobs/file/:fileid", requiredLogged, async (req, res) => {
   try {
-    const { id } = req.params;
+    const { fileid } = req.params;
+    const customers = await GetCustomers();
 
-    const cus = await GetCustomers();
-
-    if (id === "add") {
-      return res.json({ cus });
+    if (fileid === "new") {
+      return res.json({ customers });
     }
 
-    //   continue if no a add ...........
-    //main
-    const mainJobData = await JobsById(id);
+    const thisJobFile = await GetJobFile(fileid);
+    const theseJobs = await GetJobsUnderFile(fileid);
 
-    //saved each
-    const savedEachJob = await JobsEByIdM(id);
-
-    //saved eachxtra
-    const savedEachXJ = await JobsXByIdM(id);
-
-    //qts componants
-    const getQtsComp = await pool.query(
-      `SELECT * FROM jobs_qts ORDER BY id ASC `
-    );
-    const qtsComps = getQtsComp.rows;
-
-    const getActivity = await pool.query(
-      `SELECT 
-      user_act.*, 
-      u.display_name,
-      ${dateTimeCon("act_at")} 
-      FROM user_act 
-      LEFT JOIN users u ON user_act.act_user =  u.id
-      WHERE note1 = '${id}' ORDER BY act_at DESC`
-    );
-    const activity_ = getActivity.rows;
-
-    const loop_count = {};
-    const v = {};
-    const notes_other = {};
-
-    for (const row of qtsComps) {
-      const { name, def_loop_count, def_v, max } = row;
-      loop_count[name] = def_loop_count;
-
-      for (let i = 0; i < max; i++) {
-        for (let j = 0; j < def_v.length; j++) {
-          const key = `${name}_${i}_${j}`;
-          v[key] = def_v[j];
-        }
-      }
-
-      if (name === "Other") {
-        for (let i = 0; i < max; i++) {
-          notes_other[`Other_${i}`] = "";
-        }
-      }
-    }
-    const qtsDefJsons = { loop_count, v, notes_other };
-
-    //all paper data
-    const allPapers = await GetPapersFullData();
-    const getAct = await GetJobsAct(id);
-
-    ////////
-    res.json({
-      cus,
-      mainJobData,
-      savedEachJob,
-      savedEachXJ,
-      qtsDefJsons,
-      qtsComps,
-      allPapers,
-      getAct,
-      activity_,
-    });
+    return res.json({ customers, thisJobFile, theseJobs });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).send("Error");
   }
 });
 
-app.post("/jobs/div1", requireAuth, async (req, res) => {
+app.post("/jobs/file/form1", requiredLogged, async (req, res) => {
+  try {
+    const {
+      fileid,
+      customer_id,
+      file_name,
+      doc_name,
+      bid_deadline_i,
+      jobs_count,
+      bidbond,
+    } = req.body;
+
+    const user_id = getUserID(req);
+    const safeJobsCount = Number(jobs_count) || 1;
+    const bb_status = Number(bidbond?.status) || 0;
+
+    const beforeUpdate = await GetJobFile(fileid);
+    const bbStsBefore = Number(beforeUpdate?.bidbond?.status) || 0;
+
+    if (fileid) {
+      if (!requiredLevel(req, res, "level_jobs", 3)) return;
+
+      /////////////////////////////////
+
+      if (bbStsBefore > 1 && bb_status <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid  bidbond status`,
+        });
+      }
+
+      ////////////////////////////////////
+
+      const {
+        rows: [afterUpdate],
+      } = await pool.query(
+        `
+        UPDATE job_files SET 
+          customer_id = $1,
+          file_name   = $2, 
+          doc_name    = $3, 
+          bid_deadline = $4,
+          jobs_count  = $5,
+          bidbond =  jsonb_set(COALESCE(bidbond, '{}'::jsonb), '{status}', to_jsonb($6::int), true)
+        WHERE file_id = $7 AND $5 >= jobs_count   
+        RETURNING *
+        `,
+        [
+          customer_id,
+          file_name,
+          doc_name,
+          bid_deadline_i,
+          safeJobsCount,
+          bb_status,
+          fileid,
+        ]
+      );
+
+      const { old_v, new_v, add_v, del_v, chan_v } = WhatHappend(
+        beforeUpdate,
+        afterUpdate
+      );
+
+      await RecActivity(
+        user_id,
+        "up",
+        old_v,
+        new_v,
+        chan_v,
+        add_v,
+        del_v,
+        "/jobs/div1",
+        fileid,
+        null,
+        "jbd1",
+        null,
+        "jobs"
+      );
+
+      const thisJobFile = await GetJobFile(fileid);
+      res.status(200).json({ success: true, thisJobFile });
+    } else {
+      if (!requiredLevel(req, res, "level_jobs", 1)) return;
+      const {
+        rows: [afterInsert],
+      } = await pool.query(
+        `INSERT INTO job_files 
+        (
+          customer_id,
+          file_name,
+          doc_name, 
+          bid_deadline,
+          jobs_count,
+          bidbond,
+          created_user
+        ) 
+        VALUES (
+          $1, $2, $3, $4, $5,
+          jsonb_set('{}'::jsonb,'{status}', to_jsonb($6::int), true), 
+          $7
+        )
+        RETURNING file_id`,
+        [
+          customer_id,
+          file_name,
+          doc_name,
+          bid_deadline_i,
+          safeJobsCount,
+          bb_status,
+          user_id,
+        ]
+      );
+      const load_this_id = afterInsert.file_id;
+      await RecActivity(
+        user_id,
+        "in",
+        {},
+        req.body,
+        [],
+        [],
+        [],
+        "/jobs/div1",
+        load_this_id,
+        null,
+        "jbd1",
+        null,
+        "jobs"
+      );
+
+      res.status(200).json({ success: true, load_this_id });
+    }
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+
+app.post("/jobs/file/form2", requiredLogged, async (req, res) => {
+  try {
+    const { method, when, to, by, reason, fileid } = req.body;
+
+    console.log("1");
+    const safeBidSubMeth = Number(method) || 0;
+    const user_id = getUserID(req);
+    console.log("form2");
+    console.log("user ", user_id);
+    console.log("reqbody ", req.body);
+
+    if (!requiredLevel(req, res, "level_jobs", 1)) return;
+    console.log("2");
+
+    const { rows: rowsBefore } = await pool.query(
+      "SELECT bid_submit FROM job_files WHERE file_id = $1",
+      [fileid]
+    );
+
+    console.log("32");
+    const beforeUpdate = rowsBefore[0];
+
+    console.log("33");
+    const bidSubMethBefore = Number(beforeUpdate?.bid_submit?.method) || 0;
+
+    console.log("3");
+    if (bidSubMethBefore !== 0 && bidSubMethBefore !== safeBidSubMeth) {
+      return res.status(400).json({
+        success: false,
+        message: `cannot change submit method`,
+      });
+    }
+
+    console.log("4");
+    const { rows: rowsAfter, rowCount: rowCountAfter } = await pool.query(
+      `   
+    UPDATE job_files
+    SET bid_submit =
+      COALESCE(bid_submit, '{}'::jsonb) ||
+      jsonb_build_object(
+        'method', $1::int,
+        'when',   $2::text,
+        'to',     $3::text,
+        'by',     $4::text,
+        'reason', $5::text
+      )
+    WHERE file_id = $6
+    RETURNING bid_submit  
+  `,
+      [safeBidSubMeth, when, to, by, reason, fileid]
+    );
+
+    console.log("5");
+    // CHANGED: rows is an array, take first row as afterUpdate
+    const [afterUpdate] = rowsAfter;
+    if (rowCountAfter > 0) {
+      const { old_v, new_v, add_v, del_v, chan_v } = WhatHappend(
+        beforeUpdate,
+        afterUpdate
+      );
+      console.log("old_v", old_v);
+      console.log("new_v", new_v);
+      console.log("chan_v", chan_v);
+    }
+
+    const thisJobFile = await GetJobFile(fileid);
+    console.log("thisjobfile - ", thisJobFile);
+    res.status(200).json({ success: true, thisJobFile });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+
+const GetJobJob_SQL = `
+      SELECT
+    jj.*,
+    jf.*,
+    cs.cus_name_short,
+    cs.customer_name
+FROM job_files AS jf
+LEFT JOIN job_jobs AS jj
+       ON jj.jobfile_id = jf.file_id
+      AND jj.job_index  = $2
+      AND jj.hide_job   = FALSE
+JOIN customers AS cs
+     ON cs.id = jf.customer_id
+WHERE jf.file_id   = $1
+  AND jf.hide_file = FALSE
+  AND $2 <= jf.jobs_count;
+
+      `;
+
+async function GetJobJob(fileid, jobindex) {
+  const { rows } = await pool.query(GetJobJob_SQL, [fileid, jobindex]);
+  return rows[0] || null;
+}
+
+app.get("/jobs/job/:fileid/:jobindex", requiredLogged, async (req, res) => {
+  try {
+    const { fileid, jobindex } = req.params;
+    const thisJob = await GetJobJob(fileid, jobindex);
+    // console.log(fileid, "_ _", jobindex);
+    // console.log({ thisJob });
+    //qts componants
+    const getQtsComp = await pool.query(
+      `SELECT * FROM jobs_qts ORDER BY id ASC `
+    );
+    const qtsComps = getQtsComp.rows;
+    return res.json({ thisJob, qtsComps });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).send("Error");
+  }
+});
+app.post("/jobs/job/form1", requiredLogged, async (req, res) => {
+  try {
+    const { job_code, job_name, jobindex, fileid } = req.body;
+
+    const user_id = getUserID(req);
+    console.log("form1");
+    console.log("user ", user_id);
+    console.log("reqbody ", req.body);
+
+    // minimum for ANY change (insert needs 1+)
+    if (!requiredLevel(req, res, "level_jobs", 1)) return;
+
+    // check if row exists
+    const beforeRes = await pool.query(
+      "SELECT job_code, job_name FROM job_jobs WHERE jobfile_id = $1 AND job_index = $2",
+      [fileid, jobindex]
+    );
+
+    const beforeUpdate = beforeRes.rows[0]; // undefined if not exists
+    const exists = beforeRes.rowCount > 0;
+
+    let afterUpdate;
+
+    if (exists) {
+      // update requires 2+
+      if (!requiredLevel(req, res, "level_jobs", 2)) return;
+
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET job_code = $1,
+            job_name = $2
+        WHERE jobfile_id = $3
+          AND job_index  = $4
+        RETURNING job_code, job_name
+        `,
+        [job_code, job_name, fileid, jobindex]
+      );
+
+      afterUpdate = updRes.rows[0];
+    } else {
+      // insert allowed for 1+ (already checked)
+      const insRes = await pool.query(
+        `
+        INSERT INTO job_jobs (jobfile_id, job_index, job_code, job_name)
+        VALUES ($1, $2, $3, $4)
+        RETURNING job_code, job_name
+        `,
+        [fileid, jobindex, job_code, job_name]
+      );
+
+      afterUpdate = insRes.rows[0];
+    }
+
+    const thisJob = await GetJobJob(fileid, jobindex);
+    res.status(200).json({
+      success: true,
+      action: exists ? "updated" : "inserted",
+      thisJob,
+    });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
+  try {
+    const { job_status, jobindex, fileid, tabV } = req.body;
+
+    const user_id = getUserID(req);
+    console.log("form2");
+    console.log("user ", user_id);
+    console.log("reqbody ", req.body);
+
+    // minimum for ANY change (insert needs 1+)
+    if (!requiredLevel(req, res, "level_jobs", 1)) return;
+    const tab = Number(tabV) || 0;
+
+    const beforeUpdate = await GetJobJob(fileid, jobindex);
+    const jobStatusBefore = Number(beforeUpdate?.job_status) || 0;
+    const jobStatusNow = Number(job_status) || 0;
+
+    // stop if status is not increasing
+    if (jobStatusNow < jobStatusBefore) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid job_status`,
+      });
+    }
+    const bidSubMethod = Number(beforeUpdate?.bid_submit?.method) || 0;
+
+    if (tab === 0) {
+      const { sampleTemp } = req.body;
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET sample = $1
+        WHERE jobfile_id = $2
+          AND job_index  = $3
+        RETURNING *
+        `,
+        [sampleTemp, fileid, jobindex]
+      );
+
+      const afterUpdate = updRes.rows[0];
+    } else if (![1, 2, 3, 4].includes(bidSubMethod)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid job_status" });
+    }
+    if (tab === 1 && jobStatusNow) {
+      const { po, delivery } = req.body;
+
+      const poStatusBefore = Number(beforeUpdate?.po?.status) || 0;
+      const poStatusNow = Number(po?.status) || 0;
+
+      if (poStatusBefore === 2 && poStatusNow !== 2) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid  po status`,
+        });
+      }
+
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET 
+        job_status = $1,
+        po = $2,
+        delivery = $3
+        WHERE jobfile_id = $4
+          AND job_index  = $5
+        RETURNING *
+        `,
+        [jobStatusNow, po, delivery, fileid, jobindex]
+      );
+
+      const afterUpdate = updRes.rows[0];
+    }
+    if (tab === 2 && jobStatusNow) {
+      const { perfbond, proof, artwork, job_info } = req.body;
+
+      const pbStatusBefore = Number(beforeUpdate?.perfbond?.status) || 0;
+      const pbStatusNow = Number(perfbond?.status) || 0;
+
+      if (pbStatusBefore > 1 && pbStatusNow <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid  performance bond status`,
+        });
+      }
+      if (
+        jobStatusNow >= 2 &&
+        (!artwork?.status || !proof?.status || !job_info?.start_at)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `missing info`,
+        });
+      }
+
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET 
+        perfbond = $1,
+        proof = $2,
+        artwork = $3,
+        job_status = $4,
+        job_info = $5
+        WHERE jobfile_id = $6
+          AND job_index  = $7
+        RETURNING *
+        `,
+        [perfbond, proof, artwork, jobStatusNow, job_info, fileid, jobindex]
+      );
+
+      const afterUpdate = updRes.rows[0];
+    }
+    if (tab === 3 && jobStatusNow > 1) {
+      const { job_info } = req.body;
+
+      if (jobStatusNow >= 3 && !job_info?.finish_at) {
+        return res.status(400).json({
+          success: false,
+          message: `missing info`,
+        });
+      }
+
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET 
+        job_status = $1,
+        job_info = $2
+        WHERE jobfile_id = $3
+          AND job_index  = $4
+        RETURNING *
+        `,
+        [jobStatusNow, job_info, fileid, jobindex]
+      );
+
+      const afterUpdate = updRes.rows[0];
+    }
+
+    if (tab === 4 && jobStatusNow > 1) {
+      const { delivery } = req.body;
+
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET 
+        job_status = $1,
+        delivery = $2
+        WHERE jobfile_id = $3
+          AND job_index  = $4
+        RETURNING *
+        `,
+        [jobStatusNow, delivery, fileid, jobindex]
+      );
+
+      const afterUpdate = updRes.rows[0];
+    }
+
+    if (tab === 5 && jobStatusNow >= 3) {
+      const { job_payment } = req.body;
+
+      const updRes = await pool.query(
+        `
+        UPDATE job_jobs
+        SET 
+        job_payment = $1
+        WHERE jobfile_id = $2
+          AND job_index  = $3
+        RETURNING *
+        `,
+        [job_payment, fileid, jobindex]
+      );
+
+      const afterUpdate = updRes.rows[0];
+    }
+
+    const thisJob = await GetJobJob(fileid, jobindex);
+    res.status(200).json({
+      success: true,
+      thisJob,
+    });
+  } catch (err) {
+    console.error("DB Error:", err.message);
+    res.status(500).send("Error saving job");
+  }
+});
+
+///###########################################################
+
+// app.get("/jobs", async (req, res) => {
+//   try {
+//     const { rows: jobs } = await pool.query(
+//       `SELECT
+//       j.*,
+//       ${dateTimeCon("deadline")},
+//       ${date6Con("created_at")},
+//       (SELECT COUNT(*)::int FROM jobs_each je WHERE je.id_main = j.id AND je.deployed AND je.id_each <= j.total_jobs) AS dep_count,
+//       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.pb > 0 AND jx.id_each <= j.total_jobs) AS pb_done_count,
+//       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 0 AND jx.id_each <= j.total_jobs) AS spp_ready_count,
+//       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.samp_pp > 1 AND jx.id_each <= j.total_jobs) AS spp_approved_count,
+//       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status > 0 AND jx.id_each <= j.total_jobs) AS res_count,
+//       (SELECT bb FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.id_each = 1) AS bb,
+//       (SELECT COUNT(*)::int FROM jobs_eachx jx WHERE jx.id_main = j.id AND jx.res_status = 2 AND jx.id_each <= j.total_jobs) AS inc_respub,
+//       COALESCE(NULLIF(c.cus_name_short, ''), c.customer_name) AS customer_name FROM jobs j
+//       LEFT JOIN customers c ON c.id = j.customer
+//       WHERE j.private = false
+//       ORDER BY j.deadline ASC`
+//     );
+//     const { rows: qualified } = await pool.query(
+//       `SELECT je.*, j.*, c.*, jx.*,
+//         ${date6Con("j_created_at")},
+//         ${dateCon("deadline_dl")}
+//         FROM jobs_each je
+//         JOIN (SELECT j.*, j.created_at AS j_created_at FROM jobs j) j ON j.id = je.id_main
+//         JOIN jobs_eachx jx ON jx.id_main = je.id_main and jx.id_each=je.id_each
+//         JOIN customers c ON c.id = j.customer
+//         WHERE j.private = false
+//         AND je.j_status > 0
+//         ORDER BY je.deadline_dl ASC`
+//     );
+//     console.log(qualified);
+//     res.json({ jobs, qualified });
+//   } catch (err) {
+//     res.status(500).send("Error");
+//   }
+// });
+
+// app.get("/jobs/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const cus = await GetCustomers();
+
+//     if (id === "add") {
+//       return res.json({ cus });
+//     }
+
+//     //   continue if no a add ...........
+//     //main
+//     const mainJobData = await JobsById(id);
+
+//     //saved each
+//     const savedEachJob = await JobsEByIdM(id);
+
+//     //saved eachxtra
+//     const savedEachXJ = await JobsXByIdM(id);
+
+//     //qts componants
+//     const getQtsComp = await pool.query(
+//       `SELECT * FROM jobs_qts ORDER BY id ASC `
+//     );
+//     const qtsComps = getQtsComp.rows;
+
+//     const getActivity = await pool.query(
+//       `SELECT
+//       user_act.*,
+//       u.display_name,
+//       ${dateTimeCon("act_at")}
+//       FROM user_act
+//       LEFT JOIN users u ON user_act.act_user =  u.id
+//       WHERE note1 = '${id}' ORDER BY act_at DESC`
+//     );
+//     const activity_ = getActivity.rows;
+
+//     const loop_count = {};
+//     const v = {};
+//     const notes_other = {};
+
+//     for (const row of qtsComps) {
+//       const { name, def_loop_count, def_v, max } = row;
+//       loop_count[name] = def_loop_count;
+
+//       for (let i = 0; i < max; i++) {
+//         for (let j = 0; j < def_v.length; j++) {
+//           const key = `${name}_${i}_${j}`;
+//           v[key] = def_v[j];
+//         }
+//       }
+
+//       if (name === "Other") {
+//         for (let i = 0; i < max; i++) {
+//           notes_other[`Other_${i}`] = "";
+//         }
+//       }
+//     }
+//     const qtsDefJsons = { loop_count, v, notes_other };
+
+//     //all paper data
+//     const allPapers = await GetPapersFullData();
+//     const getAct = await GetJobsAct(id);
+
+//     ////////
+//     res.json({
+//       cus,
+//       mainJobData,
+//       savedEachJob,
+//       savedEachXJ,
+//       qtsDefJsons,
+//       qtsComps,
+//       allPapers,
+//       getAct,
+//       activity_,
+//     });
+//   } catch (err) {
+//     console.error("Error:", err.message);
+//     res.status(500).send("Error");
+//   }
+// });
+
+app.post("/jobs/div1", requiredLogged, async (req, res) => {
   try {
     const {
       id,
@@ -457,7 +1187,7 @@ app.post("/jobs/div1", requireAuth, async (req, res) => {
     } = req.body;
 
     let load_this_id;
-    const user_id = getUser(req);
+    const user_id = getUserID(req);
 
     if (id) {
       const {
@@ -557,7 +1287,7 @@ app.post("/jobs/div1", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/jobs/div2", requireAuth, async (req, res) => {
+app.post("/jobs/div2", requiredLogged, async (req, res) => {
   const {
     id_main,
     id_each,
@@ -571,7 +1301,7 @@ app.post("/jobs/div2", requireAuth, async (req, res) => {
     cus_id_each,
   } = req.body;
 
-  const user_id = getUser(req);
+  const user_id = getUserID(req);
 
   try {
     const params = [
@@ -652,10 +1382,10 @@ app.post("/jobs/div2", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/jobs/div3", requireAuth, async (req, res) => {
+app.post("/jobs/div3", requiredLogged, async (req, res) => {
   const { id_each, id_main, form } = req.body;
   //console.log(req.body);
-  const user_id = getUser(req);
+  const user_id = getUserID(req);
 
   try {
     const beforeU =
@@ -775,10 +1505,10 @@ app.post("/jobs/div3", requireAuth, async (req, res) => {
 });
 ///////////////////////////////////////
 
-app.post("/jobs/div4", requireAuth, async (req, res) => {
+app.post("/jobs/div4", requiredLogged, async (req, res) => {
   const { id_main, form, id_each } = req.body;
 
-  const user_id = getUser(req);
+  const user_id = getUserID(req);
   try {
     const ejx_ =
       form === "pb" || form === "po" || form === "full_payment" ? true : false;
@@ -1388,16 +2118,6 @@ app.post("/gts/add_new_clients", async (req, res) => {
   }
 });
 
-// EXTRA SECURITY   //////////////////////////////////////////////////////
-function requireAuth(req, res, next) {
-  if (req.isAuthenticated?.() && req.user) return next();
-  return res.status(401).json({ error: "Unauthorized" });
-}
-
-function getUser(req) {
-  return req.user?.id || null;
-}
-
 //LOGIN and REGISTER      ///////////////////////////
 
 app.post("/userregister", async (req, res) => {
@@ -1501,80 +2221,6 @@ app.get("/check-auth", (req, res) => {
       level_audit: 0,
       level_paper: 0,
     });
-  }
-});
-
-//
-//UPLOAD      //////////////////////////////////////////////////////
-
-app.post("/upload/:id", upload.array("files"), async (req, res) => {
-  const { id } = req.params;
-  const folderName = req.body.folder_name || "doc";
-  const prefix = req.body.prefix + "_" || "";
-
-  //console.log("Upload started:", { id, folderName, prefix });
-  //console.log("Files received:", req.files);
-
-  try {
-    await Promise.all(
-      req.files.map(async (file) => {
-        const uploadResult = await cloudinary.uploader.upload(file.path, {
-          folder: folderName,
-          resource_type: "auto",
-          public_id: `${prefix}${file.originalname}_${Date.now()}`,
-        });
-
-        try {
-          await fs.unlink(file.path); // safely clean up temp file
-        } catch (err) {
-          console.warn("Temp file deletion failed:", file.path, err.message);
-        }
-
-        await pool.query(
-          `INSERT INTO uploaded_docs (id, filename, url, public_id, format)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [
-            id,
-            prefix + file.originalname.replace(/\.[^/.]+$/, ""),
-            uploadResult.secure_url,
-            uploadResult.public_id,
-            uploadResult.format,
-          ]
-        );
-      })
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Upload failed:", err.message);
-    res.status(500).json({ error: "upload failed" });
-  }
-});
-
-app.get("/upload/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query(
-      "SELECT filename, url AS secure_url, public_id, format FROM uploaded_docs WHERE id = $1",
-      [id]
-    );
-    res.json(result.rows);
-  } catch {
-    res.status(500).json({ error: "fetch failed" });
-  }
-});
-
-app.delete("/upload/:encoded_id", async (req, res) => {
-  const public_id = decodeURIComponent(req.params.encoded_id);
-  try {
-    await cloudinary.uploader.destroy(public_id);
-    await pool.query("DELETE FROM uploaded_docs WHERE public_id = $1", [
-      public_id,
-    ]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Delete failed:", err.message);
-    res.status(500).json({ error: err.message });
   }
 });
 

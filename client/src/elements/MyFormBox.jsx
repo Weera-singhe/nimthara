@@ -1,0 +1,68 @@
+import React from "react";
+import { Box, Button, FormLabel } from "@mui/material";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+
+export default function MyFormBox({
+  label,
+  children,
+  clickable = false,
+  onPress,
+  buttonType = "Save",
+  sx = {},
+}) {
+  return (
+    <Box
+      component="form"
+      sx={{
+        position: "relative",
+        "& > :not(style)": { m: 1 },
+        my: 4,
+        px: 1,
+        pt: 3,
+        display: "flex",
+        flexWrap: "wrap",
+        border: "1px solid grey",
+        borderRadius: 2,
+        ...sx,
+      }}
+    >
+      {/* Floating Label */}
+      <FormLabel
+        sx={{
+          position: "absolute",
+          top: -21,
+          left: 12,
+          backgroundColor: "white",
+          px: 1,
+        }}
+      >
+        {label}
+      </FormLabel>
+
+      {/* User content goes here */}
+      {children}
+
+      {/* Save button */}
+      <Box sx={{ flexBasis: "100%" }}>
+        <Button
+          disabled={!clickable}
+          startIcon={
+            buttonType === "Save" ? (
+              <SaveOutlinedIcon />
+            ) : buttonType === "Upload" ? (
+              <CloudUploadOutlinedIcon />
+            ) : (
+              <AddBoxOutlinedIcon />
+            )
+          }
+          onClick={onPress}
+        >
+          {buttonType}
+        </Button>
+      </Box>
+    </Box>
+  );
+}

@@ -104,3 +104,56 @@ export function toDeci(value) {
     maximumFractionDigits: 2,
   });
 }
+
+export function fixNum(val, min, max, deci) {
+  const num = Number(val) || 0;
+  const limited = Math.min(Math.max(num, min), max);
+  const decii = 10 ** deci;
+  return Math.round(limited * decii) / decii;
+}
+
+//////////////////////////////////
+
+export function SumsOfQuot(components, data) {
+  let total = 0;
+
+  for (const comp of components) {
+    const count = data.esti_loops?.[comp.name] || 0;
+
+    for (let i = 0; i < count; i++) {
+      const name = `${comp.name}_${i}`;
+      const { calResult } = SumEachRow(
+        name,
+        data.esti_vals,
+        comp.name,
+        comp.min_cal_res
+      );
+      total += calResult;
+    }
+  }
+
+  const unitCount = data?.esti_data?.units || 1;
+  const profit = data?.esti_data?.profit || 0;
+  const base = total + profit;
+
+  const unit_price = +(base / unitCount).toFixed(2);
+  const safe_total = +(unit_price * unitCount).toFixed(2);
+  const vatRate = 0.18;
+  //const ssclRate = 0.025;
+
+  return {
+    //id_each: data.id_each,
+    unit_count: unitCount,
+    the_sum: total,
+    unit_price: unit_price,
+    total_price: safe_total,
+    unit_vat: +(unit_price * vatRate).toFixed(2),
+    total_vat: +(safe_total * vatRate).toFixed(2),
+    // unit_sscl: +(unit_price * ssclRate).toFixed(2),
+    // total_sscl: +(safe_total * ssclRate).toFixed(2),
+    unit_vat_: +(unit_price * (1 + vatRate)).toFixed(2),
+    total_vat_: +(safe_total * (1 + vatRate)).toFixed(2),
+    //unit_ssclvat_: +(unit_price * (1 + ssclRate + vatRate)).toFixed(2),
+    //total_ssclvat_: +(safe_total * (1 + ssclRate + vatRate)).toFixed(2),
+  };
+}

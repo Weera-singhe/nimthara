@@ -24,9 +24,14 @@ export const ADD_CUS_API_URL = `${API_BASE_URL}/add_new_cus`;
 export const GTSCL_API_URL = `${API_BASE_URL}/gts/clients`;
 export const ADD_GTSCL_API_URL = `${API_BASE_URL}/gts/add_new_clients`;
 
-export const JOBS_API_URL = `${API_BASE_URL}/jobs`;
-
 export const BB_Audit_API_URL = `${API_BASE_URL}/audit/bb`;
 export const LEDG_Audit_API_URL = `${API_BASE_URL}/audit/ledger`;
 
 export const UPLOAD_API_URL = `${API_BASE_URL}/upload`;
+
+//////////////////////////////////////
+
+export const JOBS_FILE = `${API_BASE_URL}/jobs/file`;
+export const JOBS_JOB = `${API_BASE_URL}/jobs/job`;
+export const JOBS_API_URL = `${API_BASE_URL}/jobs`;
+export const ESTI_API_URL = `${API_BASE_URL}/esti`;

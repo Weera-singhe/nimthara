@@ -8,47 +8,56 @@ import Stock from "./pages/Stock";
 import Customers from "./pages/Customers";
 import Login from "./pages/Login";
 import ClientsGTS from "./pages/ClientsGTS";
-import Header from "./partials/Header";
-import Jobs from "./pages/Jobs";
-import Job from "./pages/Job";
+import MyAppBar from "./partials/MyAppBar";
+import JobsHome from "./pages/JOBS/JobsHome";
+import JobFile from "./pages/JOBS/JobFile";
+import JobJob from "./pages/JOBS/JobJob";
 import Audit from "./pages/Audit";
 import BidBond from "./pages/Audit/BidBond";
 import Ledger from "./pages/Audit/Ledger";
-
+import ProtectedRoute from "./elements/ProtectedRoute";
+import Button from "@mui/material/Button";
 import { CHECK_AUTH_API_URL } from "./api/urls";
 import axios from "axios";
 import "./index.css";
+import Box from "@mui/material/Box";
+import Esti from "./pages/Esti/Esti";
 
 axios.defaults.withCredentials = true;
 
+const INITIAL_USER = {
+  loggedIn: null,
+  level: 0,
+  level_jobs: 0,
+  level_paper: 0,
+  level_audit: 0,
+};
 const App = () => {
-  const [user, setUser] = useState({
-    loggedIn: null,
-    level: 0,
-    level_jobs: 0,
-    level_paper: 0,
-    level_audit: 0,
-  });
+  const [user, setUser] = useState(INITIAL_USER);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     axios
-      .get(CHECK_AUTH_API_URL, {
-        withCredentials: true,
-      })
+      .get(CHECK_AUTH_API_URL, { withCredentials: true })
       .then((res) => setUser(res.data))
-      .catch(() =>
-        setUser({
-          loggedIn: false,
-          level: 0,
-          level_jobs: 0,
-          level_paper: 0,
-          level_audit: 0,
-        })
-      );
+      .catch(() => setUser({ ...INITIAL_USER, loggedIn: false }))
+      .finally(() => setAuthChecked(true));
   }, []);
+
+  if (!authChecked) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Button loading loadingPosition="end">
+          Loading...
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <BrowserRouter>
-      <Header user={user} setUser={setUser} />
+      <MyAppBar user={user} setUser={setUser} />
+
       <Routes>
         <Route path="/" element={<Home user={user} />} />
         <Route
@@ -59,15 +68,24 @@ const App = () => {
         <Route path="/stock" element={<Stock user={user} />} />
         <Route path="/cus" element={<Customers user={user} />} />
         <Route path="/gts/clients" element={<ClientsGTS user={user} />} />
-
-        <Route path="jobs" element={<Jobs user={user} />} />
-        <Route path="jobs/add" element={<Job user={user} />} />
-        <Route path="jobs/:id" element={<Job user={user} />} />
-
+        <Route path="/jobs" element={<JobsHome user={user} />} />{" "}
+        <Route
+          path="/jobs/file/new"
+          element={
+            <ProtectedRoute user={user}>
+              <JobFile user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/jobs/file/:fileid" element={<JobFile user={user} />} />
+        <Route
+          path="/jobs/job/:fileid/:jobindex"
+          element={<JobJob user={user} />}
+        />
+        <Route path="/esti/:linkid" element={<Esti user={user} />} />
         <Route path="audit" element={<Audit user={user} />} />
         <Route path="audit/bb" element={<BidBond user={user} />} />
         <Route path="audit/ledger" element={<Ledger user={user} />} />
-
         <Route
           path="/login"
           element={<Login user={user} setUser={setUser} />}
