@@ -68,7 +68,14 @@ const App = () => {
         <Route path="/stock" element={<Stock user={user} />} />
         <Route path="/cus" element={<Customers user={user} />} />
         <Route path="/gts/clients" element={<ClientsGTS user={user} />} />
-        <Route path="/jobs" element={<JobsHome user={user} />} />{" "}
+        <Route
+          path="/jobs"
+          element={
+            <ProtectedRoute user={user}>
+              <JobsHome user={user} />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/jobs/file/new"
           element={
@@ -77,13 +84,38 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/jobs/file/:fileid" element={<JobFile user={user} />} />
+        <Route
+          path="/jobs/file/:fileid"
+          element={
+            <ProtectedRoute user={user}>
+              <JobFile user={user} />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/jobs/job/:fileid/:jobindex"
-          element={<JobJob user={user} />}
+          element={
+            <ProtectedRoute user={user}>
+              <JobJob user={user} />
+            </ProtectedRoute>
+          }
         />
-        <Route path="/esti/:linkid" element={<Esti user={user} />} />
-        <Route path="audit" element={<Audit user={user} />} />
+        <Route
+          path="/esti/:linkid"
+          element={
+            <ProtectedRoute user={user}>
+              <Esti user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="audit"
+          element={
+            <ProtectedRoute user={user}>
+              <Audit user={user} />
+            </ProtectedRoute>
+          }
+        />
         <Route path="audit/bb" element={<BidBond user={user} />} />
         <Route path="audit/ledger" element={<Ledger user={user} />} />
         <Route

@@ -70,9 +70,7 @@ export default function JobFile({ user }) {
         setJobsSaved(res.data.theseJobs || []);
         console.log("db loaded", res.data);
       })
-      .catch((err) => {
-        console.error("Error loading job file data:", err);
-      })
+      .catch(handleApiError)
       .finally(() => {
         setDBLoading(false);
       });
@@ -97,7 +95,7 @@ export default function JobFile({ user }) {
           ? navigate(`/jobs/file/${res.data.load_this_id}`)
           : setJobFilesSaved(res.data.thisJobFile || [])
       )
-      .catch((err) => console.error("Error saving job file data:", err))
+      .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }
   function SubmitForm2(form) {
@@ -285,6 +283,7 @@ export default function JobFile({ user }) {
         label="Job File Details"
         clickable={passedForm1}
         onPress={() => SubmitForm1(jobFilesTemp)}
+        user={user}
       >
         <FormControl sx={{ minWidth: 150, maxWidth: "90%" }} size="small">
           <InputLabel>Customer</InputLabel>
@@ -390,6 +389,7 @@ export default function JobFile({ user }) {
         can_upload={user?.loggedIn}
         can_delete={user?.level > 2 && user?.loggedIn}
         can_view={user?.loggedIn}
+        user={user}
       />
       {/* ////////////////
       FORM 2 FORM2
@@ -399,6 +399,7 @@ export default function JobFile({ user }) {
           label="Bid Submission"
           clickable={passedForm2}
           onPress={() => SubmitForm2(jobFilesTemp?.bid_submit)}
+          user={user}
         >
           <FormControl sx={{ minWidth: 150, maxWidth: "90%" }} size="small">
             <InputLabel>Submit By</InputLabel>

@@ -75,7 +75,7 @@ export default function JobJob({ user }) {
   const [sampleSaved, setSavedSample] = useState([]);
   const [tabV, setTabV] = useState(0);
   const [sampleItemCount, setSampleItemCount] = useState(0);
-  const [quotVals, setQuotVals] = useState();
+  const [calEsti, CalculatEsti] = useState();
 
   const onSTR_ = onSTR(setJobsTemp);
   const onSTRCode_ = onSTRCode(setJobsTemp);
@@ -115,11 +115,11 @@ export default function JobJob({ user }) {
         setSampleItemCount(keys.length ? Math.max(...keys) + 1 : 0);
 
         console.log("db loaded", res.data);
-        setQuotVals(() => SumsOfQuot(res.data.qtsComps, job));
+        const qtsComps = res.data.qtsComps;
+        const estiSaved = res.data.esti;
+        CalculatEsti(() => SumsOfQuot(qtsComps, estiSaved));
       })
-      .catch((err) => {
-        console.error("Error loading job file data:", err);
-      })
+      .catch(handleApiError)
       .finally(() => {
         setDBLoading(false);
       });
@@ -129,12 +129,12 @@ export default function JobJob({ user }) {
     console.log("saved", jobsSaved);
   }, [jobsTemp]);
 
+  // useEffect(() => {
+  //   console.log("quotVals", calEsti);
+  // }, [calEsti]);
   useEffect(() => {
-    console.log("quotVals", quotVals);
-  }, [quotVals]);
-  useEffect(() => {
-    console.log("sampleItems", sampleItemCount);
-  }, [sampleItemCount]);
+    console.log("sampleItems", sampleTemp);
+  }, [sampleTemp]);
 
   const isSavedJob = jobsSaved?.job_index;
   const isSavedFile = jobsSaved?.file_id;
@@ -159,7 +159,7 @@ export default function JobJob({ user }) {
     axios
       .post(`${JOBS_JOB}/form1`, fullForm)
       .then((res) => setJobsSaved(res.data.thisJob || {}))
-      .catch((err) => console.error("Error saving job data:", err))
+      .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }
   /////////////////////////////////////////////
@@ -290,7 +290,6 @@ export default function JobJob({ user }) {
         }
       })
       .catch(handleApiError)
-
       .finally(() => setDBLoading(false));
   }
 
@@ -403,6 +402,7 @@ export default function JobJob({ user }) {
         clickable={passedForm1 || !isSavedJob}
         onPress={() => SubmitForm1(jobsTemp)}
         buttonType={isSavedJob ? "Save" : "Create"}
+        user={user}
       >
         <TextField
           label="Job Code"
@@ -434,12 +434,14 @@ export default function JobJob({ user }) {
             can_upload={user?.loggedIn}
             can_delete={user?.level > 2 && user?.loggedIn}
             can_view={user?.loggedIn}
+            user={user}
           />
 
           <MyFormBox
             label={"Job Status"}
             clickable={passedForm2}
             onPress={() => SubmitForm2()}
+            user={user}
           >
             <Box
               sx={{
@@ -556,7 +558,7 @@ export default function JobJob({ user }) {
                     <AddLinkRoundedIcon />
                   </IconButton>
                 </Typography>
-                {jobsSaved?.esti_data?.deployed ? (
+                {jobsSaved?.job_info?.esti_ok ? (
                   <TableContainer component={Paper} sx={{ width: 600 }}>
                     <Table size="small">
                       <TableHead>
@@ -569,27 +571,29 @@ export default function JobJob({ user }) {
                       </TableHead>
                       <TableBody>
                         <TableRow>
-                          <TableCell>{quotVals.unit_count}</TableCell>
-                          <TableCell align="right">
-                            {toLKR(quotVals.total_price)}
+                          <TableCell>
+                            {calEsti.unit_count.toLocaleString()}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(quotVals.total_vat)}
+                            {toLKR(calEsti.total_price)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(quotVals.total_vat_)}
+                            {toLKR(calEsti.total_vat)}
+                          </TableCell>
+                          <TableCell align="right">
+                            {toLKR(calEsti.total_vat_)}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>1</TableCell>
                           <TableCell align="right">
-                            {toLKR(quotVals.unit_price)}
+                            {toLKR(calEsti.unit_price)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(quotVals.unit_vat)}
+                            {toLKR(calEsti.unit_vat)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(quotVals.unit_vat_)}
+                            {toLKR(calEsti.unit_vat_)}
                           </TableCell>
                         </TableRow>
                       </TableBody>

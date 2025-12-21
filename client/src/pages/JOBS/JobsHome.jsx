@@ -20,9 +20,9 @@ import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
 import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+import { handleApiError } from "../../elements/HandleChange";
 
 export default function JobsHome({ user }) {
-  const [jobsQualified, loadQualified] = useState([]);
   const [dbLoading, setDbloading] = useState(true);
 
   const [allJobs, setAllJobs] = useState([]);
@@ -38,10 +38,8 @@ export default function JobsHome({ user }) {
         setAllJobFiles(res.data.allJobFiles);
         //console.log(res.data);
       })
-      .catch((err) => console.log("Error: " + err))
-      .finally(() => {
-        setDbloading(false);
-      });
+      .catch(handleApiError)
+      .finally(() => setDbloading(false));
   }, []);
 
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
@@ -123,57 +121,231 @@ export default function JobsHome({ user }) {
                 bgcolor: "#e0f2f1",
               }}
             >
+              {/*################################################################## */}
               <Divider />
-              <ListSubheader>Not Started</ListSubheader>
+              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+                Not Started
+              </ListSubheader>
               <Divider />
-              {allJobs.map((j) => (
-                <React.Fragment key={j.job_id}>
-                  <ListItemButton
-                    component={Link}
-                    to={`/jobs/job/${j?.file_id}/${j?.job_index}`}
-                  >
-                    <ListItemAvatar>
-                      <WorkOutlineRoundedIcon />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <>
-                          {"#" +
-                            jobfileTag(j?.file_id) +
-                            "_" +
-                            (j?.job_code || j?.job_index)}
-                          <b>{` - ${CustomerName(j)}`}</b>
-                        </>
-                      }
-                      secondary={
-                        <Box
-                          sx={{ display: "flex", flexWrap: "wrap" }}
-                          component="span"
-                        >
-                          {j?.doc_name && (
-                            <Typography component="span" sx={{ mx: 0.25 }}>
-                              {j.doc_name}
-                            </Typography>
-                          )}
+              {allJobs
+                .filter((j) => j?.job_status === 1)
+                .map((j) => (
+                  <React.Fragment key={j.job_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/job/${j?.file_id}/${j?.job_index}`}
+                    >
+                      <ListItemAvatar>
+                        <WorkOutlineRoundedIcon />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" +
+                              jobfileTag(j?.file_id) +
+                              "_" +
+                              (j?.job_code || j?.job_index)}
+                            <b>{` - ${CustomerName(j)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {j?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {j.doc_name}
+                              </Typography>
+                            )}
 
-                          {j?.file_name && (
-                            <Typography component="span" sx={{ mx: 0.25 }}>
-                              ({j.file_name})
-                            </Typography>
-                          )}
-                          {j?.job_name && (
-                            <Typography component="span" sx={{ mx: 0.25 }}>
-                              - {j.job_name}
-                            </Typography>
-                          )}
-                        </Box>
-                      }
-                    />
-                  </ListItemButton>
+                            {j?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({j.file_name})
+                              </Typography>
+                            )}
+                            {j?.job_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                - {j.job_name}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
 
-                  <Divider />
-                </React.Fragment>
-              ))}
+                    <Divider />
+                  </React.Fragment>
+                ))}
+              {/*################################################################## */}
+              <Divider />
+              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+                Started
+              </ListSubheader>
+              <Divider />
+              {allJobs
+                .filter((j) => j?.job_status === 2)
+                .map((j) => (
+                  <React.Fragment key={j.job_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/job/${j?.file_id}/${j?.job_index}`}
+                    >
+                      <ListItemAvatar>
+                        <WorkOutlineRoundedIcon />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" +
+                              jobfileTag(j?.file_id) +
+                              "_" +
+                              (j?.job_code || j?.job_index)}
+                            <b>{` - ${CustomerName(j)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {j?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {j.doc_name}
+                              </Typography>
+                            )}
+
+                            {j?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({j.file_name})
+                              </Typography>
+                            )}
+                            {j?.job_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                - {j.job_name}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+
+                    <Divider />
+                  </React.Fragment>
+                ))}
+              {/*################################################################## */}
+              <Divider />
+              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+                Finished not Delivered
+              </ListSubheader>
+              <Divider />
+              {allJobs
+                .filter((j) => j?.job_status === 3)
+                .map((j) => (
+                  <React.Fragment key={j.job_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/job/${j?.file_id}/${j?.job_index}`}
+                    >
+                      <ListItemAvatar>
+                        <WorkOutlineRoundedIcon />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" +
+                              jobfileTag(j?.file_id) +
+                              "_" +
+                              (j?.job_code || j?.job_index)}
+                            <b>{` - ${CustomerName(j)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {j?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {j.doc_name}
+                              </Typography>
+                            )}
+
+                            {j?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({j.file_name})
+                              </Typography>
+                            )}
+                            {j?.job_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                - {j.job_name}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+
+                    <Divider />
+                  </React.Fragment>
+                ))}
+              {/*################################################################## */}
+              <Divider />
+              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+                {" "}
+                Delivered
+              </ListSubheader>
+              <Divider />
+              {allJobs
+                .filter((j) => j?.job_status === 4)
+                .map((j) => (
+                  <React.Fragment key={j.job_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/job/${j?.file_id}/${j?.job_index}`}
+                    >
+                      <ListItemAvatar>
+                        <WorkOutlineRoundedIcon />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" +
+                              jobfileTag(j?.file_id) +
+                              "_" +
+                              (j?.job_code || j?.job_index)}
+                            <b>{` - ${CustomerName(j)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {j?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {j.doc_name}
+                              </Typography>
+                            )}
+
+                            {j?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({j.file_name})
+                              </Typography>
+                            )}
+                            {j?.job_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                - {j.job_name}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+
+                    <Divider />
+                  </React.Fragment>
+                ))}
             </List>
           </Box>
         )}
@@ -182,48 +354,230 @@ export default function JobsHome({ user }) {
           <Box>
             <List component="div" disablePadding sx={{ bgcolor: "#fff3e0" }}>
               <Divider />
-              <ListSubheader>Not Started</ListSubheader>
+              <ListSubheader
+                sx={{
+                  backgroundColor: "#ffebee",
+                  border: "1px solid grey",
+                  borderRadius: 1,
+                }}
+              >
+                Estimation Pending
+              </ListSubheader>
               <Divider />
-              {allJobFiles.map((jf) => (
-                <React.Fragment key={jf.file_id}>
-                  <ListItemButton
-                    component={Link}
-                    to={`/jobs/file/${jf?.file_id}`}
-                  >
-                    <ListItemAvatar>
-                      <FolderOutlinedIcon />
-                    </ListItemAvatar>
+              {allJobFiles
+                .filter((j) => !j?.esti_ok_all && !j?.notbidding)
+                .sort(
+                  (a, b) =>
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                )
+                .map((jf) => (
+                  <React.Fragment key={jf.file_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/file/${jf?.file_id}`}
+                    >
+                      <ListItemAvatar>
+                        <FolderOutlinedIcon />
+                      </ListItemAvatar>
 
-                    <ListItemText
-                      primary={
-                        <>
-                          {"#" + jobfileTag(jf?.file_id)}
-                          <b>{`- ${CustomerName(jf)}`}</b>
-                        </>
-                      }
-                      secondary={
-                        <Box
-                          sx={{ display: "flex", flexWrap: "wrap" }}
-                          component="span"
-                        >
-                          {jf?.doc_name && (
-                            <Typography component="span" sx={{ mx: 0.25 }}>
-                              {jf?.doc_name}
-                            </Typography>
-                          )}
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" + jobfileTag(jf?.file_id)}
+                            <b>{`- ${CustomerName(jf)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {jf?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {jf?.doc_name}
+                              </Typography>
+                            )}
 
-                          {jf?.file_name && (
-                            <Typography component="span" sx={{ mx: 0.25 }}>
-                              ({jf?.file_name})
-                            </Typography>
-                          )}
-                        </Box>
-                      }
-                    />
-                  </ListItemButton>
-                  <Divider />
-                </React.Fragment>
-              ))}
+                            {jf?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({jf?.file_name})
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                    <Divider />
+                  </React.Fragment>
+                ))}
+              {/* ############################## */}
+              <Divider />
+              <ListSubheader
+                sx={{
+                  backgroundColor: "#ffebee",
+                  border: "1px solid grey",
+                  borderRadius: 1,
+                }}
+              >
+                Submit Pending
+              </ListSubheader>
+              <Divider />
+              {allJobFiles
+                .filter(
+                  (j) =>
+                    j?.esti_ok_all && !j?.notbidding && !j?.bid_submit?.method
+                )
+                .sort(
+                  (a, b) =>
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                )
+                .map((jf) => (
+                  <React.Fragment key={jf.file_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/file/${jf?.file_id}`}
+                    >
+                      <ListItemAvatar>
+                        <FolderOutlinedIcon />
+                      </ListItemAvatar>
+
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" + jobfileTag(jf?.file_id)}
+                            <b>{`- ${CustomerName(jf)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {jf?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {jf?.doc_name}
+                              </Typography>
+                            )}
+
+                            {jf?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({jf?.file_name})
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                    <Divider />
+                  </React.Fragment>
+                ))}{" "}
+              {/* ############################## */}
+              <Divider />
+              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+                Submitted
+              </ListSubheader>
+              <Divider />
+              {allJobFiles
+                .filter(
+                  (j) =>
+                    j?.esti_ok_all && !j?.notbidding && j?.bid_submit?.method
+                )
+                .sort(
+                  (a, b) =>
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                )
+                .map((jf) => (
+                  <React.Fragment key={jf.file_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/file/${jf?.file_id}`}
+                    >
+                      <ListItemAvatar>
+                        <FolderOutlinedIcon />
+                      </ListItemAvatar>
+
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" + jobfileTag(jf?.file_id)}
+                            <b>{`- ${CustomerName(jf)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {jf?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {jf?.doc_name}
+                              </Typography>
+                            )}
+
+                            {jf?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({jf?.file_name})
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                    <Divider />
+                  </React.Fragment>
+                ))}
+              {/* ############################## */}
+              <Divider />
+              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+                Not Bidding
+              </ListSubheader>
+              <Divider />
+              {allJobFiles
+                .filter((j) => j?.notbidding)
+                .sort(
+                  (a, b) =>
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                )
+                .map((jf) => (
+                  <React.Fragment key={jf.file_id}>
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/file/${jf?.file_id}`}
+                    >
+                      <ListItemAvatar>
+                        <FolderOutlinedIcon />
+                      </ListItemAvatar>
+
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" + jobfileTag(jf?.file_id)}
+                            <b>{`- ${CustomerName(jf)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {jf?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {jf?.doc_name}
+                              </Typography>
+                            )}
+
+                            {jf?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({jf?.file_name})
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                    <Divider />
+                  </React.Fragment>
+                ))}
             </List>
           </Box>
         )}

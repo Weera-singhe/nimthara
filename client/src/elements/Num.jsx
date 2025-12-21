@@ -17,11 +17,14 @@ export default function Num({
   deci = 2,
   label: lbl,
   commas = true,
+  def,
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [fixedV, setFixedV] = useState(value_ ?? 0);
-  const [userV, setUserV] = useState(null);
-  const [fixedStrV, setFixedStrV] = useState("");
+  const [userV, setUserV] = useState(value_ ?? 0);
+  const [fixedStrV, setFixedStrV] = useState(
+    commas ? (value_ || 0).toLocaleString() : String(value_ || 0)
+  );
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -36,11 +39,13 @@ export default function Num({
     //console.log("user typed start num");
     const raw = e.target.value;
     const fixed = fixNum(raw, min_, max_, deci);
-    const fixedStr = fixed && (commas ? fixed.toLocaleString() : String(fixed));
+    const fixedStr = commas
+      ? (fixed || 0).toLocaleString()
+      : String(fixed || 0);
 
     setUserV(raw);
     setFixedV(fixed);
-    setFixedStrV(fixedStr || "");
+    setFixedStrV(fixedStr);
 
     if (onChange_) {
       onChange_({
@@ -52,9 +57,10 @@ export default function Num({
   }
 
   useEffect(() => {
-    if (value_ !== fixedV) {
+    const val_ = value_ === undefined || value_ === null ? def : value_;
+    if (val_ !== fixedV) {
       //console.log("val changed num start");
-      changedByTyping({ target: { value: value_ } });
+      changedByTyping({ target: { value: val_ } });
       // console.log("val changed num end");
     }
   }, [value_]);
@@ -68,7 +74,7 @@ export default function Num({
         variant="outlined"
         aria-describedby={id}
         onClick={handleClick}
-        sx={{ width: wid }}
+        sx={{ width: wid, backgroundColor: "white" }}
         size="small"
         label={lbl}
         InputProps={{

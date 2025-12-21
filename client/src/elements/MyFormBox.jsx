@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, FormLabel } from "@mui/material";
+import { Box, Button, FormLabel, Stack, Typography } from "@mui/material";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
@@ -12,6 +12,7 @@ export default function MyFormBox({
   onPress,
   buttonType = "Save",
   sx = {},
+  user,
 }) {
   return (
     <Box
@@ -46,7 +47,13 @@ export default function MyFormBox({
       {children}
 
       {/* Save button */}
-      <Box sx={{ flexBasis: "100%" }}>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        gap={1}
+        alignItems="center"
+        sx={{ flexBasis: "100%" }}
+      >
         <Button
           disabled={!clickable}
           startIcon={
@@ -62,7 +69,12 @@ export default function MyFormBox({
         >
           {buttonType}
         </Button>
-      </Box>
+        {!!clickable && (
+          <Typography variant="caption" color="primary">
+            {`by ${user?.display_name}`}
+          </Typography>
+        )}
+      </Stack>
     </Box>
   );
 }

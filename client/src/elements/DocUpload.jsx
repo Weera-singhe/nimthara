@@ -14,6 +14,7 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import { handleApiError } from "./HandleChange";
 
 export default function DocUpload({
   located_id,
@@ -23,6 +24,7 @@ export default function DocUpload({
   folder_name,
   prefix,
   label,
+  user,
 }) {
   const fileInputRef = useRef(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -39,7 +41,7 @@ export default function DocUpload({
         });
         setUploadedFiles(res.data);
       } catch (err) {
-        console.log("Error loading uploaded files:", err);
+        handleApiError(err);
       }
     }
     fetchFiles();
@@ -69,7 +71,7 @@ export default function DocUpload({
         setUploadedFiles(res.data?.uploads);
       }
     } catch (err) {
-      console.log("Error uploading files:", err);
+      handleApiError(err);
     } finally {
       setUploading(false);
     }
@@ -85,7 +87,7 @@ export default function DocUpload({
         setUploadedFiles(res.data?.uploads);
       }
     } catch (err) {
-      console.error("Delete error:", err.message);
+      handleApiError(err);
     } finally {
       setDeleting(false);
     }
@@ -98,6 +100,7 @@ export default function DocUpload({
       label={label}
       clickable={canUpload}
       onPress={uploadFiles}
+      user={user}
     >
       {can_upload && (
         <>
