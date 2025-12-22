@@ -68,13 +68,13 @@ export default function JobFile({ user }) {
         setJobFilesSaved(res.data.thisJobFile || []);
         setJobFilesTemp(res.data.thisJobFile || []);
         setJobsSaved(res.data.theseJobs || []);
-        console.log("db loaded", res.data);
+        // console.log("db loaded", res.data);
       })
       .catch(handleApiError)
       .finally(() => {
         setDBLoading(false);
       });
-    console.log("file id = ", fileid);
+    //console.log("file id = ", fileid);
   }, [fileid]);
 
   const onStr_ = onSTR(setJobFilesTemp);
@@ -111,13 +111,13 @@ export default function JobFile({ user }) {
 
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
 
-  useEffect(() => {
-    console.log("tempx", jobFilesTemp);
-    console.log("savedx", jobFilesSaved);
-  }, [jobFilesTemp]);
-  useEffect(() => {
-    console.log("savedx", jobFilesSaved);
-  }, [jobFilesSaved]);
+  // useEffect(() => {
+  //   console.log("tempx", jobFilesTemp);
+  //   console.log("savedx", jobFilesSaved);
+  // }, [jobFilesTemp]);
+  // useEffect(() => {
+  //   console.log("savedx", jobFilesSaved);
+  // }, [jobFilesSaved]);
 
   const unreg_cus_selected = jobFilesTemp?.customer_id === 1;
   const selectedCustomer = customers.find(
@@ -299,6 +299,7 @@ export default function JobFile({ user }) {
             <MenuItem value="">
               <em>-</em>
             </MenuItem>
+            <MenuItem value={1}>Unregistered</MenuItem>
 
             {customers.map((c) => (
               <MenuItem key={c.id} value={c.id}>

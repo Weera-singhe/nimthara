@@ -77,7 +77,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
           />
           <b> x </b>
           <Num
-            width={40}
+            width={60}
             name={name + "_2"}
             onChange={changed}
             value={v?.[name + "_2"]}
@@ -98,7 +98,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
           </small>
           <b> x </b>
           <Num
-            width={40}
+            width={60}
             name={name + "_3"}
             onChange={changed}
             value={v?.[name + "_3"]}
@@ -134,7 +134,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
           />
           <b> x </b>
           <Num
-            width={40}
+            width={60}
             name={name + "_1"}
             onChange={changed}
             value={v?.[name + "_1"]}
@@ -162,7 +162,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
           />
           <b> x </b>
           <Num
-            width={40}
+            width={60}
             name={name + "_2"}
             onChange={changed}
             value={v?.[name + "_2"]}
@@ -281,6 +281,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
                 &#8594;
               </button>
               <Num
+                width={80}
                 onChange={changed}
                 name={name + "_1"}
                 color={latest_price !== input_price ? "red" : "black"}
@@ -312,7 +313,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
               />
               <b> * </b>
               <Num
-                width={40}
+                width={60}
                 name={name + "_7"}
                 onChange={changed}
                 value={v?.[name + "_7"]}
@@ -321,7 +322,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
               />
               <b> / </b>
               <Num
-                width={40}
+                width={60}
                 name={name + "_4"}
                 onChange={changed}
                 value={v?.[name + "_4"]}
@@ -330,6 +331,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
               />
               <b> + </b>
               <Num
+                width={70}
                 name={name + "_5"}
                 onChange={changed}
                 value={v?.[name + "_5"]}
@@ -337,7 +339,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
               />
               <b> / </b>
               <Num
-                width={40}
+                width={60}
                 name={name + "_6"}
                 onChange={changed}
                 value={v?.[name + "_6"]}

@@ -489,7 +489,15 @@ async function GetJobsUnderFile(id) {
 app.get("/jobs/file/:fileid", requiredLogged, async (req, res) => {
   try {
     const { fileid } = req.params;
-    const customers = await GetCustomers();
+
+    const getCus = await pool.query(
+      `SELECT 
+      *
+      FROM customers
+      WHERE id !=1
+      ORDER BY customer_name ASC`
+    );
+    const customers = getCus.rows;
 
     if (fileid === "new") {
       return res.json({ customers });
@@ -1014,6 +1022,69 @@ app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });
     console.error("Error stack:", err.stack); // ✅ CHANGE: shows exact PG error location
+  }
+});
+
+app.post("/jobs/job/estiDeploy", requiredLogged, async (req, res) => {
+  try {
+    const { jobindex, fileid } = req.body;
+
+    const user_id = getUserID(req);
+    // console.log("form1");
+    // console.log("user ", user_id);
+    // console.log("reqbody ", req.body);
+
+    // minimum for ANY change (insert needs 1+)
+    if (!requiredLevel(req, res, "level_jobs", 3)) return;
+
+    // check if row exists
+    const beforeRes = await pool.query(
+      "SELECT job_info FROM job_jobs WHERE jobfile_id = $1 AND job_index = $2",
+      [fileid, jobindex]
+    );
+
+    const beforeUpdate = beforeRes.rows[0] || {};
+
+    const sql = `
+    UPDATE job_jobs
+    SET job_info = jsonb_set(
+      COALESCE(job_info, '{}'::jsonb),
+      '{esti_ok}',
+      'true'::jsonb,
+      true
+    )
+    WHERE jobfile_id = $1
+      AND job_index = $2
+    RETURNING job_info
+    `;
+
+    const { rows: rowsAfter, rowCount: rowCountAfter } = await pool.query(sql, [
+      fileid,
+      jobindex,
+    ]);
+
+    const afterUpdate = rowsAfter[0];
+
+    if (rowCountAfter > 0) {
+      const { old_v, new_v } = WhatzChanged(beforeUpdate, afterUpdate);
+      await RecActivity(
+        user_id,
+        "update",
+        old_v,
+        new_v,
+        "/jobs/job/estiDeploy",
+        fileid,
+        jobindex,
+        "estiDeploy",
+        null,
+        "job_jobs"
+      );
+    }
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

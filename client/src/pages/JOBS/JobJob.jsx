@@ -76,6 +76,7 @@ export default function JobJob({ user }) {
   const [tabV, setTabV] = useState(0);
   const [sampleItemCount, setSampleItemCount] = useState(0);
   const [calEsti, CalculatEsti] = useState();
+  const [estiOk, setEstiOk] = useState(false);
 
   const onSTR_ = onSTR(setJobsTemp);
   const onSTRCode_ = onSTRCode(setJobsTemp);
@@ -111,10 +112,12 @@ export default function JobJob({ user }) {
         setSavedSample(job.sample || {});
         setTempSample(job.sample || {});
 
+        setEstiOk(job?.job_info?.esti_ok);
+
         const keys = Object.keys(job?.sample?.items || {}).map(Number);
         setSampleItemCount(keys.length ? Math.max(...keys) + 1 : 0);
 
-        console.log("db loaded", res.data);
+        // console.log("db loaded", res.data);
         const qtsComps = res.data.qtsComps;
         const estiSaved = res.data.esti;
         CalculatEsti(() => SumsOfQuot(qtsComps, estiSaved));
@@ -124,17 +127,17 @@ export default function JobJob({ user }) {
         setDBLoading(false);
       });
   }, [fileid]);
-  useEffect(() => {
-    console.log("temp", jobsTemp);
-    console.log("saved", jobsSaved);
-  }, [jobsTemp]);
+  // useEffect(() => {
+  //   console.log("temp", jobsTemp);
+  //   console.log("saved", jobsSaved);
+  // }, [jobsTemp]);
 
   // useEffect(() => {
   //   console.log("quotVals", calEsti);
   // }, [calEsti]);
-  useEffect(() => {
-    console.log("sampleItems", sampleTemp);
-  }, [sampleTemp]);
+  // useEffect(() => {
+  //   console.log("sampleItems", sampleTemp);
+  // }, [sampleTemp]);
 
   const isSavedJob = jobsSaved?.job_index;
   const isSavedFile = jobsSaved?.file_id;
@@ -289,6 +292,18 @@ export default function JobJob({ user }) {
           setJobsSaved(res.data.thisJob || {});
         }
       })
+      .catch(handleApiError)
+      .finally(() => setDBLoading(false));
+  }
+
+  function EstiDeploy() {
+    setDBLoading(true);
+
+    const form_ = { fileid, jobindex, job_info: jobsSaved?.job_info };
+
+    axios
+      .post(`${JOBS_JOB}/estiDeploy`, form_)
+      .then((res) => res.data.success && setEstiOk(true))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }
@@ -558,7 +573,7 @@ export default function JobJob({ user }) {
                     <AddLinkRoundedIcon />
                   </IconButton>
                 </Typography>
-                {jobsSaved?.job_info?.esti_ok ? (
+                {estiOk ? (
                   <TableContainer component={Paper} sx={{ width: 600 }}>
                     <Table size="small">
                       <TableHead>
@@ -600,10 +615,16 @@ export default function JobJob({ user }) {
                     </Table>
                   </TableContainer>
                 ) : (
-                  <>
-                    <PendingActionsIcon />
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <IconButton
+                      disabled={user?.level_jobs < 3}
+                      onClick={EstiDeploy}
+                      color="primary"
+                    >
+                      <AddCircleOutlineRoundedIcon />
+                    </IconButton>
                     <Typography color="error">Pending ...</Typography>
-                  </>
+                  </Stack>
                 )}
                 <Box sx={{ width: "100%", overflow: "hidden" }}>
                   <Typography sx={{ mt: 2 }}>

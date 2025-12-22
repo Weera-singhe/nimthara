@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import { fixNum } from "./cal";
+import { colors } from "@mui/material";
 
 export default function Num({
   name: name_,
@@ -17,6 +18,7 @@ export default function Num({
   deci = 2,
   label: lbl,
   commas = true,
+  color,
   def,
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -79,6 +81,7 @@ export default function Num({
         label={lbl}
         InputProps={{
           readOnly: true,
+          sx: { color: { color } },
         }}
         value={fixedStrV}
         name={name_}

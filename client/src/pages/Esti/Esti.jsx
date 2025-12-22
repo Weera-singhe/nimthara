@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toLKR, SumsOfQuot, SumEachRow, toDeci } from "../../elements/cal";
 
-import { onNUM_N, handleApiError } from "../../elements/HandleChange";
+import { onNUM_N, handleApiError, onSTR_N } from "../../elements/HandleChange";
 
 import Num from "../../elements/Num";
 import MyFormBox from "../../elements/MyFormBox";
@@ -21,6 +21,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import EstiMid from "./EstiMid";
@@ -48,7 +49,7 @@ export default function Esti({ user }) {
     axios
       .get(`${ESTI_API_URL}/${linkid}`)
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         setEstiTemp(res.data.esti);
         setEstiSaved(res.data.esti);
         setQtsComp(res.data.qtsComps);
@@ -63,6 +64,7 @@ export default function Esti({ user }) {
   const onNUMData = onNUM_N(setEstiTemp, "data");
   const onNUMLoops = onNUM_N(setEstiTemp, "loops");
   const onNUMV = onNUM_N(setEstiTemp, "vals");
+  const onStrRename = onSTR_N(setEstiTemp, "renames");
 
   const isSame =
     deepEqual(estiTemp, estiSaved) && linkid_End === current_linkid_End;
@@ -86,7 +88,7 @@ export default function Esti({ user }) {
   }
 
   useEffect(() => {
-    //console.log("temp", estiTemp);
+    // console.log("temp", estiTemp);
 
     CalculatEsti(() => SumsOfQuot(qtsComp, estiTemp));
   }, [estiTemp]);
@@ -156,7 +158,19 @@ export default function Esti({ user }) {
 
                   return (
                     <TableRow key={`${c.id}-${i}`}>
-                      <TableCell>{c?.name}</TableCell>
+                      {c?.name === "Other" ? (
+                        <TableCell sx={{ p: 0, width: 60 }}>
+                          <TextField
+                            size="small"
+                            sx={{ width: "100%" }}
+                            name={c?.name + "_" + i}
+                            value={estiTemp?.renames?.[c?.name + "_" + i]}
+                            onChange={onStrRename}
+                          />
+                        </TableCell>
+                      ) : (
+                        <TableCell sx={{ width: 60 }}> {c?.name}</TableCell>
+                      )}
 
                       <TableCell sx={{ backgroundColor: "#f1f8e9" }}>
                         <Stack direction="row" spacing={1} alignItems="center">
@@ -225,8 +239,12 @@ export default function Esti({ user }) {
               }}
             />
           )}
+          <Typography>
+            <b>=</b> {toLKR(calEsti?.total_price)}
+          </Typography>
         </Stack>
 
+        <Box sx={{ width: "100%" }}></Box>
         <Box sx={{ width: "100%" }}></Box>
         <TableContainer component={Paper} sx={{ width: 600 }}>
           <Table size="small">
