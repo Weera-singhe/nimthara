@@ -178,7 +178,7 @@ export default function Login({ user, setUser }) {
           Account
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Login or create an account. For security, avoid reusing passwords.
+          Login or create an account
         </Typography>
 
         <Tabs
