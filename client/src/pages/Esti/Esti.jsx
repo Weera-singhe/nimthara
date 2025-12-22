@@ -77,7 +77,7 @@ export default function Esti({ user }) {
       .then((res) => {
         if (res.data.success) {
           setEstiSaved(res.data.esti);
-          //setEstiTemp(res.data.esti);
+          setEstiTemp(res.data.esti);
           navigate(`/esti/${savingLinkId}`);
         }
       })

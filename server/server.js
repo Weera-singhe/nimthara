@@ -478,6 +478,7 @@ const GetJobsUnderFile_SQL = `
         AND jf.hide_file = false
         AND jj.hide_job = false
         AND jj.job_index <= jf.jobs_count
+      ORDER BY job_index ASC
       `;
 
 async function GetJobsUnderFile(id) {
