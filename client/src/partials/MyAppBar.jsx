@@ -123,11 +123,11 @@ export default function MyAppBar({ user, setUser }) {
             sx={{
               display: { xs: "flex", md: "flex", lg: "none" },
               flexGrow: 1,
-              my: 3,
+              m: 3,
               justifyContent: "center",
             }}
           >
-            <img src={LongLogo} alt="Logo" style={{ height: 25 }} />
+            <img src={LongLogo} alt="Logo" />
           </Box>
 
           <Box

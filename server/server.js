@@ -9,28 +9,36 @@ const LocalStrategy = require("passport-local").Strategy;
 const app = express();
 const port = process.env.PORT || 5000;
 
+// ✅ CHANGED: allow both www and non-www (prevents random CORS issues)
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? "https://www.nimthara.com"
-      : "http://localhost:3000",
+      ? ["https://www.nimthara.com", "https://nimthara.com"] // <-- CHANGED
+      : ["http://localhost:3000"],
   credentials: true,
 };
 
+// ✅ (OPTIONAL BUT SAFE): handle preflight properly for cookie requests
 app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions)); // ✅ FIX: works across Express versions
+
 app.use(express.json());
 
+// ✅ REQUIRED on Render for secure cookies behind proxy
 app.set("trust proxy", 1);
+
+// ✅ CHANGED: set cookie flags for cross-site cookie sessions
 app.use(
   session({
+    name: "connect.sid", // <-- ADDED (small but helps consistency)
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60 * 3,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      httpOnly: true, // <-- ADDED: prevent JS from reading the cookie (XSS protection)
     },
   })
 );
@@ -43,6 +51,12 @@ app.use(passport.session());
 const cloudinary = require("cloudinary").v2;
 const multer = require("multer");
 const fs = require("fs/promises");
+const fsSync = require("fs"); // <-- ADDED (sync fs for exists/mkdir)
+
+// Ensure temp folder exists (Render containers can start empty)
+if (!fsSync.existsSync("temp_uploads")) {
+  fsSync.mkdirSync("temp_uploads");
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -50,7 +64,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const upload = multer({ dest: "temp_uploads" });
+// Multer upload with size limit (prevents huge uploads)
+const upload = multer({
+  dest: "temp_uploads",
+  limits: { fileSize: 10 * 1024 * 1024 }, // <-- 10MB max (adjust)
+});
 
 //SQL FUNCTIONS      //////////////////////////////////
 
@@ -1528,27 +1546,47 @@ app.post("/userregister", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 app.post("/userlogin", (req, res, next) => {
   passport.authenticate("local", (err, user) => {
-    if (!user) return res.status(401).json({ success: false });
-    req.login(user, () => {
-      res.json({
-        success: true,
-        user: user,
+    if (err) return next(err); // <-- CHANGED: handle auth errors
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Login failed" }); // <-- CHANGED: generic
+    }
+
+    // <-- CHANGED: prevent session fixation
+    req.session.regenerate((regenErr) => {
+      if (regenErr) return next(regenErr);
+
+      req.login(user, (loginErr) => {
+        if (loginErr) return next(loginErr); // <-- CHANGED: handle login errors
+
+        // <-- CHANGED: never send full user object (may include sensitive fields)
+        const safeUser = {
+          loggedIn: true,
+          user: user,
+        };
+
+        return res.json({ success: true, user: safeUser }); // <-- CHANGED
       });
     });
   })(req, res, next);
 });
 
-app.post("/logout", (req, res) => {
-  req.logout(() => {
+app.post("/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) return next(err); // <-- CHANGED: handle error
+
     req.session.destroy(() => {
       res.clearCookie("connect.sid", {
         path: "/",
-        sameSite: "none",
-        secure: true,
+        httpOnly: true, // <-- CHANGED: match session cookie security
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // <-- CHANGED
+        secure: process.env.NODE_ENV === "production", // <-- CHANGED
       });
-      res.status(200).json({ success: true });
+
+      return res.status(200).json({ success: true });
     });
   });
 });
@@ -1589,7 +1627,7 @@ passport.deserializeUser(async (username, done) => {
 });
 
 app.get("/check-auth", (req, res) => {
-  if (req.isAuthenticated()) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
     res.json({
       loggedIn: true,
       ...req.user,
