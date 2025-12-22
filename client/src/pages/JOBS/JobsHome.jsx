@@ -483,7 +483,7 @@ export default function JobsHome({ user }) {
                     j?.esti_ok_all && !j?.notbidding && j?.bid_submit?.method
                 )
                 .sort(
-                  (a, b) =>
+                  (b, a) =>
                     new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
                 )
                 .map((jf) => (
@@ -535,7 +535,7 @@ export default function JobsHome({ user }) {
               {allJobFiles
                 .filter((j) => j?.notbidding)
                 .sort(
-                  (a, b) =>
+                  (b, a) =>
                     new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
                 )
                 .map((jf) => (
