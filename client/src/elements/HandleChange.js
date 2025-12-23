@@ -27,6 +27,31 @@ export const onSTR_N = (set, parentKey) => (e) => {
   }));
 };
 
+export const onSTR_NN = (set, parentKey, i) => (e) => {
+  const { name, value } = e.target;
+  const key = String(i);
+  const cleaned = cleanStr(value);
+
+  set((prev) => {
+    const parent = prev[parentKey] || {};
+    const row = { ...(parent[key] || {}) };
+
+    if (!cleaned) {
+      delete row[name];
+    } else {
+      row[name] = cleaned;
+    }
+
+    return {
+      ...prev,
+      [parentKey]: {
+        ...parent,
+        [key]: row,
+      },
+    };
+  });
+};
+
 export const onNUM = (set) => (e) => {
   const { name, value } = e.target;
   set((prev) => ({ ...prev, [name]: Number(value) }));
@@ -42,10 +67,10 @@ export const onNUM_N = (set, parentKey) => (e) => {
     },
   }));
 };
-export const onSTR_NN = (set, parentKey, i) => (e) => {
+export const onNUM_NN = (set, parentKey, i) => (e) => {
   const { name, value } = e.target;
   const key = String(i);
-  const cleaned = cleanStr(value);
+  const cleaned = Number(value);
 
   set((prev) => {
     const parent = prev[parentKey] || {};

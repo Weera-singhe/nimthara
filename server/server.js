@@ -429,27 +429,29 @@ app.get("/jobs", requiredLogged, async (req, res) => {
   try {
     const { rows: allJobFiles } = await pool.query(
       `
+      SELECT
+        jf.*,
+        cs.cus_name_short,
+        cs.customer_name,
+        COALESCE(jj.esti_ok_all, FALSE) AS esti_ok_all,
+        (jf.bid_submit ->> 'method')::int = 5 AS notbidding
+      FROM job_files jf
+      JOIN customers cs
+        ON cs.id = jf.customer_id
+      LEFT JOIN (
         SELECT
-          jf.*,
-          cs.cus_name_short,
-          cs.customer_name,
-          COALESCE(jj.esti_ok_all, FALSE) AS esti_ok_all,
-          (jf.bid_submit ->> 'method')::int = 5 AS notbidding
-        FROM job_files jf
-        JOIN customers cs
-          ON cs.id = jf.customer_id
-        LEFT JOIN (
-          SELECT
-            jj.jobfile_id,
-            bool_and((jj.job_info ->> 'esti_ok')::boolean) AS esti_ok_all
-          FROM job_jobs jj
-          JOIN job_files jf2
-            ON jf2.file_id = jj.jobfile_id
-          AND jj.job_index <= jf2.jobs_count  
-          GROUP BY jj.jobfile_id
-        ) jj
-          ON jj.jobfile_id = jf.file_id
-        WHERE jf.hide_file = FALSE
+          jj.jobfile_id,
+          bool_and(
+            COALESCE( (jj.job_info ->> 'esti_ok')::boolean, FALSE )
+          ) AS esti_ok_all
+        FROM job_jobs jj
+        JOIN job_files jf2
+          ON jf2.file_id = jj.jobfile_id
+        AND jj.job_index <= jf2.jobs_count
+        GROUP BY jj.jobfile_id
+      ) jj
+        ON jj.jobfile_id = jf.file_id
+      WHERE jf.hide_file = FALSE
       `
     );
     const { rows: allJobs } = await pool.query(
@@ -859,7 +861,7 @@ app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
       jobindex,
       fileid,
       tabV,
-      sampleTemp,
+      sample,
       po,
       delivery,
       job_payment,
@@ -871,7 +873,7 @@ app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
 
     // console.log("form2");
     // console.log("user ", user_id);
-    // console.log("reqbody ", req.body);
+    console.log("reqbody ", req.body);
     // minimum for ANY change (insert needs 1+)
 
     const user_id = getUserID(req);
@@ -901,7 +903,7 @@ app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $2
           AND job_index  = $3
         `,
-        [sampleTemp, fileid, jobindex]
+        [sample, fileid, jobindex]
       );
     } else if (![1, 2, 3, 4].includes(bidSubMethod)) {
       return res

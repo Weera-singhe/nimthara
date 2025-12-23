@@ -349,6 +349,7 @@ export default function JobFile({ user }) {
         <TextField
           label="Bid Submission Deadline"
           type="datetime-local"
+          sx={{ width: 240 }}
           size="small"
           onChange={onStr_}
           name="bid_deadline_i"
@@ -455,6 +456,7 @@ export default function JobFile({ user }) {
               />
               <TextField
                 label="Date"
+                sx={{ width: 150 }}
                 type="date"
                 size="small"
                 onChange={onStr_BS}

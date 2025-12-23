@@ -32,11 +32,13 @@ import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import deepEqual from "fast-deep-equal";
+import Num from "../../elements/Num";
 
 import {
   onNUM,
   onSTR,
   onNUM_N,
+  onNUM_NN,
   onSTR_N,
   onSTR_NN,
   onSTRCode,
@@ -71,17 +73,21 @@ export default function JobJob({ user }) {
 
   const [jobsSaved, setJobsSaved] = useState([]);
   const [jobsTemp, setJobsTemp] = useState([]);
-  const [sampleTemp, setTempSample] = useState([]);
-  const [sampleSaved, setSavedSample] = useState([]);
+  const [sampleTemp, setSampleTemp] = useState([]);
+  const [sampleSaved, setSampleSaved] = useState([]);
+  const [deliTemp, setDeliTemp] = useState([]);
+  const [deliSaved, setDeliSaved] = useState([]);
+
+  const [elementz, setElementz] = useState([]);
+
   const [tabV, setTabV] = useState(0);
-  const [sampleItemCount, setSampleItemCount] = useState(0);
   const [calEsti, CalculatEsti] = useState();
   const [estiOk, setEstiOk] = useState(false);
 
   const onSTR_ = onSTR(setJobsTemp);
   const onSTRCode_ = onSTRCode(setJobsTemp);
   const onNUM_ = onNUM(setJobsTemp);
-  const onNUMSample = onNUM_N(setTempSample, "data");
+  const onNUMSample = onNUM_N(setSampleTemp, "data");
   const onNUMPO = onNUM_N(setJobsTemp, "po");
   const onSTRPO = onSTR_N(setJobsTemp, "po");
   const onNUMDeli = onNUM_N(setJobsTemp, "delivery");
@@ -109,13 +115,26 @@ export default function JobJob({ user }) {
         setJobsTemp(job);
         setTabV(job?.bid_submit?.method ? (job?.job_status || 0) + 1 : 0);
 
-        setSavedSample(job.sample || {});
-        setTempSample(job.sample || {});
+        setSampleSaved(job.sample || {});
+        setSampleTemp(job.sample || {});
+
+        setDeliSaved(job.delivery || {});
+        setDeliTemp(job.delivery || {});
 
         setEstiOk(job?.job_info?.esti_ok);
 
-        const keys = Object.keys(job?.sample?.items || {}).map(Number);
-        setSampleItemCount(keys.length ? Math.max(...keys) + 1 : 0);
+        const keysSamp = Object.keys(job?.sample?.items || {}).map(Number);
+        const sampItemTot_ = keysSamp.length ? Math.max(...keysSamp) + 1 : 0;
+
+        const keysDeli = Object.keys(job?.delivery?.log || {}).map(Number);
+        const deliLogTot_ = keysDeli.length ? Math.max(...keysDeli) + 1 : 0;
+
+        setElementz({
+          samp: sampItemTot_,
+          sampInitial: sampItemTot_,
+          deli: deliLogTot_,
+          deliInitial: deliLogTot_,
+        });
 
         // console.log("db loaded", res.data);
         const qtsComps = res.data.qtsComps;
@@ -127,17 +146,23 @@ export default function JobJob({ user }) {
         setDBLoading(false);
       });
   }, [fileid]);
-  // useEffect(() => {
-  //   console.log("temp", jobsTemp);
-  //   console.log("saved", jobsSaved);
-  // }, [jobsTemp]);
+  useEffect(() => {
+    console.log("temp", jobsTemp);
+    console.log("saved", jobsSaved);
+  }, [jobsTemp]);
 
-  // useEffect(() => {
-  //   console.log("quotVals", calEsti);
-  // }, [calEsti]);
-  // useEffect(() => {
-  //   console.log("sampleItems", sampleTemp);
-  // }, [sampleTemp]);
+  useEffect(() => {
+    console.log("quotVals", calEsti);
+  }, [calEsti]);
+  useEffect(() => {
+    console.log("sampleItems", sampleTemp);
+  }, [sampleTemp]);
+  useEffect(() => {
+    console.log("deli", deliTemp);
+  }, [deliTemp]);
+  useEffect(() => {
+    console.log("elemnt = ", elementz);
+  }, [elementz]);
 
   const isSavedJob = jobsSaved?.job_index;
   const isSavedFile = jobsSaved?.file_id;
@@ -185,11 +210,15 @@ export default function JobJob({ user }) {
           same(jobsTemp?.po?.status, jobsSaved?.po?.status, "") &&
           same(jobsTemp?.po?.when, jobsSaved?.po?.when, 0) &&
           same(
-            jobsTemp?.delivery?.when_type,
-            jobsSaved?.delivery?.when_type,
+            jobsTemp?.delivery?.deadline_type,
+            jobsSaved?.delivery?.deadline_type,
             0
           ) &&
-          same(jobsTemp?.delivery?.when, jobsSaved?.delivery?.when, "") &&
+          same(
+            jobsTemp?.delivery?.deadline,
+            jobsSaved?.delivery?.deadline,
+            ""
+          ) &&
           same(jobsTemp?.job_status, jobsSaved?.job_status, 0)
         );
       case 2:
@@ -216,7 +245,13 @@ export default function JobJob({ user }) {
           )
         );
       case 4:
-        return same(jobsTemp?.job_status, jobsSaved?.job_status, 0);
+        const savedLog = deliSaved?.log ?? [];
+        const tempLog = deliTemp?.log ?? [];
+
+        return (
+          deepEqual(savedLog, tempLog) &&
+          same(jobsTemp?.job_status, jobsSaved?.job_status, 0)
+        );
       case 5:
         return same(
           jobsTemp?.job_payment?.full,
@@ -233,8 +268,8 @@ export default function JobJob({ user }) {
     switch (tab) {
       case 0: {
         const items = sampleTemp?.items ?? [];
-        if (!sampleItemCount) return true; // keep your current behavior
-        const last = items[sampleItemCount - 1];
+        if (!elementz?.samp) return true; // keep your current behavior
+        const last = items[elementz?.samp - 1];
         return Boolean(last?.type && last?.d1);
       }
 
@@ -250,8 +285,13 @@ export default function JobJob({ user }) {
           jobsTemp?.job_status >= 2 ? !!jobsTemp?.job_info?.finish_at : true;
         return needDate;
       }
-      case 4:
-        return true;
+      case 4: {
+        const logs = deliTemp?.log ?? [];
+        if (!elementz?.deli) return true; // keep your current behavior
+        const last = logs[elementz?.deli - 1];
+        return Boolean(last?.deli_meth && last?.deli_qty && last?.deli_date);
+      }
+
       case 5:
         return true;
       // ...
@@ -276,21 +316,23 @@ export default function JobJob({ user }) {
 
     const tab = Number(tabV) || 0;
     const base = { fileid, jobindex, tabV: tab };
-    const fullForm =
-      tab === 0
-        ? { sampleTemp, ...base, job_status: jobsTemp?.job_status || 0 }
-        : { ...jobsTemp, ...base };
+    const fullForm = {
+      ...jobsTemp,
+      sample: sampleTemp,
+      delivery: deliTemp,
+      ...base,
+    };
 
     axios
       .post(`${JOBS_JOB}/form2`, fullForm)
       .then((res) => {
-        if (!tabV) {
-          const samp = res.data.thisJob?.sample || {};
-          setSavedSample(samp);
-          setTempSample(samp);
-        } else {
-          setJobsSaved(res.data.thisJob || {});
-        }
+        const job = res.data.thisJob || {};
+        setSampleSaved(job?.sample);
+        setSampleTemp(job?.sample);
+        setDeliSaved(job?.delivery);
+        setDeliTemp(job?.delivery);
+        setJobsSaved(job);
+        setJobsTemp(job);
       })
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -320,6 +362,10 @@ export default function JobJob({ user }) {
     rm: "Rim",
     lm: "Lamination",
     fl: "Foil",
+  };
+  const deli_methods = {
+    1: "Delivered",
+    2: "Collected",
   };
 
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
@@ -469,8 +515,15 @@ export default function JobJob({ user }) {
                 value={tabV}
                 onChange={(_, v) => {
                   setTabV(v);
-                  setTempSample(sampleSaved);
+                  setSampleTemp(sampleSaved);
+                  setDeliTemp(deliSaved);
                   setJobsTemp(jobsSaved);
+
+                  setElementz((p) => ({
+                    ...p,
+                    samp: p.sampInitial,
+                    deli: p.deliInitial,
+                  }));
                 }}
                 variant="scrollable"
                 scrollButtons="auto"
@@ -630,16 +683,21 @@ export default function JobJob({ user }) {
                   <Typography sx={{ mt: 2 }}>
                     Samples / Materials
                     <IconButton
-                      onClick={() => setSampleItemCount((p) => p + 1)}
-                      disabled={sampleItemCount && !form2Filled}
+                      onClick={() =>
+                        setElementz((p) => ({
+                          ...p,
+                          samp: p.samp + 1,
+                        }))
+                      }
+                      disabled={elementz?.samp && !form2Filled}
                       color="primary"
                     >
                       <AddCircleOutlineRoundedIcon />
                     </IconButton>
                     <IconButton
                       onClick={() => {
-                        const count = sampleItemCount ?? 0;
-                        setTempSample((p) => ({
+                        const count = elementz?.samp ?? 0;
+                        setSampleTemp((p) => ({
                           ...p,
                           items: Object.fromEntries(
                             Object.entries(p.items || {}).filter(
@@ -652,22 +710,23 @@ export default function JobJob({ user }) {
                           },
                         }));
 
-                        setSampleItemCount((p) => Math.max(p - 1, 0));
+                        setElementz((p) => ({
+                          ...p,
+                          samp: Math.max((p.samp ?? 0) - 1, 0),
+                        }));
                       }}
-                      disabled={(sampleItemCount ?? 0) < 1}
+                      disabled={(elementz?.samp ?? 0) < 1}
                     >
                       <DeleteRoundedIcon />
                     </IconButton>
                   </Typography>
                   <List dense>
-                    {Array.from({ length: sampleItemCount }).map((_, idx) => {
+                    {Array.from({ length: elementz?.samp }).map((_, idx) => {
                       const s = sampleTemp?.items?.[idx] || {};
 
                       return (
                         <React.Fragment key={idx}>
-                          <ListItemButton
-                            selected={idx === sampleItemCount - 1}
-                          >
+                          <ListItemButton selected={idx === elementz?.samp - 1}>
                             <ListItemText
                               primary={`${idx + 1} - ${
                                 sample_types[s?.type] || "-"
@@ -685,18 +744,18 @@ export default function JobJob({ user }) {
                       );
                     })}
                   </List>
-                  {sampleItemCount ? (
+                  {elementz?.samp ? (
                     <Stack direction="row" flexWrap="wrap" gap={1}>
                       <FormControl size="small" sx={{ minWidth: 150 }}>
                         <Select
                           name="type"
                           value={
-                            sampleTemp?.items?.[sampleItemCount - 1]?.type || ""
+                            sampleTemp?.items?.[elementz?.samp - 1]?.type || ""
                           }
                           onChange={onSTR_NN(
-                            setTempSample,
+                            setSampleTemp,
                             "items",
-                            sampleItemCount - 1
+                            elementz?.samp - 1
                           )}
                           MenuProps={{
                             PaperProps: { style: { maxHeight: 300 } },
@@ -721,13 +780,13 @@ export default function JobJob({ user }) {
                           sx={{ width: 100 }}
                           name={name}
                           value={
-                            sampleTemp?.items?.[sampleItemCount - 1]?.[name] ||
+                            sampleTemp?.items?.[elementz?.samp - 1]?.[name] ||
                             ""
                           }
                           onChange={onSTR_NN(
-                            setTempSample,
+                            setSampleTemp,
                             "items",
-                            sampleItemCount - 1
+                            elementz?.samp - 1
                           )}
                         />
                       ))}
@@ -747,7 +806,7 @@ export default function JobJob({ user }) {
                     <FormControlLabel
                       control={<Checkbox />}
                       label="Ready"
-                      disabled={!sampleItemCount}
+                      disabled={!elementz?.samp}
                       name="status"
                       checked={sampleTemp?.data?.status === 1}
                       value={1}
@@ -756,7 +815,7 @@ export default function JobJob({ user }) {
                     <FormControlLabel
                       control={<Checkbox color="success" />}
                       label="Approved"
-                      disabled={!sampleItemCount}
+                      disabled={!elementz?.samp}
                       name="status"
                       checked={sampleTemp?.data?.status === 2}
                       value={2}
@@ -830,6 +889,7 @@ export default function JobJob({ user }) {
                       {jobsTemp?.po?.status === 2 && (
                         <TextField
                           type="date"
+                          sx={{ width: 150 }}
                           size="small"
                           label="PO Date"
                           name="when"
@@ -846,8 +906,8 @@ export default function JobJob({ user }) {
                       <FormControl size="small" sx={{ minWidth: 150 }}>
                         <InputLabel>Date Type</InputLabel>
                         <Select
-                          name="when_type"
-                          value={jobsTemp?.delivery?.when_type || 0}
+                          name="deadline_type"
+                          value={jobsTemp?.delivery?.deadline_type || 0}
                           MenuProps={{
                             PaperProps: { style: { maxHeight: 300 } },
                           }}
@@ -859,13 +919,14 @@ export default function JobJob({ user }) {
                           <MenuItem value={2}>Flexible</MenuItem>
                         </Select>
                       </FormControl>
-                      {jobsTemp?.delivery?.when_type === 1 && (
+                      {jobsTemp?.delivery?.deadline_type === 1 && (
                         <TextField
                           type="date"
+                          sx={{ width: 150 }}
                           size="small"
                           label="Date"
-                          name="when"
-                          value={jobsTemp?.delivery?.when || ""}
+                          name="deadline"
+                          value={jobsTemp?.delivery?.deadline || ""}
                           onChange={onSTRDeli}
                           InputLabelProps={{ shrink: true }}
                         />
@@ -942,6 +1003,7 @@ export default function JobJob({ user }) {
                   {jobsTemp?.proof?.status === 1 && (
                     <TextField
                       type="date"
+                      sx={{ width: 150 }}
                       size="small"
                       label="Approved Date"
                       name="ok_when"
@@ -992,6 +1054,7 @@ export default function JobJob({ user }) {
                   {jobsTemp?.artwork?.status === 1 && (
                     <TextField
                       type="date"
+                      sx={{ width: 150 }}
                       size="small"
                       label="Approved Date"
                       name="ok_when"
@@ -1029,6 +1092,7 @@ export default function JobJob({ user }) {
                   {jobsTemp?.job_status >= 2 && (
                     <TextField
                       type="date"
+                      sx={{ width: 150 }}
                       size="small"
                       label="Started Date"
                       name="start_at"
@@ -1066,6 +1130,7 @@ export default function JobJob({ user }) {
                   {jobsTemp?.job_status >= 3 && (
                     <TextField
                       type="date"
+                      sx={{ width: 150 }}
                       size="small"
                       label="Finished Date"
                       name="finish_at"
@@ -1092,7 +1157,9 @@ export default function JobJob({ user }) {
                     control={
                       <Switch
                         checked={jobsTemp?.job_status >= 4}
-                        disabled={(jobsSaved?.job_status || 0) !== 3}
+                        disabled={
+                          (jobsSaved?.job_status || 0) !== 3 || !elementz?.deli
+                        }
                         value={jobsTemp?.job_status === 4 ? 3 : 4}
                         name="job_status"
                         onChange={onNUM_}
@@ -1101,7 +1168,135 @@ export default function JobJob({ user }) {
                     }
                   />
                 </Stack>
+                {/* ####################################################################### */}
+                <Typography sx={{ mt: 2 }}>
+                  Delivery Log
+                  <IconButton
+                    onClick={() =>
+                      setElementz((p) => ({
+                        ...p,
+                        deli: p.deli + 1,
+                      }))
+                    }
+                    disabled={elementz?.deli && !form2Filled}
+                    color="primary"
+                  >
+                    <AddCircleOutlineRoundedIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => {
+                      const count = elementz?.deli ?? 0;
+                      setDeliTemp((p) => ({
+                        ...p,
+                        log: Object.fromEntries(
+                          Object.entries(p.log || {}).filter(
+                            ([k]) => k != count - 1
+                          )
+                        ),
+                      }));
+
+                      setElementz((p) => ({
+                        ...p,
+                        deli: Math.max((p.deli ?? 0) - 1, 0),
+                      }));
+                      jobsTemp?.job_status === 4 &&
+                        count <= 1 &&
+                        setJobsTemp((p) => ({ ...p, job_status: 3 }));
+                    }}
+                    disabled={(elementz?.deli ?? 0) < 1}
+                  >
+                    <DeleteRoundedIcon />
+                  </IconButton>
+                </Typography>
+                <List dense>
+                  {Array.from({ length: elementz?.deli }).map((_, idx) => {
+                    const s = deliTemp?.log?.[idx] || {};
+
+                    return (
+                      <React.Fragment key={idx}>
+                        <ListItemButton selected={idx === elementz?.deli - 1}>
+                          <ListItemText
+                            primary={`${idx + 1} - ${
+                              deli_methods[s?.deli_meth] || "-"
+                            }`}
+                            secondary={
+                              [
+                                s?.deli_qty != null
+                                  ? `${Number(
+                                      s.deli_qty
+                                    ).toLocaleString()} Units ( ${(
+                                      (s.deli_qty / calEsti.unit_count) *
+                                      100
+                                    ).toFixed(2)} % )`
+                                  : null,
+                                s?.deli_date,
+                              ]
+                                .filter(Boolean)
+                                .join(" • ") || "-"
+                            }
+                          />
+                        </ListItemButton>
+                        <Divider />
+                      </React.Fragment>
+                    );
+                  })}
+                </List>
+                {!!elementz?.deli && (
+                  <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
+                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                      <Select
+                        name="deli_meth"
+                        value={
+                          deliTemp?.log?.[elementz?.deli - 1]?.deli_meth || 0
+                        }
+                        onChange={onNUM_NN(
+                          setDeliTemp,
+                          "log",
+                          elementz?.deli - 1
+                        )}
+                        MenuProps={{
+                          PaperProps: { style: { maxHeight: 300 } },
+                        }}
+                      >
+                        <MenuItem value={0}>-</MenuItem>
+
+                        {Object.entries(deli_methods).map(([value, label]) => (
+                          <MenuItem key={value} value={value}>
+                            {label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <TextField
+                      type="date"
+                      sx={{ width: 150 }}
+                      name="deli_date"
+                      size="small"
+                      value={
+                        deliTemp?.log?.[elementz?.deli - 1]?.deli_date || ""
+                      }
+                      onChange={onSTR_NN(
+                        setDeliTemp,
+                        "log",
+                        elementz?.deli - 1
+                      )}
+                    />{" "}
+                    <Num
+                      sx={{ width: 100 }}
+                      name="deli_qty"
+                      value={deliTemp?.log?.[elementz?.deli - 1]?.deli_qty || 0}
+                      onChange={onNUM_NN(
+                        setDeliTemp,
+                        "log",
+                        elementz?.deli - 1
+                      )}
+                      label="Units"
+                    />
+                  </Stack>
+                )}
               </Box>
+
+              // #####################################################################
             )}{" "}
             {tabV === 5 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
