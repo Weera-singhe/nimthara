@@ -616,16 +616,19 @@ export default function JobJob({ user }) {
             </Box>
             {tabV === 0 && (
               <>
-                <Typography sx={{ pt: 2, width: "100%" }}>
-                  Estimation
-                  <IconButton
-                    component={Link}
-                    to={`/esti/${fileid}_${jobindex}_pre`}
-                    color="primary"
-                  >
-                    <AddLinkRoundedIcon />
-                  </IconButton>
-                </Typography>
+                <Box sx={{ width: "100%", overflow: "hidden" }}>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography sx={{ pb: 3, width: "100%" }}>
+                    Estimation
+                    <IconButton
+                      component={Link}
+                      to={`/esti/${fileid}_${jobindex}_pre`}
+                      color="primary"
+                    >
+                      <AddLinkRoundedIcon />
+                    </IconButton>
+                  </Typography>
+                </Box>
                 {estiOk ? (
                   <TableContainer component={Paper} sx={{ width: 600 }}>
                     <Table size="small">
@@ -680,7 +683,8 @@ export default function JobJob({ user }) {
                   </Stack>
                 )}
                 <Box sx={{ width: "100%", overflow: "hidden" }}>
-                  <Typography sx={{ mt: 2 }}>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography sx={{ pb: 3 }}>
                     Samples / Materials
                     <IconButton
                       onClick={() =>
@@ -744,7 +748,7 @@ export default function JobJob({ user }) {
                       );
                     })}
                   </List>
-                  {elementz?.samp ? (
+                  {!!elementz?.samp && (
                     <Stack direction="row" flexWrap="wrap" gap={1}>
                       <FormControl size="small" sx={{ minWidth: 150 }}>
                         <Select
@@ -791,10 +795,11 @@ export default function JobJob({ user }) {
                         />
                       ))}
                     </Stack>
-                  ) : null}
-                  <Typography sx={{ mt: 4 }}>Sample Status</Typography>
+                  )}
+                  <Divider sx={{ my: 2 }} />
+                  <Typography sx={{ pb: 3 }}>Sample Status</Typography>
 
-                  <Stack direction="row" flexWrap="wrap" columnGap={1}>
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
                     <FormControlLabel
                       control={<Checkbox />}
                       label="not Ready"
@@ -830,13 +835,15 @@ export default function JobJob({ user }) {
                       onChange={onNUMSample}
                     />
                   </Stack>
+                  <Divider sx={{ mt: 2 }} />
                 </Box>
               </>
             )}
             {tabV === 1 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
-                <Typography sx={{ pt: 2 }}>Customr Decision</Typography>
-                <Stack direction="row" flexWrap="wrap" columnGap={1}>
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Customr Decision</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
                   <FormControlLabel
                     control={<Checkbox />}
                     label="Waiting"
@@ -858,8 +865,9 @@ export default function JobJob({ user }) {
                 </Stack>
                 {!!jobsTemp?.job_status && (
                   <>
-                    <Typography sx={{ pt: 2 }}>Purchase Order</Typography>
-                    <Stack direction="row" flexWrap="wrap" columnGap={1}>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography sx={{ pb: 3 }}>Purchase Order</Typography>
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
                       <FormControlLabel
                         control={<Checkbox />}
                         label="Waiting"
@@ -900,9 +908,10 @@ export default function JobJob({ user }) {
                       )}
                     </Stack>
 
-                    <Typography sx={{ py: 2 }}>Delivery Shedule</Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography sx={{ pb: 3 }}>Delivery Shedule</Typography>
 
-                    <Stack direction="row" flexWrap="wrap" columnGap={1}>
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
                       <FormControl size="small" sx={{ minWidth: 150 }}>
                         <InputLabel>Date Type</InputLabel>
                         <Select
@@ -934,10 +943,12 @@ export default function JobJob({ user }) {
                     </Stack>
                   </>
                 )}
+                <Divider sx={{ mt: 2 }} />
               </Box>
             )}
             {tabV === 2 && isSubmittedBid && !!jobsSaved?.job_status && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
+                <Divider sx={{ my: 2 }} />
                 <FormControlLabel
                   label="Performance Bond"
                   labelPlacement="start"
@@ -962,8 +973,10 @@ export default function JobJob({ user }) {
                     <AddLinkRoundedIcon />
                   </IconButton>
                 )}
-                <Typography sx={{ pt: 2 }}>Proof</Typography>
-                <Stack direction="row" flexWrap="wrap" columnGap={1}>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Proof</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
                   <FormControlLabel
                     control={<Checkbox color="success" />}
                     label="Not Need"
@@ -1013,8 +1026,9 @@ export default function JobJob({ user }) {
                     />
                   )}
                 </Stack>
-                <Typography sx={{ pt: 2 }}>Art Work</Typography>
-                <Stack direction="row" flexWrap="wrap" columnGap={1}>
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Art Work</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
                   <FormControlLabel
                     control={<Checkbox color="success" />}
                     label="No Print"
@@ -1064,12 +1078,9 @@ export default function JobJob({ user }) {
                     />
                   )}
                 </Stack>
-                <Stack
-                  direction="row"
-                  flexWrap="wrap"
-                  columnGap={1}
-                  sx={{ mt: 3 }}
-                >
+
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 2 }}>
                   <FormControlLabel
                     label="JOB Started"
                     labelPlacement="start"
@@ -1102,16 +1113,14 @@ export default function JobJob({ user }) {
                     />
                   )}
                 </Stack>
+
+                <Divider sx={{ mt: 1 }} />
               </Box>
             )}
             {tabV === 3 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
-                <Stack
-                  direction="row"
-                  flexWrap="wrap"
-                  columnGap={1}
-                  sx={{ mt: 1 }}
-                >
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 2 }}>
                   <FormControlLabel
                     label="JOB Finished"
                     labelPlacement="start"
@@ -1140,16 +1149,14 @@ export default function JobJob({ user }) {
                     />
                   )}
                 </Stack>
+
+                <Divider sx={{ mt: 2 }} />
               </Box>
             )}
             {tabV === 4 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
-                <Stack
-                  direction="row"
-                  flexWrap="wrap"
-                  columnGap={1}
-                  sx={{ mt: 1 }}
-                >
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 1 }}>
                   <FormControlLabel
                     label="Fully Delivered"
                     labelPlacement="start"
@@ -1168,8 +1175,8 @@ export default function JobJob({ user }) {
                     }
                   />
                 </Stack>
-                {/* ####################################################################### */}
-                <Typography sx={{ mt: 2 }}>
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>
                   Delivery Log
                   <IconButton
                     onClick={() =>
@@ -1294,18 +1301,14 @@ export default function JobJob({ user }) {
                     />
                   </Stack>
                 )}
-              </Box>
 
-              // #####################################################################
-            )}{" "}
+                <Divider sx={{ mt: 2 }} />
+              </Box>
+            )}
             {tabV === 5 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
-                <Stack
-                  direction="row"
-                  flexWrap="wrap"
-                  columnGap={1}
-                  sx={{ mt: 1 }}
-                >
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 1 }}>
                   <FormControlLabel
                     label="Fully Paid"
                     labelPlacement="start"
@@ -1325,6 +1328,7 @@ export default function JobJob({ user }) {
                     }
                   />
                 </Stack>
+                <Divider sx={{ mt: 2 }} />
               </Box>
             )}
           </MyFormBox>
