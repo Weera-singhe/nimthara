@@ -71,12 +71,12 @@ export default function JobJob({ user }) {
 
   const [DBLoading, setDBLoading] = useState(true);
 
-  const [jobsSaved, setJobsSaved] = useState([]);
-  const [jobsTemp, setJobsTemp] = useState([]);
+  const [jobSaved, setJobSaved] = useState([]);
+  const [jobTemp, setJobTemp] = useState([]);
+  const [theseJobs, setTheseJobs] = useState([]);
   const [sampleTemp, setSampleTemp] = useState([]);
-  const [sampleSaved, setSampleSaved] = useState([]);
   const [deliTemp, setDeliTemp] = useState([]);
-  const [deliSaved, setDeliSaved] = useState([]);
+  const [bidResTemp, setBidResTemp] = useState([]);
 
   const [elementz, setElementz] = useState([]);
 
@@ -84,25 +84,23 @@ export default function JobJob({ user }) {
   const [calEsti, CalculatEsti] = useState();
   const [estiOk, setEstiOk] = useState(false);
 
-  const onSTR_ = onSTR(setJobsTemp);
-  const onSTRCode_ = onSTRCode(setJobsTemp);
-  const onNUM_ = onNUM(setJobsTemp);
+  const onSTR_ = onSTR(setJobTemp);
+  const onSTRCode_ = onSTRCode(setJobTemp);
+  const onNUM_ = onNUM(setJobTemp);
   const onNUMSample = onNUM_N(setSampleTemp, "data");
-  const onNUMPO = onNUM_N(setJobsTemp, "po");
-  const onSTRPO = onSTR_N(setJobsTemp, "po");
-  const onNUMDeli = onNUM_N(setJobsTemp, "delivery");
-  const onSTRDeli = onSTR_N(setJobsTemp, "delivery");
-  const onNUMPerfBond = onNUM_N(setJobsTemp, "perfbond");
+  const onNUMPO = onNUM_N(setJobTemp, "po");
+  const onSTRPO = onSTR_N(setJobTemp, "po");
+  const onNUMPerfBond = onNUM_N(setJobTemp, "perfbond");
 
-  const onNUMProof = onNUM_N(setJobsTemp, "proof");
-  const onSTRProof = onSTR_N(setJobsTemp, "proof");
+  const onNUMProof = onNUM_N(setJobTemp, "proof");
+  const onSTRProof = onSTR_N(setJobTemp, "proof");
 
-  const onNUMAW = onNUM_N(setJobsTemp, "artwork");
-  const onSTRAW = onSTR_N(setJobsTemp, "artwork");
+  const onNUMAW = onNUM_N(setJobTemp, "artwork");
+  const onSTRAW = onSTR_N(setJobTemp, "artwork");
 
-  const onNUMPay = onNUM_N(setJobsTemp, "job_payment");
+  const onNUMPay = onNUM_N(setJobTemp, "job_payment");
 
-  const onSTRInfo = onSTR_N(setJobsTemp, "job_info");
+  const onSTRInfo = onSTR_N(setJobTemp, "job_info");
 
   useEffect(() => {
     setDBLoading(true);
@@ -111,17 +109,16 @@ export default function JobJob({ user }) {
       .then((res) => {
         const job = res.data.thisJob || {};
 
-        setJobsSaved(job);
-        setJobsTemp(job);
+        setJobSaved(job);
+        setJobTemp(job);
         setTabV(job?.bid_submit?.method ? (job?.job_status || 0) + 1 : 0);
 
-        setSampleSaved(job.sample || {});
         setSampleTemp(job.sample || {});
-
-        setDeliSaved(job.delivery || {});
         setDeliTemp(job.delivery || {});
+        setBidResTemp(job.bid_result || {});
 
         setEstiOk(job?.job_info?.esti_ok);
+        setTheseJobs(res.data.theseJobs || {});
 
         const keysSamp = Object.keys(job?.sample?.items || {}).map(Number);
         const sampItemTot_ = keysSamp.length ? Math.max(...keysSamp) + 1 : 0;
@@ -129,11 +126,16 @@ export default function JobJob({ user }) {
         const keysDeli = Object.keys(job?.delivery?.log || {}).map(Number);
         const deliLogTot_ = keysDeli.length ? Math.max(...keysDeli) + 1 : 0;
 
+        const keysBidres = Object.keys(job?.bid_result?.log || {}).map(Number);
+        const bidresTot_ = keysBidres.length ? Math.max(...keysBidres) + 1 : 0;
+
         setElementz({
           samp: sampItemTot_,
           sampInitial: sampItemTot_,
           deli: deliLogTot_,
           deliInitial: deliLogTot_,
+          bidres: bidresTot_,
+          bidresInitial: bidresTot_,
         });
 
         // console.log("db loaded", res.data);
@@ -145,36 +147,36 @@ export default function JobJob({ user }) {
       .finally(() => {
         setDBLoading(false);
       });
-  }, [fileid]);
-  useEffect(() => {
-    console.log("temp", jobsTemp);
-    console.log("saved", jobsSaved);
-  }, [jobsTemp]);
+  }, [fileid, jobindex]);
+  // useEffect(() => {
+  //   console.log("temp", jobTemp);
+  //   console.log("saved", jobSaved);
+  // }, [jobTemp]);
 
-  useEffect(() => {
-    console.log("quotVals", calEsti);
-  }, [calEsti]);
-  useEffect(() => {
-    console.log("sampleItems", sampleTemp);
-  }, [sampleTemp]);
-  useEffect(() => {
-    console.log("deli", deliTemp);
-  }, [deliTemp]);
-  useEffect(() => {
-    console.log("elemnt = ", elementz);
-  }, [elementz]);
+  // useEffect(() => {
+  //   console.log("quotVals", calEsti);
+  // }, [calEsti]);
+  // useEffect(() => {
+  //   console.log("sampleItems", sampleTemp);
+  // }, [sampleTemp]);
+  // useEffect(() => {
+  //   console.log("deli", deliTemp);
+  // }, [deliTemp]);
+  // useEffect(() => {
+  //   console.log("elemnt = ", elementz);
+  // }, [elementz]);
 
-  const isSavedJob = jobsSaved?.job_index;
-  const isSavedFile = jobsSaved?.file_id;
+  const isSavedJob = jobSaved?.job_index;
+  const isSavedFile = jobSaved?.file_id;
   const isSubmittedBid = [1, 2, 3, 4].includes(
-    Number(jobsSaved?.bid_submit?.method)
+    Number(jobSaved?.bid_submit?.method)
   );
 
   const same = (a, b, e) => (a || e) === (b || e);
 
   const form1Same =
-    same(jobsSaved?.job_name, jobsTemp.job_name, "") &&
-    same(jobsSaved?.job_code, jobsTemp.job_code, "");
+    same(jobSaved?.job_name, jobTemp.job_name, "") &&
+    same(jobSaved?.job_code, jobTemp.job_code, "");
 
   const form1Acess = isSavedJob ? user?.level_jobs >= 2 : user?.level_jobs;
 
@@ -186,7 +188,7 @@ export default function JobJob({ user }) {
 
     axios
       .post(`${JOBS_JOB}/form1`, fullForm)
-      .then((res) => setJobsSaved(res.data.thisJob || {}))
+      .then((res) => setJobSaved(res.data.thisJob || {}))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }
@@ -197,67 +199,53 @@ export default function JobJob({ user }) {
   const isForm2Same = () => {
     switch (tabV) {
       case 0: {
-        const savedItems = sampleSaved?.items ?? [];
+        const savedItems = jobSaved?.sample?.items ?? [];
         const tempItems = sampleTemp?.items ?? [];
 
         return (
           deepEqual(savedItems, tempItems) &&
-          same(sampleSaved?.data?.status, sampleTemp?.data?.status, 0)
+          same(jobSaved?.sample?.data?.status, sampleTemp?.data?.status, 0)
         );
       }
-      case 1:
+      case 1: {
+        const savedLog = jobSaved?.bid_result?.log ?? [];
+        const tempLog = bidResTemp?.log ?? [];
         return (
-          same(jobsTemp?.po?.status, jobsSaved?.po?.status, "") &&
-          same(jobsTemp?.po?.when, jobsSaved?.po?.when, 0) &&
-          same(
-            jobsTemp?.delivery?.deadline_type,
-            jobsSaved?.delivery?.deadline_type,
-            0
-          ) &&
-          same(
-            jobsTemp?.delivery?.deadline,
-            jobsSaved?.delivery?.deadline,
-            ""
-          ) &&
-          same(jobsTemp?.job_status, jobsSaved?.job_status, 0)
+          same(jobTemp?.po?.status, jobSaved?.po?.status, "") &&
+          same(jobTemp?.po?.when, jobSaved?.po?.when, 0) &&
+          same(deliTemp?.deadline_type, jobSaved?.delivery?.deadline_type, 0) &&
+          same(deliTemp?.deadline, jobSaved?.delivery?.deadline, "") &&
+          same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
+          deepEqual(savedLog, tempLog) &&
+          same(jobSaved?.bid_result?.status, bidResTemp?.status, 0)
         );
+      }
       case 2:
         return (
-          same(jobsTemp?.perfbond?.status, jobsSaved?.perfbond?.status, 0) &&
-          same(jobsTemp?.proof?.status, jobsSaved?.proof?.status, 0) &&
-          same(jobsTemp?.proof?.ok_when, jobsSaved?.proof?.ok_when, "") &&
-          same(jobsTemp?.artwork?.ok_when, jobsSaved?.artwork?.ok_when, "") &&
-          same(
-            jobsTemp?.job_info?.start_at,
-            jobsSaved?.job_info?.start_at,
-            ""
-          ) &&
-          same(jobsTemp?.artwork?.status, jobsSaved?.artwork?.status, 0) &&
-          same(jobsTemp?.job_status, jobsSaved?.job_status, 0)
+          same(jobTemp?.perfbond?.status, jobSaved?.perfbond?.status, 0) &&
+          same(jobTemp?.proof?.status, jobSaved?.proof?.status, 0) &&
+          same(jobTemp?.proof?.ok_when, jobSaved?.proof?.ok_when, "") &&
+          same(jobTemp?.artwork?.ok_when, jobSaved?.artwork?.ok_when, "") &&
+          same(jobTemp?.job_info?.start_at, jobSaved?.job_info?.start_at, "") &&
+          same(jobTemp?.artwork?.status, jobSaved?.artwork?.status, 0) &&
+          same(jobTemp?.job_status, jobSaved?.job_status, 0)
         );
       case 3:
         return (
-          same(jobsTemp?.job_status, jobsSaved?.job_status, 0) &&
-          same(
-            jobsTemp?.job_info?.finish_at,
-            jobsSaved?.job_info?.finish_at,
-            ""
-          )
+          same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
+          same(jobTemp?.job_info?.finish_at, jobSaved?.job_info?.finish_at, "")
         );
-      case 4:
-        const savedLog = deliSaved?.log ?? [];
+      case 4: {
+        const savedLog = jobSaved?.delivery?.log ?? [];
         const tempLog = deliTemp?.log ?? [];
 
         return (
           deepEqual(savedLog, tempLog) &&
-          same(jobsTemp?.job_status, jobsSaved?.job_status, 0)
+          same(jobTemp?.job_status, jobSaved?.job_status, 0)
         );
+      }
       case 5:
-        return same(
-          jobsTemp?.job_payment?.full,
-          jobsSaved?.job_payment?.full,
-          0
-        );
+        return same(jobTemp?.job_payment?.full, jobSaved?.job_payment?.full, 0);
 
       default:
         return true;
@@ -273,16 +261,21 @@ export default function JobJob({ user }) {
         return Boolean(last?.type && last?.d1);
       }
 
-      case 1:
-        return true;
+      case 1: {
+        const logs = bidResTemp?.log ?? [];
+        if (!elementz?.bidres) return true;
+        const last = logs[elementz?.bidres - 1];
+        return Boolean(last?.v && last?.n);
+      }
+
       case 2: {
         const needDate =
-          jobsTemp?.job_status >= 2 ? !!jobsTemp?.job_info?.start_at : true;
+          jobTemp?.job_status >= 2 ? !!jobTemp?.job_info?.start_at : true;
         return needDate;
       }
       case 3: {
         const needDate =
-          jobsTemp?.job_status >= 2 ? !!jobsTemp?.job_info?.finish_at : true;
+          jobTemp?.job_status >= 2 ? !!jobTemp?.job_info?.finish_at : true;
         return needDate;
       }
       case 4: {
@@ -317,9 +310,10 @@ export default function JobJob({ user }) {
     const tab = Number(tabV) || 0;
     const base = { fileid, jobindex, tabV: tab };
     const fullForm = {
-      ...jobsTemp,
+      ...jobTemp,
       sample: sampleTemp,
       delivery: deliTemp,
+      bid_result: bidResTemp,
       ...base,
     };
 
@@ -327,12 +321,11 @@ export default function JobJob({ user }) {
       .post(`${JOBS_JOB}/form2`, fullForm)
       .then((res) => {
         const job = res.data.thisJob || {};
-        setSampleSaved(job?.sample);
         setSampleTemp(job?.sample);
-        setDeliSaved(job?.delivery);
         setDeliTemp(job?.delivery);
-        setJobsSaved(job);
-        setJobsTemp(job);
+        setBidResTemp(job?.bid_result);
+        setJobSaved(job);
+        setJobTemp(job);
       })
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -341,7 +334,7 @@ export default function JobJob({ user }) {
   function EstiDeploy() {
     setDBLoading(true);
 
-    const form_ = { fileid, jobindex, job_info: jobsSaved?.job_info };
+    const form_ = { fileid, jobindex, job_info: jobSaved?.job_info };
 
     axios
       .post(`${JOBS_JOB}/estiDeploy`, form_)
@@ -351,9 +344,9 @@ export default function JobJob({ user }) {
   }
 
   const CustomerName =
-    jobsSaved?.customer_id === 1
-      ? jobsSaved?.unreg_customer || "Unregistered"
-      : jobsSaved?.cus_name_short || jobsSaved?.customer_name || "";
+    jobSaved?.customer_id === 1
+      ? jobSaved?.unreg_customer || "Unregistered"
+      : jobSaved?.cus_name_short || jobSaved?.customer_name || "";
 
   const sample_types = {
     pp: "Paper/Board",
@@ -369,6 +362,14 @@ export default function JobJob({ user }) {
   };
 
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
+  const jobsByIndex = useMemo(
+    () =>
+      (theseJobs || []).reduce((acc, job) => {
+        acc[job.job_index] = job;
+        return acc;
+      }, {}),
+    [theseJobs]
+  );
 
   const makeItLoad = DBLoading || !isSavedFile;
   return (
@@ -382,7 +383,7 @@ export default function JobJob({ user }) {
           <Divider />
           <ListItemButton
             component={Link}
-            to={`/jobs/file/${jobsSaved?.file_id}`}
+            to={`/jobs/file/${jobSaved?.file_id}`}
           >
             <ListItemAvatar>
               <FolderOutlinedIcon />
@@ -391,7 +392,7 @@ export default function JobJob({ user }) {
             <ListItemText
               primary={
                 <>
-                  {"#" + jobfileTag(jobsSaved?.file_id)}
+                  {"#" + jobfileTag(jobSaved?.file_id)}
                   <b>{` - ${CustomerName}`}</b>
                 </>
               }
@@ -400,15 +401,15 @@ export default function JobJob({ user }) {
                   sx={{ display: "flex", flexWrap: "wrap" }}
                   component="span"
                 >
-                  {jobsSaved?.doc_name && (
+                  {jobSaved?.doc_name && (
                     <Typography component="span" sx={{ mx: 0.25 }}>
-                      {jobsSaved?.doc_name}
+                      {jobSaved?.doc_name}
                     </Typography>
                   )}
 
-                  {jobsSaved?.file_name && (
+                  {jobSaved?.file_name && (
                     <Typography component="span" sx={{ mx: 0.25 }}>
-                      ({jobsSaved?.file_name})
+                      ({jobSaved?.file_name})
                     </Typography>
                   )}
                 </Box>
@@ -416,7 +417,60 @@ export default function JobJob({ user }) {
             />
           </ListItemButton>
           <Divider />
-          <ListItemButton sx={{ ml: 4 }} selected>
+          {Array.from({ length: jobSaved?.jobs_count || 1 }).map((_, i) => {
+            const ii = i + 1;
+            const job_ = ii === Number(jobindex) ? jobTemp : jobsByIndex[i + 1];
+            return (
+              <React.Fragment key={i}>
+                <ListItemButton
+                  component={Link}
+                  to={fileid && `/jobs/job/${fileid}/${ii}`}
+                  sx={{ ml: 4 }}
+                  selected={ii === Number(jobindex)}
+                >
+                  <ListItemAvatar>
+                    <WorkOutlineRoundedIcon />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <>
+                        {"#" +
+                          jobfileTag(fileid) +
+                          "_" +
+                          (job_?.job_code || ii)}
+                        <b>{CustomerName && ` - ${CustomerName}`}</b>
+                      </>
+                    }
+                    secondary={
+                      <Box
+                        sx={{ display: "flex", flexWrap: "wrap" }}
+                        component="span"
+                      >
+                        {jobSaved?.doc_name && (
+                          <Typography component="span" sx={{ mx: 0.25 }}>
+                            {jobSaved.doc_name}
+                          </Typography>
+                        )}
+
+                        {jobSaved?.file_name && (
+                          <Typography component="span" sx={{ mx: 0.25 }}>
+                            ({jobSaved.file_name})
+                          </Typography>
+                        )}
+                        {job_?.job_name && (
+                          <Typography component="span" sx={{ mx: 0.25 }}>
+                            - {job_.job_name}
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                  />
+                </ListItemButton>
+                <Divider sx={{ ml: 4 }} />
+              </React.Fragment>
+            );
+          })}
+          {/* <ListItemButton sx={{ ml: 4 }} selected>
             <ListItemAvatar>
               <WorkOutlineRoundedIcon />
             </ListItemAvatar>
@@ -424,9 +478,9 @@ export default function JobJob({ user }) {
               primary={
                 <>
                   {"#" +
-                    jobfileTag(jobsSaved?.file_id) +
+                    jobfileTag(jobSaved?.file_id) +
                     "_" +
-                    (jobsTemp?.job_code || jobindex)}
+                    (jobTemp?.job_code || jobindex)}
                   <b>{` - ${CustomerName}`}</b>
                 </>
               }
@@ -435,33 +489,33 @@ export default function JobJob({ user }) {
                   sx={{ display: "flex", flexWrap: "wrap" }}
                   component="span"
                 >
-                  {jobsSaved?.doc_name && (
+                  {jobSaved?.doc_name && (
                     <Typography component="span" sx={{ mx: 0.25 }}>
-                      {jobsSaved.doc_name}
+                      {jobSaved.doc_name}
                     </Typography>
                   )}
 
-                  {jobsSaved?.file_name && (
+                  {jobSaved?.file_name && (
                     <Typography component="span" sx={{ mx: 0.25 }}>
-                      ({jobsSaved.file_name})
+                      ({jobSaved.file_name})
                     </Typography>
                   )}
-                  {jobsTemp?.job_name && (
+                  {jobTemp?.job_name && (
                     <Typography component="span" sx={{ mx: 0.25 }}>
-                      - {jobsTemp.job_name}
+                      - {jobTemp.job_name}
                     </Typography>
                   )}
                 </Box>
               }
             />
           </ListItemButton>
-          <Divider sx={{ ml: 4 }} />
+          <Divider sx={{ ml: 4 }} /> */}
         </List>
       </Box>
       <MyFormBox
         label={"Job ID"}
         clickable={passedForm1 || !isSavedJob}
-        onPress={() => SubmitForm1(jobsTemp)}
+        onPress={() => SubmitForm1(jobTemp)}
         buttonType={isSavedJob ? "Save" : "Create"}
         user={user}
       >
@@ -470,7 +524,7 @@ export default function JobJob({ user }) {
           variant="outlined"
           size="small"
           name="job_code"
-          value={jobsTemp?.job_code || ""}
+          value={jobTemp?.job_code || ""}
           onChange={onSTRCode_}
         />
         <TextField
@@ -478,7 +532,7 @@ export default function JobJob({ user }) {
           variant="outlined"
           size="small"
           name="job_name"
-          value={jobsTemp?.job_name || ""}
+          value={jobTemp?.job_name || ""}
           onChange={onSTR_}
         />
       </MyFormBox>
@@ -515,14 +569,16 @@ export default function JobJob({ user }) {
                 value={tabV}
                 onChange={(_, v) => {
                   setTabV(v);
-                  setSampleTemp(sampleSaved);
-                  setDeliTemp(deliSaved);
-                  setJobsTemp(jobsSaved);
+                  setSampleTemp(jobSaved?.sample);
+                  setDeliTemp(jobSaved?.delivery);
+                  setBidResTemp(jobSaved?.bid_result);
+                  setJobTemp(jobSaved);
 
                   setElementz((p) => ({
                     ...p,
                     samp: p.sampInitial,
                     deli: p.deliInitial,
+                    bidres: p.bidresInitial,
                   }));
                 }}
                 variant="scrollable"
@@ -532,12 +588,12 @@ export default function JobJob({ user }) {
                 <Tab
                   value={0}
                   label={
-                    jobsSaved?.bid_submit?.method > 0
+                    jobSaved?.bid_submit?.method > 0
                       ? "Submitted"
                       : "Submitting"
                   }
                   icon={
-                    jobsSaved?.bid_submit?.method > 0 ? (
+                    jobSaved?.bid_submit?.method > 0 ? (
                       <CheckCircleOutlineRoundedIcon
                         color="success"
                         fontSize="small"
@@ -548,9 +604,9 @@ export default function JobJob({ user }) {
                 />
 
                 <Tab
-                  label={jobsSaved?.job_status ? "Qualified" : "Waiting"}
+                  label={jobSaved?.job_status ? "Qualified" : "Waiting"}
                   icon={
-                    jobsSaved?.job_status >= 1 && (
+                    jobSaved?.job_status >= 1 && (
                       <CheckCircleOutlineRoundedIcon color="success" />
                     )
                   }
@@ -559,10 +615,10 @@ export default function JobJob({ user }) {
                 />
                 <Tab
                   label={
-                    jobsSaved?.job_status >= 2 ? "Job Started" : "Job Preparing"
+                    jobSaved?.job_status >= 2 ? "Job Started" : "Job Preparing"
                   }
                   icon={
-                    jobsSaved?.job_status >= 2 && (
+                    jobSaved?.job_status >= 2 && (
                       <CheckCircleOutlineRoundedIcon color="success" />
                     )
                   }
@@ -571,12 +627,12 @@ export default function JobJob({ user }) {
                 />
                 <Tab
                   label={
-                    jobsSaved?.job_status >= 3
+                    jobSaved?.job_status >= 3
                       ? "Ready to Deliver"
                       : "Not Finished"
                   }
                   icon={
-                    jobsSaved?.job_status >= 3 && (
+                    jobSaved?.job_status >= 3 && (
                       <CheckCircleOutlineRoundedIcon color="success" />
                     )
                   }
@@ -585,12 +641,10 @@ export default function JobJob({ user }) {
                 />
                 <Tab
                   label={
-                    jobsSaved?.job_status >= 4
-                      ? "Delivered"
-                      : "Delivery Pending"
+                    jobSaved?.job_status >= 4 ? "Delivered" : "Delivery Pending"
                   }
                   icon={
-                    jobsSaved?.job_status >= 4 && (
+                    jobSaved?.job_status >= 4 && (
                       <CheckCircleOutlineRoundedIcon color="success" />
                     )
                   }
@@ -600,12 +654,12 @@ export default function JobJob({ user }) {
 
                 <Tab
                   label={
-                    !!jobsSaved?.job_payment?.full
+                    !!jobSaved?.job_payment?.full
                       ? "Fully Paid"
                       : "Payment Pending"
                   }
                   icon={
-                    !!jobsSaved?.job_payment?.full && (
+                    !!jobSaved?.job_payment?.full && (
                       <CheckCircleOutlineRoundedIcon color="success" />
                     )
                   }
@@ -842,14 +896,104 @@ export default function JobJob({ user }) {
             {tabV === 1 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
-                <Typography sx={{ pb: 3 }}>Customr Decision</Typography>
+                <Typography sx={{ pb: 3 }}>
+                  Bid Results
+                  <IconButton
+                    onClick={() =>
+                      setElementz((p) => ({
+                        ...p,
+                        bidres: p.bidres + 1,
+                      }))
+                    }
+                    disabled={elementz?.bidres && !form2Filled}
+                    color="primary"
+                  >
+                    <AddCircleOutlineRoundedIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => {
+                      const count = elementz?.bidres ?? 0;
+                      setBidResTemp((p) => ({
+                        ...p,
+                        log: Object.fromEntries(
+                          Object.entries(p.log || {}).filter(
+                            ([k]) => k != count - 1
+                          )
+                        ),
+                      }));
+
+                      setElementz((p) => ({
+                        ...p,
+                        bidres: Math.max((p.bidres ?? 0) - 1, 0),
+                      }));
+                    }}
+                    disabled={(elementz?.deli ?? 0) < 1}
+                  >
+                    <DeleteRoundedIcon />
+                  </IconButton>
+                </Typography>
+                {!!elementz?.bidres && (
+                  <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
+                    <TextField
+                      name="n"
+                      label="Name"
+                      size="small"
+                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.n || ""}
+                      onChange={onSTR_NN(
+                        setBidResTemp,
+                        "log",
+                        elementz?.bidres - 1
+                      )}
+                    />
+                    <Num
+                      sx={{ width: 100 }}
+                      name="v"
+                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.v}
+                      onChange={onNUM_NN(
+                        setBidResTemp,
+                        "log",
+                        elementz?.bidres - 1
+                      )}
+                      label="Price"
+                    />
+                  </Stack>
+                )}
+                <List dense>
+                  {(() => {
+                    const lastKey = Object.keys(bidResTemp?.log || {}).slice(
+                      -1
+                    )[0];
+
+                    return Object.entries(bidResTemp?.log || {})
+                      .filter(([, v]) => Boolean(v))
+                      .sort(
+                        (a, b) =>
+                          Number(a[1]?.v ?? Infinity) -
+                          Number(b[1]?.v ?? Infinity)
+                      )
+                      .map(([key, s], idx) => (
+                        <React.Fragment key={key}>
+                          <ListItemButton selected={key === lastKey}>
+                            <ListItemText
+                              primary={`${idx + 1} - ${s?.n || ""} - ${
+                                s?.v != null ? toLKR(s.v) : ""
+                              }`}
+                            />
+                          </ListItemButton>
+                          <Divider />
+                        </React.Fragment>
+                      ));
+                  })()}
+                </List>
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Customer Decision</Typography>
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   <FormControlLabel
                     control={<Checkbox />}
                     label="Waiting"
                     name="job_status"
-                    checked={!jobsTemp?.job_status}
-                    disabled={jobsSaved?.job_status}
+                    checked={!jobTemp?.job_status}
+                    disabled={jobSaved?.job_status}
                     value={0}
                     onChange={onNUM_}
                   />
@@ -857,13 +1001,13 @@ export default function JobJob({ user }) {
                     control={<Checkbox color="success" />}
                     label="Qualified"
                     name="job_status"
-                    checked={!!jobsTemp?.job_status}
-                    disabled={jobsSaved?.job_status >= 2 || !isSubmittedBid}
+                    checked={!!jobTemp?.job_status}
+                    disabled={jobSaved?.job_status >= 2 || !isSubmittedBid}
                     value={1}
                     onChange={onNUM_}
                   />
                 </Stack>
-                {!!jobsTemp?.job_status && (
+                {!!jobTemp?.job_status && (
                   <>
                     <Divider sx={{ my: 2 }} />
                     <Typography sx={{ pb: 3 }}>Purchase Order</Typography>
@@ -872,8 +1016,8 @@ export default function JobJob({ user }) {
                         control={<Checkbox />}
                         label="Waiting"
                         name="status"
-                        checked={!jobsTemp?.po?.status}
-                        disabled={jobsSaved?.po?.status === 2}
+                        checked={!jobTemp?.po?.status}
+                        disabled={jobSaved?.po?.status === 2}
                         value={0}
                         onChange={onNUMPO}
                       />
@@ -881,8 +1025,8 @@ export default function JobJob({ user }) {
                         control={<Checkbox />}
                         label="Optional"
                         name="status"
-                        checked={jobsTemp?.po?.status === 1}
-                        disabled={jobsSaved?.po?.status === 2}
+                        checked={jobTemp?.po?.status === 1}
+                        disabled={jobSaved?.po?.status === 2}
                         value={1}
                         onChange={onNUMPO}
                       />
@@ -890,18 +1034,18 @@ export default function JobJob({ user }) {
                         control={<Checkbox color="success" />}
                         label="Received"
                         name="status"
-                        checked={jobsTemp?.po?.status === 2}
+                        checked={jobTemp?.po?.status === 2}
                         value={2}
                         onChange={onNUMPO}
                       />
-                      {jobsTemp?.po?.status === 2 && (
+                      {jobTemp?.po?.status === 2 && (
                         <TextField
                           type="date"
                           sx={{ width: 150 }}
                           size="small"
                           label="PO Date"
                           name="when"
-                          value={jobsTemp?.po?.when || ""}
+                          value={jobTemp?.po?.when || ""}
                           onChange={onSTRPO}
                           InputLabelProps={{ shrink: true }}
                         />
@@ -916,27 +1060,27 @@ export default function JobJob({ user }) {
                         <InputLabel>Date Type</InputLabel>
                         <Select
                           name="deadline_type"
-                          value={jobsTemp?.delivery?.deadline_type || 0}
+                          value={deliTemp?.deadline_type || 0}
                           MenuProps={{
                             PaperProps: { style: { maxHeight: 300 } },
                           }}
                           label="Date Type"
-                          onChange={onNUMDeli}
+                          onChange={onNUM(setDeliTemp)}
                         >
                           <MenuItem value={0}>Pending</MenuItem>
                           <MenuItem value={1}>Fixed</MenuItem>
                           <MenuItem value={2}>Flexible</MenuItem>
                         </Select>
                       </FormControl>
-                      {jobsTemp?.delivery?.deadline_type === 1 && (
+                      {deliTemp?.deadline_type === 1 && (
                         <TextField
                           type="date"
                           sx={{ width: 150 }}
                           size="small"
                           label="Date"
                           name="deadline"
-                          value={jobsTemp?.delivery?.deadline || ""}
-                          onChange={onSTRDeli}
+                          value={deliTemp?.deadline || ""}
+                          onChange={onSTR(setDeliTemp)}
                           InputLabelProps={{ shrink: true }}
                         />
                       )}
@@ -946,7 +1090,7 @@ export default function JobJob({ user }) {
                 <Divider sx={{ mt: 2 }} />
               </Box>
             )}
-            {tabV === 2 && isSubmittedBid && !!jobsSaved?.job_status && (
+            {tabV === 2 && isSubmittedBid && !!jobSaved?.job_status && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
                 <FormControlLabel
@@ -955,20 +1099,20 @@ export default function JobJob({ user }) {
                   sx={{ ml: 0, my: 1 }}
                   control={
                     <Switch
-                      checked={!!jobsTemp?.perfbond?.status}
-                      disabled={Number(jobsSaved?.perfbond?.status || 0) >= 2}
-                      value={jobsTemp?.perfbond?.status ? 0 : 1}
+                      checked={!!jobTemp?.perfbond?.status}
+                      disabled={Number(jobSaved?.perfbond?.status || 0) >= 2}
+                      value={jobTemp?.perfbond?.status ? 0 : 1}
                       name="status"
                       onChange={onNUMPerfBond}
                       color="success"
                     />
                   }
                 />
-                {!!jobsTemp?.perfbond?.status && (
+                {!!jobTemp?.perfbond?.status && (
                   <IconButton
                     color="primary"
                     sx={{ ml: 2 }}
-                    disabled={!jobsSaved?.perfbond?.status}
+                    disabled={!jobSaved?.perfbond?.status}
                   >
                     <AddLinkRoundedIcon />
                   </IconButton>
@@ -981,8 +1125,8 @@ export default function JobJob({ user }) {
                     control={<Checkbox color="success" />}
                     label="Not Need"
                     name="status"
-                    checked={jobsTemp?.proof?.status === 2}
-                    disabled={jobsSaved?.proof?.status >= 3}
+                    checked={jobTemp?.proof?.status === 2}
+                    disabled={jobSaved?.proof?.status >= 3}
                     value={2}
                     onChange={onNUMProof}
                   />
@@ -990,8 +1134,8 @@ export default function JobJob({ user }) {
                     control={<Checkbox />}
                     label="Processing"
                     name="status"
-                    checked={!jobsTemp?.proof?.status}
-                    disabled={jobsSaved?.proof?.status >= 1}
+                    checked={!jobTemp?.proof?.status}
+                    disabled={jobSaved?.proof?.status >= 1}
                     value={0}
                     onChange={onNUMProof}
                   />
@@ -1008,19 +1152,19 @@ export default function JobJob({ user }) {
                     control={<Checkbox color="success" />}
                     label="Approved"
                     name="status"
-                    checked={jobsTemp?.proof?.status === 1}
-                    disabled={jobsSaved?.proof?.status >= 2}
+                    checked={jobTemp?.proof?.status === 1}
+                    disabled={jobSaved?.proof?.status >= 2}
                     value={1}
                     onChange={onNUMProof}
                   />
-                  {jobsTemp?.proof?.status === 1 && (
+                  {jobTemp?.proof?.status === 1 && (
                     <TextField
                       type="date"
                       sx={{ width: 150 }}
                       size="small"
                       label="Approved Date"
                       name="ok_when"
-                      value={jobsTemp?.proof?.ok_when || ""}
+                      value={jobTemp?.proof?.ok_when || ""}
                       onChange={onSTRProof}
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1033,8 +1177,8 @@ export default function JobJob({ user }) {
                     control={<Checkbox color="success" />}
                     label="No Print"
                     name="status"
-                    checked={jobsTemp?.artwork?.status === 2}
-                    disabled={jobsSaved?.artwork?.status >= 3}
+                    checked={jobTemp?.artwork?.status === 2}
+                    disabled={jobSaved?.artwork?.status >= 3}
                     value={2}
                     onChange={onNUMAW}
                   />
@@ -1042,8 +1186,8 @@ export default function JobJob({ user }) {
                     control={<Checkbox />}
                     label="Processing"
                     name="status"
-                    checked={!jobsTemp?.artwork?.status}
-                    disabled={jobsSaved?.artwork?.status >= 1}
+                    checked={!jobTemp?.artwork?.status}
+                    disabled={jobSaved?.artwork?.status >= 1}
                     value={0}
                     onChange={onNUMAW}
                   />
@@ -1060,19 +1204,19 @@ export default function JobJob({ user }) {
                     control={<Checkbox color="success" />}
                     label="Approved / Ready"
                     name="status"
-                    checked={jobsTemp?.artwork?.status === 1}
-                    disabled={jobsSaved?.artwork?.status >= 2}
+                    checked={jobTemp?.artwork?.status === 1}
+                    disabled={jobSaved?.artwork?.status >= 2}
                     value={1}
                     onChange={onNUMAW}
                   />
-                  {jobsTemp?.artwork?.status === 1 && (
+                  {jobTemp?.artwork?.status === 1 && (
                     <TextField
                       type="date"
                       sx={{ width: 150 }}
                       size="small"
                       label="Approved Date"
                       name="ok_when"
-                      value={jobsTemp?.artwork?.ok_when || ""}
+                      value={jobTemp?.artwork?.ok_when || ""}
                       onChange={onSTRAW}
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1087,27 +1231,27 @@ export default function JobJob({ user }) {
                     sx={{ ml: 0, mr: 1 }}
                     control={
                       <Switch
-                        checked={jobsTemp?.job_status >= 2}
+                        checked={jobTemp?.job_status >= 2}
                         disabled={
-                          (jobsSaved?.job_status || 0) !== 1 ||
-                          !jobsTemp?.artwork?.status ||
-                          !jobsTemp?.proof?.status
+                          (jobSaved?.job_status || 0) !== 1 ||
+                          !jobTemp?.artwork?.status ||
+                          !jobTemp?.proof?.status
                         }
-                        value={jobsTemp?.job_status === 2 ? 1 : 2}
+                        value={jobTemp?.job_status === 2 ? 1 : 2}
                         name="job_status"
                         onChange={onNUM_}
                         color="success"
                       />
                     }
                   />
-                  {jobsTemp?.job_status >= 2 && (
+                  {jobTemp?.job_status >= 2 && (
                     <TextField
                       type="date"
                       sx={{ width: 150 }}
                       size="small"
                       label="Started Date"
                       name="start_at"
-                      value={jobsTemp?.job_info?.start_at || ""}
+                      value={jobTemp?.job_info?.start_at || ""}
                       onChange={onSTRInfo}
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1117,7 +1261,7 @@ export default function JobJob({ user }) {
                 <Divider sx={{ mt: 1 }} />
               </Box>
             )}
-            {tabV === 3 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
+            {tabV === 3 && isSubmittedBid && jobSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
                 <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 2 }}>
@@ -1127,23 +1271,23 @@ export default function JobJob({ user }) {
                     sx={{ ml: 0, mr: 1 }}
                     control={
                       <Switch
-                        checked={jobsTemp?.job_status >= 3}
-                        disabled={(jobsSaved?.job_status || 0) !== 2}
-                        value={jobsTemp?.job_status === 3 ? 2 : 3}
+                        checked={jobTemp?.job_status >= 3}
+                        disabled={(jobSaved?.job_status || 0) !== 2}
+                        value={jobTemp?.job_status === 3 ? 2 : 3}
                         name="job_status"
                         onChange={onNUM_}
                         color="success"
                       />
                     }
                   />
-                  {jobsTemp?.job_status >= 3 && (
+                  {jobTemp?.job_status >= 3 && (
                     <TextField
                       type="date"
                       sx={{ width: 150 }}
                       size="small"
                       label="Finished Date"
                       name="finish_at"
-                      value={jobsTemp?.job_info?.finish_at || ""}
+                      value={jobTemp?.job_info?.finish_at || ""}
                       onChange={onSTRInfo}
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1153,7 +1297,7 @@ export default function JobJob({ user }) {
                 <Divider sx={{ mt: 2 }} />
               </Box>
             )}
-            {tabV === 4 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
+            {tabV === 4 && isSubmittedBid && jobSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
                 <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 1 }}>
@@ -1163,11 +1307,11 @@ export default function JobJob({ user }) {
                     sx={{ ml: 0, mr: 1 }}
                     control={
                       <Switch
-                        checked={jobsTemp?.job_status >= 4}
+                        checked={jobTemp?.job_status >= 4}
                         disabled={
-                          (jobsSaved?.job_status || 0) !== 3 || !elementz?.deli
+                          (jobSaved?.job_status || 0) !== 3 || !elementz?.deli
                         }
-                        value={jobsTemp?.job_status === 4 ? 3 : 4}
+                        value={jobTemp?.job_status === 4 ? 3 : 4}
                         name="job_status"
                         onChange={onNUM_}
                         color="success"
@@ -1206,9 +1350,9 @@ export default function JobJob({ user }) {
                         ...p,
                         deli: Math.max((p.deli ?? 0) - 1, 0),
                       }));
-                      jobsTemp?.job_status === 4 &&
+                      jobTemp?.job_status === 4 &&
                         count <= 1 &&
-                        setJobsTemp((p) => ({ ...p, job_status: 3 }));
+                        setJobTemp((p) => ({ ...p, job_status: 3 }));
                     }}
                     disabled={(elementz?.deli ?? 0) < 1}
                   >
@@ -1305,7 +1449,7 @@ export default function JobJob({ user }) {
                 <Divider sx={{ mt: 2 }} />
               </Box>
             )}
-            {tabV === 5 && isSubmittedBid && jobsSaved?.job_status >= 2 && (
+            {tabV === 5 && isSubmittedBid && jobSaved?.job_status >= 2 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
                 <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 1 }}>
@@ -1315,12 +1459,12 @@ export default function JobJob({ user }) {
                     sx={{ ml: 0, mr: 1 }}
                     control={
                       <Switch
-                        checked={jobsTemp?.job_payment?.full === 1}
+                        checked={jobTemp?.job_payment?.full === 1}
                         disabled={
-                          (jobsSaved?.job_status || 0) <= 3 ||
-                          !!jobsSaved?.job_payment?.full
+                          (jobSaved?.job_status || 0) <= 3 ||
+                          !!jobSaved?.job_payment?.full
                         }
-                        value={jobsTemp?.job_payment?.full === 1 ? 0 : 1}
+                        value={jobTemp?.job_payment?.full === 1 ? 0 : 1}
                         name="full"
                         onChange={onNUMPay}
                         color="success"

@@ -54,7 +54,7 @@ export default function JobFile({ user }) {
   const [jobFilesSaved, setJobFilesSaved] = useState({});
   const [jobFilesTemp, setJobFilesTemp] = useState({});
 
-  const [jobsSaved, setJobsSaved] = useState([]);
+  const [theseJobs, setTheseJobs] = useState([]);
 
   const [customers, setCustomers] = useState([]);
   const [DBLoading, setDBLoading] = useState(true);
@@ -67,7 +67,7 @@ export default function JobFile({ user }) {
         setCustomers(res.data.customers || []);
         setJobFilesSaved(res.data.thisJobFile || []);
         setJobFilesTemp(res.data.thisJobFile || []);
-        setJobsSaved(res.data.theseJobs || []);
+        setTheseJobs(res.data.theseJobs || []);
         // console.log("db loaded", res.data);
       })
       .catch(handleApiError)
@@ -180,6 +180,14 @@ export default function JobFile({ user }) {
   const isSavedFile = jobFilesSaved?.customer_id;
   const wrongPage = fileid && !isSavedFile;
   const makeItLoad = DBLoading || wrongPage;
+  const jobsByIndex = useMemo(
+    () =>
+      (theseJobs || []).reduce((acc, job) => {
+        acc[job.job_index] = job;
+        return acc;
+      }, {}),
+    [theseJobs]
+  );
 
   return (
     <Box sx={{ mt: 2, mx: 1 }}>
@@ -226,54 +234,57 @@ export default function JobFile({ user }) {
           </ListItemButton>
           <Divider />
 
-          {Array.from({ length: jobFilesTemp?.jobs_count || 1 }).map((_, i) => (
-            <React.Fragment key={i}>
-              <ListItemButton
-                component={Link}
-                to={fileid && `/jobs/job/${fileid}/${i + 1}`}
-                sx={{ ml: 4 }}
-              >
-                <ListItemAvatar>
-                  <WorkOutlineRoundedIcon />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <>
-                      {"#" +
-                        jobfileTag(fileid) +
-                        "_" +
-                        (jobsSaved[i]?.job_code || i + 1)}
-                      <b>{CustomerName && ` - ${CustomerName}`}</b>
-                    </>
-                  }
-                  secondary={
-                    <Box
-                      sx={{ display: "flex", flexWrap: "wrap" }}
-                      component="span"
-                    >
-                      {jobFilesTemp?.doc_name && (
-                        <Typography component="span" sx={{ mx: 0.25 }}>
-                          {jobFilesTemp.doc_name}
-                        </Typography>
-                      )}
+          {Array.from({ length: jobFilesTemp?.jobs_count || 1 }).map((_, i) => {
+            const job_ = jobsByIndex[i + 1];
+            return (
+              <React.Fragment key={i}>
+                <ListItemButton
+                  component={Link}
+                  to={fileid && `/jobs/job/${fileid}/${i + 1}`}
+                  sx={{ ml: 4 }}
+                >
+                  <ListItemAvatar>
+                    <WorkOutlineRoundedIcon />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <>
+                        {"#" +
+                          jobfileTag(fileid) +
+                          "_" +
+                          (job_?.job_code || i + 1)}
+                        <b>{CustomerName && ` - ${CustomerName}`}</b>
+                      </>
+                    }
+                    secondary={
+                      <Box
+                        sx={{ display: "flex", flexWrap: "wrap" }}
+                        component="span"
+                      >
+                        {jobFilesTemp?.doc_name && (
+                          <Typography component="span" sx={{ mx: 0.25 }}>
+                            {jobFilesTemp.doc_name}
+                          </Typography>
+                        )}
 
-                      {jobFilesTemp?.file_name && (
-                        <Typography component="span" sx={{ mx: 0.25 }}>
-                          ({jobFilesTemp.file_name})
-                        </Typography>
-                      )}
-                      {jobsSaved[i]?.job_name && (
-                        <Typography component="span" sx={{ mx: 0.25 }}>
-                          - {jobsSaved[i].job_name}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                />
-              </ListItemButton>
-              <Divider sx={{ ml: 4 }} />
-            </React.Fragment>
-          ))}
+                        {jobFilesTemp?.file_name && (
+                          <Typography component="span" sx={{ mx: 0.25 }}>
+                            ({jobFilesTemp.file_name})
+                          </Typography>
+                        )}
+                        {job_?.job_name && (
+                          <Typography component="span" sx={{ mx: 0.25 }}>
+                            - {job_.job_name}
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                  />
+                </ListItemButton>
+                <Divider sx={{ ml: 4 }} />
+              </React.Fragment>
+            );
+          })}
         </List>
       </Box>
       {/* ////////////////

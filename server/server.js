@@ -490,7 +490,7 @@ async function GetJobFile(id) {
   return rows[0] || null;
 }
 const GetJobsUnderFile_SQL = `
-      SELECT jj.*
+      SELECT jj.job_index , jj.job_code , jj.job_name
       FROM job_jobs jj
       JOIN job_files jf
         ON jf.file_id = jj.jobfile_id
@@ -768,6 +768,8 @@ app.get("/jobs/job/:fileid/:jobindex", requiredLogged, async (req, res) => {
 
     const thisJob = await GetJobJob(fileid, jobindex);
 
+    const theseJobs = await GetJobsUnderFile(fileid);
+
     const { rows: estiRows } = await pool.query(
       "SELECT * FROM esti WHERE link_id = $1",
       [fileid + "_" + jobindex + "_pre"]
@@ -779,7 +781,7 @@ app.get("/jobs/job/:fileid/:jobindex", requiredLogged, async (req, res) => {
     );
     const qtsComps = getQtsComp.rows;
 
-    return res.json({ thisJob, qtsComps, esti });
+    return res.json({ thisJob, theseJobs, qtsComps, esti });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });
@@ -869,6 +871,7 @@ app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
       proof,
       artwork,
       job_info,
+      bid_result,
     } = req.body;
 
     // console.log("form2");
@@ -927,11 +930,12 @@ app.post("/jobs/job/form2", requiredLogged, async (req, res) => {
         SET 
         job_status = $1,
         po = $2,
-        delivery = $3
-        WHERE jobfile_id = $4
-          AND job_index  = $5
+        delivery = $3,
+        bid_result = $4
+        WHERE jobfile_id = $5
+          AND job_index  = $6
         `,
-        [jobStatusNow, po, delivery, fileid, jobindex]
+        [jobStatusNow, po, delivery, bid_result, fileid, jobindex]
       );
     }
     if (tab === 2 && jobStatusNow) {
