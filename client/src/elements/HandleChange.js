@@ -33,8 +33,9 @@ export const onSTR_NN = (set, parentKey, i) => (e) => {
   const cleaned = cleanStr(value);
 
   set((prev) => {
-    const parent = prev[parentKey] || {};
-    const row = { ...(parent[key] || {}) };
+    const safePrev = prev ?? {}; // ✅ handle null
+    const parent = safePrev[parentKey] ?? {}; // ✅ handle null/undefined
+    const row = { ...(parent[key] ?? {}) };
 
     if (!cleaned) {
       delete row[name];
@@ -73,8 +74,9 @@ export const onNUM_NN = (set, parentKey, i) => (e) => {
   const cleaned = Number(value);
 
   set((prev) => {
-    const parent = prev[parentKey] || {};
-    const row = { ...(parent[key] || {}) };
+    const safePrev = prev ?? {}; // ✅ handle null
+    const parent = safePrev[parentKey] ?? {}; // ✅ handle null/undefined
+    const row = { ...(parent[key] ?? {}) };
 
     if (!cleaned) {
       delete row[name];

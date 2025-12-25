@@ -120,13 +120,13 @@ export default function JobJob({ user }) {
         setEstiOk(job?.job_info?.esti_ok);
         setTheseJobs(res.data.theseJobs || {});
 
-        const keysSamp = Object.keys(job?.sample?.items || {}).map(Number);
+        const keysSamp = Object.keys(job?.sample?.items ?? {}).map(Number);
         const sampItemTot_ = keysSamp.length ? Math.max(...keysSamp) + 1 : 0;
 
-        const keysDeli = Object.keys(job?.delivery?.log || {}).map(Number);
+        const keysDeli = Object.keys(job?.delivery?.log ?? {}).map(Number);
         const deliLogTot_ = keysDeli.length ? Math.max(...keysDeli) + 1 : 0;
 
-        const keysBidres = Object.keys(job?.bid_result?.log || {}).map(Number);
+        const keysBidres = Object.keys(job?.bid_result?.log ?? {}).map(Number);
         const bidresTot_ = keysBidres.length ? Math.max(...keysBidres) + 1 : 0;
 
         setElementz({
@@ -758,12 +758,12 @@ export default function JobJob({ user }) {
                         setSampleTemp((p) => ({
                           ...p,
                           items: Object.fromEntries(
-                            Object.entries(p?.items || {}).filter(
+                            Object.entries(p?.items ?? {}).filter(
                               ([k]) => k != count - 1
                             )
                           ),
                           data: {
-                            ...(p?.data || {}),
+                            ...(p?.data ?? {}),
                             status: count <= 1 ? 0 : p.data?.status ?? 0,
                           },
                         }));
@@ -916,7 +916,7 @@ export default function JobJob({ user }) {
                       setBidResTemp((p) => ({
                         ...p,
                         log: Object.fromEntries(
-                          Object.entries(p?.log || {}).filter(
+                          Object.entries(p?.log ?? {}).filter(
                             ([k]) => k != count - 1
                           )
                         ),
@@ -927,7 +927,7 @@ export default function JobJob({ user }) {
                         bidres: Math.max((p?.bidres ?? 0) - 1, 0),
                       }));
                     }}
-                    disabled={(elementz?.deli ?? 0) < 1}
+                    disabled={(elementz?.bidres ?? 0) < 1}
                   >
                     <DeleteRoundedIcon />
                   </IconButton>
@@ -948,7 +948,7 @@ export default function JobJob({ user }) {
                     <Num
                       sx={{ width: 100 }}
                       name="v"
-                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.v || 0}
+                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.v}
                       onChange={onNUM_NN(
                         setBidResTemp,
                         "log",
@@ -960,11 +960,11 @@ export default function JobJob({ user }) {
                 )}
                 <List dense>
                   {(() => {
-                    const lastKey = Object.keys(bidResTemp?.log || {}).slice(
+                    const lastKey = Object.keys(bidResTemp?.log ?? {}).slice(
                       -1
                     )[0];
 
-                    return Object.entries(bidResTemp?.log || {})
+                    return Object.entries(bidResTemp?.log ?? {})
                       .filter(([, v]) => Boolean(v))
                       .sort(
                         (a, b) =>
@@ -1340,7 +1340,7 @@ export default function JobJob({ user }) {
                       setDeliTemp((p) => ({
                         ...p,
                         log: Object.fromEntries(
-                          Object.entries(p?.log || {}).filter(
+                          Object.entries(p?.log ?? {}).filter(
                             ([k]) => k != count - 1
                           )
                         ),
@@ -1431,11 +1431,11 @@ export default function JobJob({ user }) {
                         "log",
                         elementz?.deli - 1
                       )}
-                    />{" "}
+                    />
                     <Num
                       sx={{ width: 100 }}
                       name="deli_qty"
-                      value={deliTemp?.log?.[elementz?.deli - 1]?.deli_qty || 0}
+                      value={deliTemp?.log?.[elementz?.deli - 1]?.deli_qty}
                       onChange={onNUM_NN(
                         setDeliTemp,
                         "log",
