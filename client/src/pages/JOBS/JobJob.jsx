@@ -758,12 +758,12 @@ export default function JobJob({ user }) {
                         setSampleTemp((p) => ({
                           ...p,
                           items: Object.fromEntries(
-                            Object.entries(p.items || {}).filter(
+                            Object.entries(p?.items || {}).filter(
                               ([k]) => k != count - 1
                             )
                           ),
                           data: {
-                            ...(p.data || {}),
+                            ...(p?.data || {}),
                             status: count <= 1 ? 0 : p.data?.status ?? 0,
                           },
                         }));
@@ -916,7 +916,7 @@ export default function JobJob({ user }) {
                       setBidResTemp((p) => ({
                         ...p,
                         log: Object.fromEntries(
-                          Object.entries(p.log || {}).filter(
+                          Object.entries(p?.log || {}).filter(
                             ([k]) => k != count - 1
                           )
                         ),
@@ -924,7 +924,7 @@ export default function JobJob({ user }) {
 
                       setElementz((p) => ({
                         ...p,
-                        bidres: Math.max((p.bidres ?? 0) - 1, 0),
+                        bidres: Math.max((p?.bidres ?? 0) - 1, 0),
                       }));
                     }}
                     disabled={(elementz?.deli ?? 0) < 1}
@@ -948,7 +948,7 @@ export default function JobJob({ user }) {
                     <Num
                       sx={{ width: 100 }}
                       name="v"
-                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.v}
+                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.v || 0}
                       onChange={onNUM_NN(
                         setBidResTemp,
                         "log",
@@ -1340,7 +1340,7 @@ export default function JobJob({ user }) {
                       setDeliTemp((p) => ({
                         ...p,
                         log: Object.fromEntries(
-                          Object.entries(p.log || {}).filter(
+                          Object.entries(p?.log || {}).filter(
                             ([k]) => k != count - 1
                           )
                         ),
@@ -1348,7 +1348,7 @@ export default function JobJob({ user }) {
 
                       setElementz((p) => ({
                         ...p,
-                        deli: Math.max((p.deli ?? 0) - 1, 0),
+                        deli: Math.max((p?.deli ?? 0) - 1, 0),
                       }));
                       jobTemp?.job_status === 4 &&
                         count <= 1 &&
