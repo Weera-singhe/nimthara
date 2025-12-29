@@ -16,15 +16,15 @@ const estiRoutes = require("./routes/esti.routes");
 
 const app = express();
 
-// const corsOptions = {
-//   origin:
-//     process.env.NODE_ENV === "production"
-//       ? ["https://nimthara.com", "https://www.nimthara.com"]
-//       : ["http://localhost:3000"],
-//   credentials: true,
-// };
 const corsOptions = {
-  origin: true, // 👈 allow any origin temporarily
+  origin:
+    process.env.NODE_ENV === "production"
+      ? [
+          "https://nimthara.com",
+          "https://www.nimthara.com",
+          "https://nimthara.onrender.com",
+        ]
+      : ["http://localhost:3000"],
   credentials: true,
 };
 
@@ -32,18 +32,18 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 
-if (process.env.NODE_ENV !== "production") {
-  app.use((req, res, next) => {
-    const t0 = Date.now();
-    res.on("finish", () => {
-      const ms = Date.now() - t0;
-      console.log(
-        `${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`
-      );
-    });
-    next();
-  });
-}
+// if (process.env.NODE_ENV !== "production") {
+//   app.use((req, res, next) => {
+//     const t0 = Date.now();
+//     res.on("finish", () => {
+//       const ms = Date.now() - t0;
+//       console.log(
+//         `${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`
+//       );
+//     });
+//     next();
+//   });
+// }
 
 app.set("trust proxy", 1);
 
