@@ -16,11 +16,15 @@ const estiRoutes = require("./routes/esti.routes");
 
 const app = express();
 
+// const corsOptions = {
+//   origin:
+//     process.env.NODE_ENV === "production"
+//       ? ["https://nimthara.com", "https://www.nimthara.com"]
+//       : ["http://localhost:3000"],
+//   credentials: true,
+// };
 const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? ["https://nimthara.com", "https://www.nimthara.com"]
-      : ["http://localhost:3000"],
+  origin: true, // 👈 allow any origin temporarily
   credentials: true,
 };
 
