@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { UPLOAD_API_URL } from "../api/urls";
+import { DOC_API_URL } from "../api/urls";
 import MyFormBox from "./MyFormBox";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -25,6 +25,8 @@ export default function DocUpload({
   prefix,
   label,
   user,
+
+  noBttn = false,
 }) {
   const fileInputRef = useRef(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -36,7 +38,7 @@ export default function DocUpload({
   useEffect(() => {
     async function fetchFiles() {
       try {
-        const res = await axios.get(`${UPLOAD_API_URL}/${located_id}`, {
+        const res = await axios.get(`${DOC_API_URL}/${located_id}`, {
           withCredentials: true,
         });
         setUploadedFiles(res.data);
@@ -57,14 +59,10 @@ export default function DocUpload({
       formData.append("prefix", prefix || "");
       formData.append("renamedAs", renamedAs);
 
-      const res = await axios.post(
-        `${UPLOAD_API_URL}/${located_id}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      );
+      const res = await axios.post(`${DOC_API_URL}/${located_id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
       setSelectedFiles([]);
       setRenamedAs("");
       if (res.data?.success) {
@@ -80,7 +78,7 @@ export default function DocUpload({
   const deleteFile = async (file) => {
     setDeleting(true);
     try {
-      const res = await axios.delete(`${UPLOAD_API_URL}/${file?.doc_id}`, {
+      const res = await axios.delete(`${DOC_API_URL}/${file?.doc_id}`, {
         withCredentials: true,
       });
       if (res.data?.success) {
@@ -101,6 +99,7 @@ export default function DocUpload({
       clickable={canUpload}
       onPress={uploadFiles}
       user={user}
+      noBttn={noBttn}
     >
       {can_upload && (
         <>

@@ -13,6 +13,7 @@ export default function MyFormBox({
   buttonType = "Save",
   sx = {},
   user,
+  noBttn = false,
 }) {
   return (
     <Box
@@ -47,34 +48,38 @@ export default function MyFormBox({
       {children}
 
       {/* Save button */}
-      <Stack
-        direction="row"
-        flexWrap="wrap"
-        gap={1}
-        alignItems="center"
-        sx={{ flexBasis: "100%" }}
-      >
-        <Button
-          disabled={!clickable}
-          startIcon={
-            buttonType === "Save" ? (
-              <SaveOutlinedIcon />
-            ) : buttonType === "Upload" ? (
-              <CloudUploadOutlinedIcon />
-            ) : (
-              <AddBoxOutlinedIcon />
-            )
-          }
-          onClick={onPress}
+      {!noBttn ? (
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          gap={1}
+          alignItems="center"
+          sx={{ flexBasis: "100%" }}
         >
-          {buttonType}
-        </Button>
-        {!!clickable && (
-          <Typography variant="caption" color="primary">
-            {`by ${user?.display_name}`}
-          </Typography>
-        )}
-      </Stack>
+          <Button
+            disabled={!clickable}
+            startIcon={
+              buttonType === "Save" ? (
+                <SaveOutlinedIcon />
+              ) : buttonType === "Upload" ? (
+                <CloudUploadOutlinedIcon />
+              ) : (
+                <AddBoxOutlinedIcon />
+              )
+            }
+            onClick={onPress}
+          >
+            {buttonType}
+          </Button>
+          {!!clickable && (
+            <Typography variant="caption" color="primary">
+              {`by ${user?.display_name}`}
+            </Typography>
+          )}
+        </Stack>
+      ) : (
+        <Box sx={{ width: "100%" }} />
+      )}
     </Box>
   );
 }

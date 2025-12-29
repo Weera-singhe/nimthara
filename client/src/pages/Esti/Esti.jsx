@@ -29,8 +29,8 @@ import EstiMid from "./EstiMid";
 import deepEqual from "fast-deep-equal";
 
 export default function Esti({ user }) {
-  const { linkid } = useParams();
   const navigate = useNavigate();
+  const { linkid, linkat } = useParams();
   const [estiTemp, setEstiTemp] = useState([]);
   const [estiSaved, setEstiSaved] = useState([]);
   const [dbLoading, setDbloading] = useState(true);
@@ -40,47 +40,44 @@ export default function Esti({ user }) {
   const [profitMeth, setProfitMeth] = useState(1);
 
   const [calEsti, CalculatEsti] = useState();
-  const [current_linkid_End, setCurrentLinkidEnd] = useState();
-
-  const linkid_End = linkid.slice(-3);
-  const linkid_Face = linkid.slice(0, -3);
+  const [SavinglinkAt, setSavingLinkAt] = useState();
 
   useEffect(() => {
     axios
-      .get(`${ESTI_API_URL}/${linkid}`)
+      .get(`${ESTI_API_URL}/${linkid}/${linkat}`)
       .then((res) => {
         // console.log(res.data);
         setEstiTemp(res.data.esti);
         setEstiSaved(res.data.esti);
         setQtsComp(res.data.qtsComps);
         setAllPapers(res.data.allPapers);
-        setCurrentLinkidEnd(linkid_End);
         //        console.log("resdata", res.data);
       })
       .catch(handleApiError)
       .finally(() => setDbloading(false));
   }, []);
 
+  useEffect(() => {
+    setSavingLinkAt(linkat);
+  }, [linkat]);
+
   const onNUMData = onNUM_N(setEstiTemp, "data");
   const onNUMLoops = onNUM_N(setEstiTemp, "loops");
   const onNUMV = onNUM_N(setEstiTemp, "vals");
   const onStrRename = onSTR_N(setEstiTemp, "renames");
 
-  const isSame =
-    deepEqual(estiTemp, estiSaved) && linkid_End === current_linkid_End;
+  const isSame = deepEqual(estiTemp, estiSaved) && linkat === SavinglinkAt;
 
   function SubmitSave() {
     setDbloading(true);
-    const savingLinkId = linkid_Face + current_linkid_End;
-    const fullForm = { ...estiTemp, savingLinkId };
 
     axios
-      .post(`${ESTI_API_URL}/save`, fullForm)
+      .post(`${ESTI_API_URL}/${linkid}/${SavinglinkAt}`, estiTemp)
       .then((res) => {
         if (res.data.success) {
           setEstiSaved(res.data.esti);
           setEstiTemp(res.data.esti);
-          navigate(`/esti/${savingLinkId}`);
+          navigate(`/esti/${linkid}/${SavinglinkAt}`);
         }
       })
       .catch(handleApiError)
@@ -198,47 +195,49 @@ export default function Esti({ user }) {
         </TableContainer>
         <Box sx={{ width: "100%" }}></Box>
 
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" gap={2} alignItems="center" flexWrap="wrap">
           <Typography>
             Total Cost: {toLKR(calEsti?.the_sum)} <b> + </b>
           </Typography>
-          {profitMeth ? (
-            <Num
-              label="Profit"
-              onChange={onNUMData}
-              name="profit"
-              value={estiTemp?.data?.profit}
-            />
-          ) : (
-            <Typography sx={{ width: 100 }} color="success">
-              {toDeci(estiTemp?.data?.profit)}
-            </Typography>
-          )}
+          <Stack direction="row" alignItems="center">
+            {profitMeth ? (
+              <Num
+                label="Profit"
+                onChange={onNUMData}
+                name="profit"
+                value={estiTemp?.data?.profit}
+              />
+            ) : (
+              <Typography sx={{ width: 100 }} color="success">
+                {toDeci(estiTemp?.data?.profit)}
+              </Typography>
+            )}
 
-          <Switch
-            color="default"
-            onChange={() => setProfitMeth((p) => (p === 1 ? 0 : 1))}
-          />
-          {profitMeth ? (
-            <Typography sx={{ width: 100 }} color="success">
-              {toDeci((estiTemp?.data?.profit / calEsti?.the_sum) * 100)}
-            </Typography>
-          ) : (
-            <Num
-              label="%"
-              value={(estiTemp?.data?.profit / calEsti?.the_sum) * 100}
-              onChange={(e) => {
-                const percent = Number(e.target.value);
-                const profit = (calEsti?.the_sum / 100) * percent;
-                onNUMData({
-                  target: {
-                    name: "profit",
-                    value: profit,
-                  },
-                });
-              }}
+            <Switch
+              color="default"
+              onChange={() => setProfitMeth((p) => (p === 1 ? 0 : 1))}
             />
-          )}
+            {profitMeth ? (
+              <Typography sx={{ width: 100 }} color="success">
+                {toDeci((estiTemp?.data?.profit / calEsti?.the_sum) * 100)}
+              </Typography>
+            ) : (
+              <Num
+                label="%"
+                value={(estiTemp?.data?.profit / calEsti?.the_sum) * 100}
+                onChange={(e) => {
+                  const percent = Number(e.target.value);
+                  const profit = (calEsti?.the_sum / 100) * percent;
+                  onNUMData({
+                    target: {
+                      name: "profit",
+                      value: profit,
+                    },
+                  });
+                }}
+              />
+            )}
+          </Stack>
           <Typography>
             <b>=</b> {toLKR(calEsti?.total_price)}
           </Typography>
@@ -280,12 +279,12 @@ export default function Esti({ user }) {
         </TableContainer>
         <Box sx={{ width: "100%" }}></Box>
         <select
-          defaultValue={linkid_End}
-          onChange={(e) => setCurrentLinkidEnd(e.target.value)}
+          defaultValue={linkat}
+          onChange={(e) => setSavingLinkAt(e.target.value)}
         >
-          <option value="pre">pre</option>
-          <option value="pst">pst</option>
-          <option value="ext">ext</option>
+          <option value="jobs_pre">jobs_pre</option>
+          <option value="jobs_past">jobs_past</option>
+          <option value="jobs_ext">jobs_ext</option>
         </select>
       </MyFormBox>
     </>

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { LOGOUT_API_URL } from "../api/urls";
+import { AUTH_API_URL } from "../api/urls";
 
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -17,7 +17,7 @@ import LongLogo from "../assests/long_logo.png";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 
-const pages = ["Paper", "Audit", "Customers", "Jobs"];
+const pages = ["papers", "audit", "customers", "jobs"];
 
 export default function MyAppBar({ user, setUser }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -32,7 +32,7 @@ export default function MyAppBar({ user, setUser }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post(LOGOUT_API_URL, {}, { withCredentials: true });
+      await axios.post(`${AUTH_API_URL}/logout`, {}, { withCredentials: true });
       setUser({
         loggedIn: false,
         level: 0,

@@ -1,10 +1,6 @@
 import React, { useMemo, useState } from "react";
 import axios from "axios";
-import {
-  USER_REGISTER_API_URL,
-  USER_LOGIN_API_URL,
-  CHECK_AUTH_API_URL,
-} from "../api/urls";
+import { AUTH_API_URL } from "../api/urls";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -118,14 +114,14 @@ export default function Login({ user, setUser }) {
 
     setLoading(true);
     try {
-      const res = await api.post(USER_LOGIN_API_URL, {
+      const res = await api.post(`${AUTH_API_URL}/login`, {
         username: loginDetails.username.trim(),
         password: loginDetails.password,
       });
 
       if (res?.data?.success) {
         // Fetch auth state after login (cookie-based)
-        const authRes = await api.get(CHECK_AUTH_API_URL);
+        const authRes = await api.get(`${AUTH_API_URL}/check-auth`);
         setUser(authRes.data);
 
         // SPA navigation
@@ -151,7 +147,7 @@ export default function Login({ user, setUser }) {
 
     setLoading(true);
     try {
-      const res = await api.post(USER_REGISTER_API_URL, {
+      const res = await api.post(`${AUTH_API_URL}/register`, {
         display_name: regDetails.display_name.trim(),
         regname: regDetails.regname.trim(),
         pwr: regDetails.pwr,

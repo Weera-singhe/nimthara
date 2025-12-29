@@ -1,6 +1,5 @@
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://nimthara-server.onrender.com";
-export const CHECK_AUTH_API_URL = `${API_BASE_URL}/check-auth`;
 
 export const PAPERS_API_URL = `${API_BASE_URL}/papers`;
 export const ADD_PAPER_API_URL = `${API_BASE_URL}/add_new_paper`;
@@ -27,11 +26,9 @@ export const ADD_GTSCL_API_URL = `${API_BASE_URL}/gts/add_new_clients`;
 export const BB_Audit_API_URL = `${API_BASE_URL}/audit/bb`;
 export const LEDG_Audit_API_URL = `${API_BASE_URL}/audit/ledger`;
 
-export const UPLOAD_API_URL = `${API_BASE_URL}/upload`;
-
 //////////////////////////////////////
 
-export const JOBS_FILE = `${API_BASE_URL}/jobs/file`;
-export const JOBS_JOB = `${API_BASE_URL}/jobs/job`;
 export const JOBS_API_URL = `${API_BASE_URL}/jobs`;
+export const DOC_API_URL = `${API_BASE_URL}/doc`;
+export const AUTH_API_URL = `${API_BASE_URL}/auth`;
 export const ESTI_API_URL = `${API_BASE_URL}/esti`;

@@ -1,4 +1,4 @@
-import { JOBS_JOB } from "../../api/urls";
+import { JOBS_API_URL } from "../../api/urls";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
@@ -105,7 +105,7 @@ export default function JobJob({ user }) {
   useEffect(() => {
     setDBLoading(true);
     axios
-      .get(`${JOBS_JOB}/${fileid}/${jobindex}`)
+      .get(`${JOBS_API_URL}/job/${fileid}/${jobindex}`)
       .then((res) => {
         const job = res.data.thisJob || {};
 
@@ -187,7 +187,7 @@ export default function JobJob({ user }) {
     const fullForm = { ...form, ...{ fileid }, ...{ jobindex } };
 
     axios
-      .post(`${JOBS_JOB}/form1`, fullForm)
+      .post(`${JOBS_API_URL}/job/form1`, fullForm)
       .then((res) => setJobSaved(res.data.thisJob || {}))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -318,7 +318,7 @@ export default function JobJob({ user }) {
     };
 
     axios
-      .post(`${JOBS_JOB}/form2`, fullForm)
+      .post(`${JOBS_API_URL}/job/form2`, fullForm)
       .then((res) => {
         const job = res.data.thisJob || {};
         setSampleTemp(job?.sample);
@@ -337,7 +337,7 @@ export default function JobJob({ user }) {
     const form_ = { fileid, jobindex, job_info: jobSaved?.job_info };
 
     axios
-      .post(`${JOBS_JOB}/estiDeploy`, form_)
+      .post(`${JOBS_API_URL}/job/estiDeploy`, form_)
       .then((res) => res.data.success && setEstiOk(true))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -542,8 +542,19 @@ export default function JobJob({ user }) {
             DOCS DOCUMENTS
             ///////////////// */}
           <DocUpload
+            located_id={"jobfile" + fileid}
+            label="File Documents"
+            prefix={jobfileTag(fileid)}
+            folder_name="jobs/file"
+            can_upload={false}
+            can_delete={false}
+            can_view={user?.loggedIn}
+            user={user}
+            noBttn
+          />
+          <DocUpload
             located_id={`job${fileid}_${jobindex}`}
-            label="Documents"
+            label="Job Documents"
             prefix={`${jobfileTag(fileid)}_${jobindex}`}
             folder_name="jobs/job"
             can_upload={user?.loggedIn}
@@ -676,7 +687,7 @@ export default function JobJob({ user }) {
                     Estimation
                     <IconButton
                       component={Link}
-                      to={`/esti/${fileid}_${jobindex}_pre`}
+                      to={`/esti/${jobSaved?.job_id}/jobs_pre`}
                       color="primary"
                     >
                       <AddLinkRoundedIcon />

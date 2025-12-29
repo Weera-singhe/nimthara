@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Papers from "./pages/Papers";
+import Papers from "./Papers/Papers";
 import Price from "./pages/Price";
 import Stock from "./pages/Stock";
 import Customers from "./pages/Customers";
@@ -17,7 +17,7 @@ import BidBond from "./pages/Audit/BidBond";
 import Ledger from "./pages/Audit/Ledger";
 import ProtectedRoute from "./elements/ProtectedRoute";
 import Button from "@mui/material/Button";
-import { CHECK_AUTH_API_URL } from "./api/urls";
+import { AUTH_API_URL } from "./api/urls";
 import axios from "axios";
 import "./index.css";
 import Box from "@mui/material/Box";
@@ -38,7 +38,7 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get(CHECK_AUTH_API_URL, { withCredentials: true })
+      .get(`${AUTH_API_URL}/check-auth`, { withCredentials: true })
       .then((res) => setUser(res.data))
       .catch(() => setUser({ ...INITIAL_USER, loggedIn: false }))
       .finally(() => setAuthChecked(true));
@@ -60,10 +60,7 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<Home user={user} />} />
-        <Route
-          path="/papers"
-          element={<Papers user={user} setUser={setUser} />}
-        />
+        <Route path="/papers" element={<Papers user={user} />} />
         <Route path="/price" element={<Price user={user} />} />
         <Route path="/stock" element={<Stock user={user} />} />
         <Route path="/cus" element={<Customers user={user} />} />
@@ -101,7 +98,7 @@ const App = () => {
           }
         />
         <Route
-          path="/esti/:linkid"
+          path="/esti/:linkid/:linkat"
           element={
             <ProtectedRoute user={user}>
               <Esti user={user} />

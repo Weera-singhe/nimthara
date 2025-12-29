@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
-import { JOBS_FILE } from "../../api/urls";
+import { JOBS_API_URL } from "../../api/urls";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -62,7 +62,7 @@ export default function JobFile({ user }) {
   useEffect(() => {
     setDBLoading(true);
     axios
-      .get(`${JOBS_FILE}/${fileid || "new"}`)
+      .get(`${JOBS_API_URL}/file/${fileid || "new"}`)
       .then((res) => {
         setCustomers(res.data.customers || []);
         setJobFilesSaved(res.data.thisJobFile || []);
@@ -89,7 +89,7 @@ export default function JobFile({ user }) {
     const fullForm = { ...form, ...(fileid && { fileid }) };
 
     axios
-      .post(`${JOBS_FILE}/form1`, fullForm)
+      .post(`${JOBS_API_URL}/file/form1`, fullForm)
       .then((res) =>
         !fileid
           ? navigate(`/jobs/file/${res.data.load_this_id}`)
@@ -103,7 +103,7 @@ export default function JobFile({ user }) {
     const fullForm = { ...form, ...{ fileid } };
 
     axios
-      .post(`${JOBS_FILE}/form2`, fullForm)
+      .post(`${JOBS_API_URL}/file/form2`, fullForm)
       .then((res) => setJobFilesSaved(res.data.thisJobFile || []))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
