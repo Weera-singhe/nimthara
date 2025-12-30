@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { GTSCL_API_URL, ADD_GTSCL_API_URL } from "../api/urls";
+import { GTSCL_API_URL, ADD_GTSCL_API_URL } from "../../api/urls";
 
 export default function ClientsGTS({ user }) {
   const [clients, setClients] = useState([]);

@@ -2,12 +2,12 @@ import { ESTI_API_URL } from "../../api/urls";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toLKR, SumsOfQuot, SumEachRow, toDeci } from "../../elements/cal";
+import { toLKR, SumsOfQuot, SumEachRow, toDeci } from "../../helpers/cal";
 
-import { onNUM_N, handleApiError, onSTR_N } from "../../elements/HandleChange";
+import { onNUM_N, handleApiError, onSTR_N } from "../../helpers/HandleChange";
 
-import Num from "../../elements/Num";
-import MyFormBox from "../../elements/MyFormBox";
+import Num from "../../helpers/Num";
+import MyFormBox from "../../helpers/MyFormBox";
 import {
   Backdrop,
   Box,

@@ -2,7 +2,7 @@ import { JOBS_API_URL } from "../../api/urls";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
-import { SumsOfQuot, toLKR } from "../../elements/cal";
+import { SumsOfQuot, toLKR } from "../../helpers/cal";
 
 import axios from "axios";
 import Box from "@mui/material/Box";
@@ -22,8 +22,8 @@ import FormControl from "@mui/material/FormControl";
 import FormGroup from "@mui/material/FormGroup";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import DocUpload from "../../elements/DocUpload";
-import MyFormBox from "../../elements/MyFormBox";
+import DocUpload from "../../helpers/DocUpload";
+import MyFormBox from "../../helpers/MyFormBox";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -32,7 +32,7 @@ import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import deepEqual from "fast-deep-equal";
-import Num from "../../elements/Num";
+import Num from "../../helpers/Num";
 
 import {
   onNUM,
@@ -43,7 +43,7 @@ import {
   onSTR_NN,
   onSTRCode,
   handleApiError,
-} from "../../elements/HandleChange";
+} from "../../helpers/HandleChange";
 import {
   Button,
   FormControlLabel,

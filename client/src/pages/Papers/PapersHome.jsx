@@ -1,12 +1,33 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import Num from "../elements/NumInput";
-import { toLKR } from "../elements/cal";
-import { PAPERS_API_URL, ADD_PAPER_API_URL } from "../api/urls";
+import Num from "../../helpers/Num";
+import { toLKR } from "../../helpers/cal";
+import { PAPERS_API_URL } from "../../api/urls";
 import { Link } from "react-router-dom";
+import PrintIcon from "@mui/icons-material/Print";
+import {
+  Backdrop,
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Fab,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemSecondaryAction,
+  ListItemText,
+  ListSubheader,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useReactToPrint } from "react-to-print";
 
 export default function Papers({ user }) {
-  const [loadedPapers, loadPapers] = useState([]);
+  const [DBLoading, SetDBLoading] = useState(true);
+  const [papersSaved, setPapersSaved] = useState([]);
+  const printRef = useRef(null);
 
   const [specs, setSpecs] = useState({
     types: [],
@@ -15,7 +36,7 @@ export default function Papers({ user }) {
     units: [],
     den_unit: [],
   });
-  const [loading, isLoading] = useState(true);
+  //const [loading, isLoading] = useState(true);
 
   const [addingForm, setAddingForm] = useState({
     type_: 0,
@@ -33,46 +54,116 @@ export default function Papers({ user }) {
     axios
       .get(PAPERS_API_URL)
       .then((res) => {
-        loadPapers(res.data.papers);
+        setPapersSaved(res.data.papers);
         setSpecs(res.data.specs);
+        console.log(res.data);
+        res.data.success && SetDBLoading(false);
       })
-      .catch((err) => console.error("Error fetching papers:", err))
-      .finally(isLoading(false));
+      .catch((err) => console.error("Error fetching papers:", err));
   }, []);
 
-  const change = (e) => {
-    const { name, value } = e.target;
-    setAddingForm((p) => {
-      return {
-        ...p,
-        [name]: Number(value),
-      };
-    });
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Paper Price List",
+  });
 
-  const handleAddPaper = (e) => {
-    e.preventDefault();
-    isLoading(true);
-    if (!user.loggedIn) return (window.location.href = "/login");
-    if (user.level_paper < 2) return (window.location.href = "/");
-    setAddingForm((p) => {
-      return {
-        ...p,
-        den_: 0,
-        size_h: 0,
-        size_w: 0,
-      };
-    });
-    axios
-      .post(ADD_PAPER_API_URL, addingForm)
-      .then((res) => loadPapers(res.data.papers))
-      .catch((err) => console.error("Error adding paper:", err))
-      .finally(() => setTimeout(() => isLoading(false), 400));
-  };
+  // const handleAddPaper = (e) => {
+  //   e.preventDefault();
+  //   isLoading(true);
+  //   if (!user.loggedIn) return (window.location.href = "/login");
+  //   if (user.level_paper < 2) return (window.location.href = "/");
+  //   setAddingForm((p) => {
+  //     return {
+  //       ...p,
+  //       den_: 0,
+  //       size_h: 0,
+  //       size_w: 0,
+  //     };
+  //   });
+  //   axios
+  //     .post(ADD_PAPER_API_URL, addingForm)
+  //     .then((res) => SetDBLoading(res.data.papers))
+  //     .catch((err) => console.error("Error adding paper:", err))
+  //     .finally(() => setTimeout(() => isLoading(false), 400));
+  // };
 
+  const makeItLoad = DBLoading;
   return (
-    <div>
-      {user?.loggedIn && (
+    <Box sx={{ mt: 2, mx: 1 }}>
+      <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
+      <Fab
+        color="primary"
+        size="small"
+        onClick={handlePrint}
+        disabled={makeItLoad}
+        sx={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 1200,
+          "@media print": {
+            display: "none",
+          },
+        }}
+      >
+        {makeItLoad ? (
+          <CircularProgress size={20} sx={{ color: "white" }} />
+        ) : (
+          <PrintIcon />
+        )}
+      </Fab>
+
+      <Box ref={printRef}>
+        <List>
+          {specs?.types?.map((sp) => (
+            <Box key={sp?.id}>
+              <ListSubheader
+                sx={{
+                  border: "1px solid grey",
+                  borderRadius: 1,
+                  backgroundColor: "#e0f2f1",
+                }}
+              >
+                {sp?.name}
+              </ListSubheader>
+
+              {papersSaved
+                .filter((pp) => pp?.type_ === sp?.id)
+                .map((pp) => (
+                  <Box key={pp?.id}>
+                    <ListItem>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        width="100%"
+                        gap={1}
+                      >
+                        <Typography sx={{ flexGrow: 1 }}>
+                          {pp?.display_as}
+                        </Typography>
+
+                        <Button
+                          sx={{
+                            whiteSpace: "nowrap",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {toLKR(pp?.last_price)}
+                        </Button>
+                      </Stack>
+                    </ListItem>
+                    <Divider />
+                  </Box>
+                ))}
+            </Box>
+          ))}
+        </List>
+      </Box>
+
+      {/* {user?.loggedIn && (
         <>
           <div className="new-division">
             {user.loggedIn && user.level_paper >= 2 && (
@@ -207,7 +298,7 @@ export default function Papers({ user }) {
           <div className="new-division">
             {loading
               ? "loading"
-              : loadedPapers.map((paper) => (
+              : DBLoading.map((paper) => (
                   <div key={paper.id}>
                     <>
                       <div className="boxyy" style={{ width: "40%" }}>
@@ -226,7 +317,7 @@ export default function Papers({ user }) {
                 ))}
           </div>
         </>
-      )}
-    </div>
+      )} */}
+    </Box>
   );
 }

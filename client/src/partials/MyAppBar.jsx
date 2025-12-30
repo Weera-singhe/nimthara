@@ -83,7 +83,12 @@ export default function MyAppBar({ user, setUser }) {
             id="mob_menu"
             sx={{ display: { xs: "flex", md: "flex", lg: "none" } }}
           >
-            <IconButton size="large" onClick={handleOpenNavMenu} color="black">
+            <IconButton
+              size="small"
+              onClick={handleOpenNavMenu}
+              color="black"
+              sx={{ p: 0, m: 0 }}
+            >
               <MenuIcon />
             </IconButton>
             <Menu
@@ -123,11 +128,10 @@ export default function MyAppBar({ user, setUser }) {
             sx={{
               display: { xs: "flex", md: "flex", lg: "none" },
               flexGrow: 1,
-              p: 3,
               justifyContent: "center",
             }}
           >
-            <img src={LongLogo} alt="Logo" style={{ maxHeight: 25 }} />
+            <img src={LongLogo} alt="Logo" style={{ maxHeight: 20 }} />
           </Box>
 
           <Box

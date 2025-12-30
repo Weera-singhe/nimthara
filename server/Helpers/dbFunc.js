@@ -49,10 +49,38 @@ function WhatzChanged(oldRow, newRow = {}) {
 
 async function GetPapersFullData() {
   const specs = await pool.query(`
-    SELECT id, CONCAT(p_type, ' ', den,p_den_unit,' ', size_h, 'x', size_w,
-    ' ', p_brand, ' ', p_color) AS name,
-    p_unit AS unit, unit_val,latest_price FROM paper_specs_`);
+    SELECT * FROM paper_data`);
   return specs.rows;
 }
+async function GetAllPaperSpecs() {
+  const p_brand = await pool.query(`
+    SELECT id, COALESCE(p_brand, '') AS name FROM paper_specs
+    WHERE p_brand IS NOT NULL ORDER BY p_brand COLLATE "C"`);
+  const p_type = await pool.query(`
+    SELECT id, COALESCE(p_type, '') AS name FROM paper_specs
+    WHERE p_type IS NOT NULL ORDER BY id`);
+  const p_color = await pool.query(`
+    SELECT id, COALESCE(p_color, '') AS name FROM paper_specs
+    WHERE p_color IS NOT NULL ORDER BY id`);
+  const p_unit = await pool.query(`
+    SELECT id, COALESCE(p_unit, '') AS name FROM paper_specs
+    WHERE p_unit IS NOT NULL ORDER BY id`);
+  const p_den_unit = await pool.query(`
+    SELECT id, COALESCE(p_den_unit, '') AS name FROM paper_specs
+    WHERE p_den_unit IS NOT NULL ORDER BY id`);
 
-module.exports = { RecActivity, WhatzChanged, GetPapersFullData };
+  return {
+    brands: p_brand.rows,
+    types: p_type.rows,
+    colors: p_color.rows,
+    units: p_unit.rows,
+    den_unit: p_den_unit.rows,
+  };
+}
+
+module.exports = {
+  RecActivity,
+  WhatzChanged,
+  GetPapersFullData,
+  GetAllPaperSpecs,
+};

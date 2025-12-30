@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Papers from "./Papers/Papers";
-import Price from "./pages/Price";
-import Stock from "./pages/Stock";
+import PapersHome from "./pages/Papers/PapersHome";
+import Price from "./pages/Papers/Price";
+import Stock from "./pages/Papers/Stock";
 import Customers from "./pages/Customers";
 import Login from "./pages/Login";
-import ClientsGTS from "./pages/ClientsGTS";
+import ClientsGTS from "./pages/Papers/ClientsGTS";
 import MyAppBar from "./partials/MyAppBar";
 import JobsHome from "./pages/JOBS/JobsHome";
 import JobFile from "./pages/JOBS/JobFile";
 import JobJob from "./pages/JOBS/JobJob";
-import Audit from "./pages/Audit";
+import Audit from "./pages/Audit/Audit";
 import BidBond from "./pages/Audit/BidBond";
 import Ledger from "./pages/Audit/Ledger";
-import ProtectedRoute from "./elements/ProtectedRoute";
+import ProtectedRoute from "./helpers/ProtectedRoute";
 import Button from "@mui/material/Button";
 import { AUTH_API_URL } from "./api/urls";
 import axios from "axios";
@@ -59,12 +59,12 @@ const App = () => {
       <MyAppBar user={user} setUser={setUser} />
 
       <Routes>
-        <Route path="/" element={<Home user={user} />} />
-        <Route path="/papers" element={<Papers user={user} />} />
-        <Route path="/price" element={<Price user={user} />} />
-        <Route path="/stock" element={<Stock user={user} />} />
-        <Route path="/cus" element={<Customers user={user} />} />
-        <Route path="/gts/clients" element={<ClientsGTS user={user} />} />
+        <Route path="/" element={<Home user={user} />} />{" "}
+        <Route
+          path="/login"
+          element={<Login user={user} setUser={setUser} />}
+        />
+        <Route path="/papers" element={<PapersHome user={user} />} />
         <Route
           path="/jobs"
           element={
@@ -105,6 +105,11 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        {/* /////////////////////////////////////////////////////// */}
+        <Route path="/price" element={<Price user={user} />} />
+        <Route path="/stock" element={<Stock user={user} />} />
+        <Route path="/cus" element={<Customers user={user} />} />
+        <Route path="/gts/clients" element={<ClientsGTS user={user} />} />
         <Route
           path="audit"
           element={
@@ -115,10 +120,6 @@ const App = () => {
         />
         <Route path="audit/bb" element={<BidBond user={user} />} />
         <Route path="audit/ledger" element={<Ledger user={user} />} />
-        <Route
-          path="/login"
-          element={<Login user={user} setUser={setUser} />}
-        />
       </Routes>
     </BrowserRouter>
   );

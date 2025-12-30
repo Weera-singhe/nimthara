@@ -20,7 +20,7 @@ import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
 import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
-import { handleApiError } from "../../elements/HandleChange";
+import { handleApiError } from "../../helpers/HandleChange";
 
 export default function JobsHome({ user }) {
   const [dbLoading, setDbloading] = useState(true);

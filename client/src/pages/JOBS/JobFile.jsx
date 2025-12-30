@@ -21,7 +21,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
-import Num from "../../elements/Num";
+import Num from "../../helpers/Num";
 import Popover from "@mui/material/Popover";
 import Button from "@mui/material/Button";
 import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
@@ -36,15 +36,15 @@ import Stack from "@mui/material/Stack";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
-import MyFormBox from "../../elements/MyFormBox";
-import DocUpload from "../../elements/DocUpload";
+import MyFormBox from "../../helpers/MyFormBox";
+import DocUpload from "../../helpers/DocUpload";
 import {
   onNUM,
   onSTR,
   onNUM_N,
   onSTR_N,
   handleApiError,
-} from "../../elements/HandleChange";
+} from "../../helpers/HandleChange";
 import IconButton from "@mui/material/IconButton";
 
 export default function JobFile({ user }) {

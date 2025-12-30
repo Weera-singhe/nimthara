@@ -10,6 +10,7 @@ const jobsRoutes = require("./routes/jobs.routes");
 const docRoutes = require("./routes/doc.routes");
 const authRoutes = require("./routes/auth.routes");
 const estiRoutes = require("./routes/esti.routes");
+const papersRoutes = require("./routes/papers.routes");
 // ================================
 // CHANGED HERE: request timing log (dev only)
 // ================================
@@ -66,7 +67,8 @@ app.use(passport.session());
 
 // routes
 app.use("/jobs", jobsRoutes);
-app.use("/esti", estiRoutes); //new
+app.use("/papers", papersRoutes);
+app.use("/esti", estiRoutes);
 app.use("/doc", docRoutes);
 app.use("/auth", authRoutes);
 

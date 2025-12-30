@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import Num from "../../elements/Num";
-import { toLKR } from "../../elements/cal";
-import { onNUM_N } from "../../elements/HandleChange";
+import Num from "../../helpers/Num";
+import { toLKR } from "../../helpers/cal";
+import { onNUM_N } from "../../helpers/HandleChange";
 import { Typography } from "@mui/material";
 
 export default function EstiMid({ name, changed, v, compID, allPapers }) {
@@ -233,7 +233,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
           const selectedPaper = allPapers.find(
             (p) => p.id === v?.[name + "_0"]
           );
-          const latest_price = selectedPaper?.latest_price || 0;
+          const latest_price = selectedPaper?.last_price || 0;
           const input_price = v?.[name + "_1"] || 0;
           const the_unit_val = selectedPaper?.unit_val || 0;
           const input_unit_val = v?.[name + "_2"] || 1;
@@ -253,7 +253,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
                 <option value={0}></option>
                 {allPapers.map((p, i) => (
                   <option key={i} value={p.id}>
-                    {p.name}
+                    {p.display_as}
                   </option>
                 ))}
               </select>
