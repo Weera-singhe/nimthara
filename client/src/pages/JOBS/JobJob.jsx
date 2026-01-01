@@ -320,12 +320,12 @@ export default function JobJob({ user }) {
     axios
       .post(`${JOBS_API_URL}/job/form2`, fullForm)
       .then((res) => {
-        const job = res.data.thisJob || {};
-        setSampleTemp(job?.sample);
-        setDeliTemp(job?.delivery);
-        setBidResTemp(job?.bid_result);
-        setJobSaved(job);
-        setJobTemp(job);
+        const job = res.data.thisJob;
+        setSampleTemp(job?.sample || {});
+        setDeliTemp(job?.delivery || {});
+        setBidResTemp(job?.bid_result || {});
+        setJobSaved(job || {});
+        setJobTemp(job || {});
       })
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -580,10 +580,10 @@ export default function JobJob({ user }) {
                 value={tabV}
                 onChange={(_, v) => {
                   setTabV(v);
-                  setSampleTemp(jobSaved?.sample);
-                  setDeliTemp(jobSaved?.delivery);
-                  setBidResTemp(jobSaved?.bid_result);
-                  setJobTemp(jobSaved);
+                  setSampleTemp(jobSaved?.sample || {});
+                  setDeliTemp(jobSaved?.delivery || {});
+                  setBidResTemp(jobSaved?.bid_result || {});
+                  setJobTemp(jobSaved || {});
 
                   setElementz((p) => ({
                     ...p,

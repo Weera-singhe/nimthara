@@ -73,7 +73,7 @@ export default function MyFormBox({
           </Button>
           {!!clickable && (
             <Typography variant="caption" color="primary">
-              {`by ${user?.display_name}`}
+              {`admin: ${user?.display_name}`}
             </Typography>
           )}
         </Stack>

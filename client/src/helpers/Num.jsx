@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Popover from "@mui/material/Popover";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
+import Popper from "@mui/material/Popper";
+import Paper from "@mui/material/Paper";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { fixNum } from "./cal";
-import { colors } from "@mui/material";
 
 export default function Num({
   name: name_,
@@ -28,7 +25,9 @@ export default function Num({
     commas ? (value_ || 0).toLocaleString() : String(value_ || 0)
   );
 
-  const handleClick = (event) => {
+  const open = Boolean(anchorEl);
+
+  const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -38,7 +37,6 @@ export default function Num({
   };
 
   function changedByTyping(e) {
-    //console.log("user typed start num");
     const raw = e.target.value;
     const fixed = fixNum(raw, min_, max_, deci);
     const fixedStr = commas
@@ -50,61 +48,52 @@ export default function Num({
     setFixedStrV(fixedStr);
 
     if (onChange_) {
-      onChange_({
-        target: { name: name_, value: fixed },
-      });
+      onChange_({ target: { name: name_, value: fixed } });
     }
-
-    //console.log("user typed end num");
   }
 
   useEffect(() => {
     const val_ = value_ === undefined || value_ === null ? def : value_;
     if (val_ !== fixedV) {
-      //console.log("val changed num start");
       changedByTyping({ target: { value: val_ } });
-      // console.log("val changed num end");
     }
   }, [value_]);
-
-  const open = Boolean(anchorEl);
-  const id = open ? "simple-popover" : undefined;
 
   return (
     <div>
       <TextField
         variant="outlined"
-        aria-describedby={id}
-        onClick={handleClick}
-        sx={{ width: wid, backgroundColor: "white" }}
+        onMouseDown={handleOpen}
+        sx={{ width: wid, backgroundColor: open ? "#f5ffffff" : "white" }}
         size="small"
         label={lbl}
         InputProps={{
           readOnly: true,
-          sx: { color: { color } },
+          sx: { color },
         }}
         value={fixedStrV}
         name={name_}
       />
-      <Popover
-        id={id}
+
+      <Popper
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
-        }}
+        placement="bottom-start"
+        sx={{ zIndex: 1 }}
       >
-        <TextField
-          type="number"
-          autoFocus
-          onFocus={(e) => e.target.select()}
-          size="small"
-          onChange={changedByTyping}
-          value={userV || ""}
-        />
-      </Popover>
+        <ClickAwayListener mouseEvent="onMouseDown" onClickAway={handleClose}>
+          <Paper>
+            <TextField
+              type="number"
+              autoFocus
+              onFocus={(e) => requestAnimationFrame(() => e.target.select())}
+              size="small"
+              onChange={changedByTyping}
+              value={userV || ""}
+            />
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
     </div>
   );
 }

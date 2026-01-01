@@ -54,19 +54,19 @@ async function GetPapersFullData() {
 }
 async function GetAllPaperSpecs() {
   const p_brand = await pool.query(`
-    SELECT id, COALESCE(p_brand, '') AS name FROM paper_specs
+    SELECT id, COALESCE(p_brand, '') AS brand FROM paper_specs
     WHERE p_brand IS NOT NULL ORDER BY p_brand COLLATE "C"`);
   const p_type = await pool.query(`
-    SELECT id, COALESCE(p_type, '') AS name FROM paper_specs
+    SELECT id, COALESCE(p_type, '') AS type FROM paper_specs
     WHERE p_type IS NOT NULL ORDER BY id`);
   const p_color = await pool.query(`
-    SELECT id, COALESCE(p_color, '') AS name FROM paper_specs
+    SELECT id, COALESCE(p_color, '') AS color FROM paper_specs
     WHERE p_color IS NOT NULL ORDER BY id`);
   const p_unit = await pool.query(`
-    SELECT id, COALESCE(p_unit, '') AS name FROM paper_specs
+    SELECT id, COALESCE(p_unit, '') AS unit FROM paper_specs
     WHERE p_unit IS NOT NULL ORDER BY id`);
   const p_den_unit = await pool.query(`
-    SELECT id, COALESCE(p_den_unit, '') AS name FROM paper_specs
+    SELECT id, COALESCE(p_den_unit, '') AS denUnit FROM paper_specs
     WHERE p_den_unit IS NOT NULL ORDER BY id`);
 
   return {

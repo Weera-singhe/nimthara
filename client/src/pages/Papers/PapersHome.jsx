@@ -5,37 +5,45 @@ import { toLKR } from "../../helpers/cal";
 import { PAPERS_API_URL } from "../../api/urls";
 import { Link } from "react-router-dom";
 import PrintIcon from "@mui/icons-material/Print";
+import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Backdrop,
   Box,
   Button,
   CircularProgress,
   Divider,
   Fab,
+  FormControl,
   IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemSecondaryAction,
   ListItemText,
   ListSubheader,
+  MenuItem,
+  Select,
   Stack,
   Typography,
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
+import MyFormBox from "../../helpers/MyFormBox";
+import { onNUM } from "../../helpers/HandleChange";
 
 export default function Papers({ user }) {
   const [DBLoading, SetDBLoading] = useState(true);
   const [papersSaved, setPapersSaved] = useState([]);
+  const [addPanel, setAddPanel] = useState(false);
   const printRef = useRef(null);
 
-  const [specs, setSpecs] = useState({
-    types: [],
-    colors: [],
-    brands: [],
-    units: [],
-    den_unit: [],
-  });
+  const [specs, setSpecs] = useState([]);
   //const [loading, isLoading] = useState(true);
 
   const [addingForm, setAddingForm] = useState({
@@ -115,7 +123,70 @@ export default function Papers({ user }) {
           <PrintIcon />
         )}
       </Fab>
+      <Stack direction="row" flexWrap="wrap" gap={1.5} sx={{ mb: 3 }}>
+        <Button
+          startIcon={
+            addPanel ? (
+              <HighlightOffRoundedIcon color="error" />
+            ) : (
+              <NoteAddOutlinedIcon />
+            )
+          }
+          // onClick={() => setAddPanel((p) => !p)}
+          sx={{ width: 140 }}
+          variant="outlined"
+        >
+          {!addPanel && "New Paper"}
+        </Button>
+        <Button startIcon={<NotesRoundedIcon />} variant="outlined">
+          LOG
+        </Button>
+      </Stack>
+      {addPanel && (
+        <MyFormBox label={"Add New Paper"}>
+          <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
+            <InputLabel>Type</InputLabel>
+            <Select
+              name="type"
+              //value={jobFilesTemp?.customer_id || ""}
+              label="Type"
+              //onChange={onNUM}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              <MenuItem value={0}>
+                <em>-</em>
+              </MenuItem>
 
+              {specs?.types?.map((ty) => (
+                <MenuItem key={ty?.id} value={ty?.id}>
+                  {ty?.type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Num label="gsm" />
+          <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
+            <InputLabel>Color</InputLabel>
+            <Select
+              name="color"
+              //value={jobFilesTemp?.customer_id || ""}
+              label="Color"
+              //onChange={onNUM}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              {specs?.colors?.map((cl) => (
+                <MenuItem key={cl?.id} value={cl?.id}>
+                  {cl?.color}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </MyFormBox>
+      )}
       <Box ref={printRef}>
         <List>
           {specs?.types?.map((sp) => (
@@ -127,7 +198,7 @@ export default function Papers({ user }) {
                   backgroundColor: "#e0f2f1",
                 }}
               >
-                {sp?.name}
+                {sp?.type}
               </ListSubheader>
 
               {papersSaved
@@ -141,20 +212,35 @@ export default function Papers({ user }) {
                         width="100%"
                         gap={1}
                       >
+                        {/* LEFT: text grows */}
                         <Typography sx={{ flexGrow: 1 }}>
                           {pp?.display_as}
                         </Typography>
 
-                        <Button
-                          sx={{
-                            whiteSpace: "nowrap",
-                            fontWeight: 500,
-                          }}
-                        >
-                          {toLKR(pp?.last_price)}
-                        </Button>
+                        {/* RIGHT: buttons stay together */}
+                        <Stack direction="row" gap={1}>
+                          <Button
+                            size="small"
+                            sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
+                          >
+                            {toLKR(pp?.last_price)}
+                          </Button>
+
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            sx={{ width: 60 }}
+                          >
+                            0/0
+                            {/* {Math.floor(Math.random() * 1001) +
+                              "/" +
+                              Math.floor(Math.random() * 501)} */}
+                          </Button>
+                        </Stack>
                       </Stack>
                     </ListItem>
+                    <Divider />
+
                     <Divider />
                   </Box>
                 ))}

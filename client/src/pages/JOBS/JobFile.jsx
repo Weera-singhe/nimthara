@@ -93,7 +93,7 @@ export default function JobFile({ user }) {
       .then((res) =>
         !fileid
           ? navigate(`/jobs/file/${res.data.load_this_id}`)
-          : setJobFilesSaved(res.data.thisJobFile || [])
+          : setJobFilesSaved(res.data.thisJobFile || {})
       )
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -104,7 +104,7 @@ export default function JobFile({ user }) {
 
     axios
       .post(`${JOBS_API_URL}/file/form2`, fullForm)
-      .then((res) => setJobFilesSaved(res.data.thisJobFile || []))
+      .then((res) => setJobFilesSaved(res.data.thisJobFile || {}))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }

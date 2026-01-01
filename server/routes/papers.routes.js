@@ -14,7 +14,7 @@ const {
   GetAllPaperSpecs,
 } = require("../Helpers/dbFunc");
 
-router.get("/", requiredLogged, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const specs = await GetAllPaperSpecs();
     const papers = await GetPapersFullData();
