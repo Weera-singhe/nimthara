@@ -40,6 +40,12 @@ import { onNUM } from "../../helpers/HandleChange";
 export default function Papers({ user }) {
   const [DBLoading, SetDBLoading] = useState(true);
   const [papersSaved, setPapersSaved] = useState([]);
+  const [form, setForm] = useState({
+    color: 1,
+    den_unit: 1,
+    brand: 1,
+    unit_type: 1,
+  });
   const [addPanel, setAddPanel] = useState(false);
   const printRef = useRef(null);
 
@@ -69,6 +75,10 @@ export default function Papers({ user }) {
       })
       .catch((err) => console.error("Error fetching papers:", err));
   }, []);
+
+  // useEffect(() => {
+  //   console.log("form", form);
+  // }, [form]);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -132,7 +142,7 @@ export default function Papers({ user }) {
               <NoteAddOutlinedIcon />
             )
           }
-          // onClick={() => setAddPanel((p) => !p)}
+          onClick={() => setAddPanel((p) => !p)}
           sx={{ width: 140 }}
           variant="outlined"
         >
@@ -148,9 +158,9 @@ export default function Papers({ user }) {
             <InputLabel>Type</InputLabel>
             <Select
               name="type"
-              //value={jobFilesTemp?.customer_id || ""}
+              value={form?.type || 0}
               label="Type"
-              //onChange={onNUM}
+              onChange={onNUM(setForm)}
               MenuProps={{
                 PaperProps: { style: { maxHeight: 300 } },
               }}
@@ -166,25 +176,102 @@ export default function Papers({ user }) {
               ))}
             </Select>
           </FormControl>
-          <Num label="gsm" />
           <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
+            <InputLabel>Density</InputLabel>
+            <Select
+              name="den_unit"
+              value={form?.den_unit}
+              label="Density"
+              onChange={onNUM(setForm)}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              {specs?.den_units?.map((du) => (
+                <MenuItem key={du?.id} value={du?.id}>
+                  {du?.denunit}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Num
+            label={form?.den_unit === 1 ? "gsm" : "mm"}
+            onChange={onNUM(setForm)}
+            value={form?.den}
+            name="den"
+          />
+          <Num
+            label="Length"
+            onChange={onNUM(setForm)}
+            value={form?.size_h}
+            name="size_h"
+          />
+          <Num
+            label="Width"
+            onChange={onNUM(setForm)}
+            value={form?.size_w}
+            name="size_w"
+          />
+          <FormControl sx={{ minWidth: 130, maxWidth: "80%" }} size="small">
+            <InputLabel>Brand</InputLabel>
+            <Select
+              name="brand"
+              value={form?.brand}
+              label="brand"
+              onChange={onNUM(setForm)}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              {specs?.brands?.map((br) => (
+                <MenuItem key={br?.id} value={br?.id}>
+                  {br?.brand || "\u00A0"}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 110, maxWidth: "80%" }} size="small">
             <InputLabel>Color</InputLabel>
             <Select
               name="color"
-              //value={jobFilesTemp?.customer_id || ""}
+              value={form?.color || 0}
               label="Color"
-              //onChange={onNUM}
+              onChange={onNUM(setForm)}
               MenuProps={{
                 PaperProps: { style: { maxHeight: 300 } },
               }}
             >
               {specs?.colors?.map((cl) => (
                 <MenuItem key={cl?.id} value={cl?.id}>
-                  {cl?.color}
+                  {cl?.color || "\u00A0"}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+          <FormControl sx={{ minWidth: 80, maxWidth: "80%" }} size="small">
+            <InputLabel>Units</InputLabel>
+            <Select
+              name="unit_type"
+              value={form?.unit_type}
+              label="Units"
+              onChange={onNUM(setForm)}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              {specs?.unit_types?.map((ut) => (
+                <MenuItem key={ut?.id} value={ut?.id}>
+                  {ut?.unit_type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>{" "}
+          <Num
+            label={form?.unit_type === 1 ? "sheets" : "KG"}
+            onChange={onNUM(setForm)}
+            value={form?.units}
+            name="units"
+          />
         </MyFormBox>
       )}
       <Box ref={printRef}>

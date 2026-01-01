@@ -62,9 +62,9 @@ async function GetAllPaperSpecs() {
   const p_color = await pool.query(`
     SELECT id, COALESCE(p_color, '') AS color FROM paper_specs
     WHERE p_color IS NOT NULL ORDER BY id`);
-  const p_unit = await pool.query(`
-    SELECT id, COALESCE(p_unit, '') AS unit FROM paper_specs
-    WHERE p_unit IS NOT NULL ORDER BY id`);
+  const p_unit_type = await pool.query(`
+    SELECT id, COALESCE(p_unit_type, '') AS unit_type FROM paper_specs
+    WHERE p_unit_type IS NOT NULL ORDER BY id`);
   const p_den_unit = await pool.query(`
     SELECT id, COALESCE(p_den_unit, '') AS denUnit FROM paper_specs
     WHERE p_den_unit IS NOT NULL ORDER BY id`);
@@ -73,8 +73,8 @@ async function GetAllPaperSpecs() {
     brands: p_brand.rows,
     types: p_type.rows,
     colors: p_color.rows,
-    units: p_unit.rows,
-    den_unit: p_den_unit.rows,
+    unit_types: p_unit_type.rows,
+    den_units: p_den_unit.rows,
   };
 }
 
