@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import PapersHome from "./pages/Papers/PapersHome";
-import Price from "./pages/Papers/Price";
+import PaperPrice from "./pages/Papers/PaperPrice";
 import Stock from "./pages/Papers/Stock";
 import Customers from "./pages/Customers";
 import Login from "./pages/Login";
@@ -66,6 +66,14 @@ const App = () => {
         />
         <Route path="/papers" element={<PapersHome user={user} />} />
         <Route
+          path="papers/price/:id"
+          element={
+            <ProtectedRoute user={user}>
+              <PaperPrice user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/jobs"
           element={
             <ProtectedRoute user={user}>
@@ -106,7 +114,6 @@ const App = () => {
           }
         />
         {/* /////////////////////////////////////////////////////// */}
-        <Route path="/price" element={<Price user={user} />} />
         <Route path="/stock" element={<Stock user={user} />} />
         <Route path="/cus" element={<Customers user={user} />} />
         <Route path="/gts/clients" element={<ClientsGTS user={user} />} />

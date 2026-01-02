@@ -35,42 +35,30 @@ import {
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
 import MyFormBox from "../../helpers/MyFormBox";
-import { onNUM } from "../../helpers/HandleChange";
+import { handleApiError, onNUM } from "../../helpers/HandleChange";
 
-export default function Papers({ user }) {
-  const [DBLoading, SetDBLoading] = useState(true);
-  const [papersSaved, setPapersSaved] = useState([]);
-  const [form, setForm] = useState({
+export default function PapersHome({ user }) {
+  const defForm = {
     color: 1,
     den_unit: 1,
     brand: 1,
     unit_type: 1,
-  });
+  };
+  const [DBLoading, SetDBLoading] = useState(true);
+  const [paperList, setPaperList] = useState([]);
+  const [form, setForm] = useState(defForm);
   const [addPanel, setAddPanel] = useState(false);
   const printRef = useRef(null);
 
   const [specs, setSpecs] = useState([]);
-  //const [loading, isLoading] = useState(true);
-
-  const [addingForm, setAddingForm] = useState({
-    type_: 0,
-    den_: 0,
-    color_: 0,
-    brand_: 0,
-    size_h: 0,
-    size_w: 0,
-    unit_val: 500,
-    unit_: 0,
-    den_unit: 1,
-  });
 
   useEffect(() => {
     axios
       .get(PAPERS_API_URL)
       .then((res) => {
-        setPapersSaved(res.data.papers);
+        setPaperList(res.data.papers);
         setSpecs(res.data.specs);
-        console.log(res.data);
+        //console.log(res.data);
         res.data.success && SetDBLoading(false);
       })
       .catch((err) => console.error("Error fetching papers:", err));
@@ -85,25 +73,23 @@ export default function Papers({ user }) {
     documentTitle: "Paper Price List",
   });
 
-  // const handleAddPaper = (e) => {
-  //   e.preventDefault();
-  //   isLoading(true);
-  //   if (!user.loggedIn) return (window.location.href = "/login");
-  //   if (user.level_paper < 2) return (window.location.href = "/");
-  //   setAddingForm((p) => {
-  //     return {
-  //       ...p,
-  //       den_: 0,
-  //       size_h: 0,
-  //       size_w: 0,
-  //     };
-  //   });
-  //   axios
-  //     .post(ADD_PAPER_API_URL, addingForm)
-  //     .then((res) => SetDBLoading(res.data.papers))
-  //     .catch((err) => console.error("Error adding paper:", err))
-  //     .finally(() => setTimeout(() => isLoading(false), 400));
-  // };
+  function SubmitNewPaper() {
+    SetDBLoading(true);
+
+    axios
+      .post(`${PAPERS_API_URL}/add/`, form)
+      .then((res) => {
+        if (res.data.success) {
+          setPaperList(res.data.papers || {});
+          setForm((p) => ({ ...p, size_h: 0, size_w: 0, den: 0 }));
+        }
+      })
+      .catch(handleApiError)
+      .finally(() => SetDBLoading(false));
+  }
+
+  const formIsFilled =
+    form?.type && form?.den && form?.size_w && form?.unit_val;
 
   const makeItLoad = DBLoading;
   return (
@@ -142,7 +128,11 @@ export default function Papers({ user }) {
               <NoteAddOutlinedIcon />
             )
           }
-          onClick={() => setAddPanel((p) => !p)}
+          onClick={() => {
+            setAddPanel((p) => !p);
+            setForm(defForm);
+          }}
+          disabled={!user?.level_paper}
           sx={{ width: 140 }}
           variant="outlined"
         >
@@ -153,7 +143,12 @@ export default function Papers({ user }) {
         </Button>
       </Stack>
       {addPanel && (
-        <MyFormBox label={"Add New Paper"}>
+        <MyFormBox
+          label={"Add New Paper"}
+          clickable={formIsFilled}
+          onPress={() => SubmitNewPaper()}
+          user={user}
+        >
           <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
             <InputLabel>Type</InputLabel>
             <Select
@@ -269,8 +264,8 @@ export default function Papers({ user }) {
           <Num
             label={form?.unit_type === 1 ? "sheets" : "KG"}
             onChange={onNUM(setForm)}
-            value={form?.units}
-            name="units"
+            value={form?.unit_val}
+            name="unit_val"
           />
         </MyFormBox>
       )}
@@ -288,7 +283,7 @@ export default function Papers({ user }) {
                 {sp?.type}
               </ListSubheader>
 
-              {papersSaved
+              {paperList
                 .filter((pp) => pp?.type_ === sp?.id)
                 .map((pp) => (
                   <Box key={pp?.id}>
@@ -309,6 +304,8 @@ export default function Papers({ user }) {
                           <Button
                             size="small"
                             sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
+                            component={Link}
+                            to={`/papers/price/${pp?.id}`}
                           >
                             {toLKR(pp?.last_price)}
                           </Button>
@@ -335,162 +332,6 @@ export default function Papers({ user }) {
           ))}
         </List>
       </Box>
-
-      {/* {user?.loggedIn && (
-        <>
-          <div className="new-division">
-            {user.loggedIn && user.level_paper >= 2 && (
-              <div className="formbox">
-                {loading ? (
-                  "loading..."
-                ) : (
-                  <form onSubmit={handleAddPaper}>
-                    <select
-                      name="type_"
-                      value={addingForm.type_}
-                      onChange={change}
-                    >
-                      <option value={0}> -type-</option>
-                      {specs.types.map((i) => (
-                        <option value={i.id} key={i.id}>
-                          {i.name}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="gap3"></span>
-                    <select
-                      name="color_"
-                      value={addingForm.color_}
-                      onChange={change}
-                    >
-                      <option value={0}> -color-</option>
-                      {specs.colors.map((i) => (
-                        <option value={i.id} key={i.id}>
-                          {i.name}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="gap3" />
-                    <Num
-                      deci={1}
-                      width={80}
-                      min={0}
-                      max={999.9}
-                      name="den_"
-                      setTo={addingForm.den_}
-                      changed={change}
-                      label={"density"}
-                    />{" "}
-                    <select
-                      name="den_unit"
-                      value={addingForm.den_unit}
-                      onChange={change}
-                      style={{ marginLeft: 0 }}
-                    >
-                      {specs.den_unit.map((i) => (
-                        <option value={i.id} key={i.id}>
-                          {i.name}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="gap3" />
-                    <Num
-                      deci={1}
-                      width={60}
-                      min={0}
-                      max={99.9}
-                      name="size_h"
-                      setTo={addingForm.size_h}
-                      changed={change}
-                      label="height"
-                    />
-                    <span className="gap3" />
-                    <Num
-                      deci={1}
-                      width={60}
-                      min={0}
-                      max={99.9}
-                      name="size_w"
-                      setTo={addingForm.size_w}
-                      changed={change}
-                      label="width"
-                    />
-                    <span className="gap3" />
-                    <select
-                      name="brand_"
-                      value={addingForm.brand_}
-                      onChange={change}
-                    >
-                      <option value={0}> -brand-</option>
-                      {specs.brands.map((i) => (
-                        <option value={i.id} key={i.id}>
-                          {i.name}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="gap3" />
-                    <select
-                      name="unit_val"
-                      value={addingForm.unit_val}
-                      onChange={change}
-                    >
-                      <option value="500">500</option>
-                      <option value="250">250</option>
-                      <option value="125">125</option>
-                      <option value="100">100</option>
-                      <option value="1000">1000</option>
-                      <option value="1">1</option>
-                    </select>
-                    <span className="gap3"></span>
-                    <select
-                      name="unit_"
-                      value={addingForm.unit_}
-                      onChange={change}
-                    >
-                      <option value={0}> -unit-</option>
-                      {specs.units.map((i) => (
-                        <option value={i.id} key={i.id}>
-                          {i.name}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="gap3"></span>
-                    <button
-                      type="submit"
-                      disabled={
-                        Object.values(addingForm).includes(0) || loading
-                      }
-                    >
-                      Add Paper
-                    </button>
-                  </form>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="new-division">
-            {loading
-              ? "loading"
-              : DBLoading.map((paper) => (
-                  <div key={paper.id}>
-                    <>
-                      <div className="boxyy" style={{ width: "40%" }}>
-                        {paper.name}
-                      </div>
-                      <div
-                        className="boxyy"
-                        style={{ width: "10%", textAlign: "right" }}
-                      >
-                        <Link to={`/price?id=${paper.id}`}>
-                          {toLKR(paper.latest_price)}
-                        </Link>
-                      </div>
-                    </>
-                  </div>
-                ))}
-          </div>
-        </>
-      )} */}
     </Box>
   );
 }
