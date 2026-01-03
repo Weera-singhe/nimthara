@@ -1,7 +1,6 @@
 import { JOBS_API_URL } from "../../api/urls";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-
+import React, { useEffect, useState, useMemo } from "react";
+import { useParams, Link } from "react-router-dom";
 import { SumsOfQuot, toLKR } from "../../helpers/cal";
 
 import axios from "axios";
@@ -12,25 +11,20 @@ import CircularProgress from "@mui/material/CircularProgress";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
 import List from "@mui/material/List";
-import ListSubheader from "@mui/material/ListSubheader";
 import Divider from "@mui/material/Divider";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Checkbox from "@mui/material/Checkbox";
 import FormControl from "@mui/material/FormControl";
-import FormGroup from "@mui/material/FormGroup";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import DocUpload from "../../helpers/DocUpload";
 import MyFormBox from "../../helpers/MyFormBox";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import LinkRoundedIcon from "@mui/icons-material/LinkRounded";
 import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import deepEqual from "fast-deep-equal";
 import Num from "../../helpers/Num";
 
@@ -45,12 +39,9 @@ import {
   handleApiError,
 } from "../../helpers/HandleChange";
 import {
-  Button,
   FormControlLabel,
-  FormHelperText,
   IconButton,
   InputLabel,
-  ListItem,
   MenuItem,
   Paper,
   Select,
@@ -770,7 +761,7 @@ export default function JobJob({ user }) {
                           ...p,
                           items: Object.fromEntries(
                             Object.entries(p?.items ?? {}).filter(
-                              ([k]) => k != count - 1
+                              ([k]) => k !== count - 1
                             )
                           ),
                           data: {
@@ -928,7 +919,7 @@ export default function JobJob({ user }) {
                         ...p,
                         log: Object.fromEntries(
                           Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k != count - 1
+                            ([k]) => k !== count - 1
                           )
                         ),
                       }));
@@ -1352,7 +1343,7 @@ export default function JobJob({ user }) {
                         ...p,
                         log: Object.fromEntries(
                           Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k != count - 1
+                            ([k]) => k !== count - 1
                           )
                         ),
                       }));

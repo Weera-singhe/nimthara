@@ -5,7 +5,6 @@ import axios from "axios";
 
 import Button from "@mui/material/Button";
 import CreateNewFolderRoundedIcon from "@mui/icons-material/CreateNewFolderRounded";
-import CreateNewFolderOutlinedIcon from "@mui/icons-material/CreateNewFolderOutlined";
 import List from "@mui/material/List";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -15,7 +14,6 @@ import ListSubheader from "@mui/material/ListSubheader";
 import CircularProgress from "@mui/material/CircularProgress";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Container from "@mui/material/Container";
 import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
 import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
@@ -36,7 +34,7 @@ export default function JobsHome({ user }) {
       .then((res) => {
         setAllJobs(res.data.allJobs);
         setAllJobFiles(res.data.allJobFiles);
-        //console.log(res.data);
+        ///console.log(res.data);
       })
       .catch(handleApiError)
       .finally(() => setDbloading(false));

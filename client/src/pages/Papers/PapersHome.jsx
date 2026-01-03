@@ -8,7 +8,6 @@ import PrintIcon from "@mui/icons-material/Print";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
   AccordionDetails,
@@ -20,13 +19,9 @@ import {
   Divider,
   Fab,
   FormControl,
-  IconButton,
   InputLabel,
   List,
   ListItem,
-  ListItemButton,
-  ListItemSecondaryAction,
-  ListItemText,
   ListSubheader,
   MenuItem,
   Select,
@@ -36,7 +31,7 @@ import {
 import { useReactToPrint } from "react-to-print";
 import MyFormBox from "../../helpers/MyFormBox";
 import { handleApiError, onNUM } from "../../helpers/HandleChange";
-
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 export default function PapersHome({ user }) {
   const defForm = {
     color: 1,
@@ -270,67 +265,83 @@ export default function PapersHome({ user }) {
         </MyFormBox>
       )}
       <Box ref={printRef}>
-        <List>
-          {specs?.types?.map((sp) => (
-            <Box key={sp?.id}>
-              <ListSubheader
+        {specs?.types?.map((ty) => (
+          <Accordion defaultExpanded key={ty?.id}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreRoundedIcon />}
+              sx={{ backgroundColor: "#e0f2f1" }}
+            >
+              <Typography component="span" fontWeight={450}>
+                {ty?.type}
+              </Typography>
+              <Box
                 sx={{
-                  border: "1px solid grey",
+                  px: 1.5,
+                  mx: 1.5,
+                  height: 24,
+                  display: "flex",
+                  alignItems: "center",
                   borderRadius: 1,
-                  backgroundColor: "#e0f2f1",
+                  backgroundColor: "#9cb6b6ff",
+                  fontWeight: 500,
                 }}
               >
-                {sp?.type}
-              </ListSubheader>
+                {paperList?.reduce(
+                  (n, pp) => n + (pp?.type_ === ty?.id ? 1 : 0),
+                  0
+                )}
+              </Box>
+            </AccordionSummary>
+            <Divider />
+            {paperList
+              .filter((pp) => pp?.type_ === ty?.id)
+              .map((pp) => (
+                <Box key={pp?.id}>
+                  <AccordionDetails
+                    sx={{
+                      py: 1,
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      width="100%"
+                      gap={1}
+                    >
+                      {/* LEFT: text grows */}
+                      <Typography sx={{ flexGrow: 1 }}>
+                        {pp?.display_as}
+                      </Typography>
 
-              {paperList
-                .filter((pp) => pp?.type_ === sp?.id)
-                .map((pp) => (
-                  <Box key={pp?.id}>
-                    <ListItem>
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        width="100%"
-                        gap={1}
-                      >
-                        {/* LEFT: text grows */}
-                        <Typography sx={{ flexGrow: 1 }}>
-                          {pp?.display_as}
-                        </Typography>
+                      {/* RIGHT: buttons stay together */}
+                      <Stack direction="row" gap={1}>
+                        <Button
+                          size="small"
+                          sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
+                          component={Link}
+                          to={`/papers/price/${pp?.id}`}
+                        >
+                          {toLKR(pp?.last_price)}
+                        </Button>
 
-                        {/* RIGHT: buttons stay together */}
-                        <Stack direction="row" gap={1}>
-                          <Button
-                            size="small"
-                            sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
-                            component={Link}
-                            to={`/papers/price/${pp?.id}`}
-                          >
-                            {toLKR(pp?.last_price)}
-                          </Button>
-
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            sx={{ width: 60 }}
-                          >
-                            0/0
-                            {/* {Math.floor(Math.random() * 1001) +
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          sx={{ width: 60 }}
+                        >
+                          0/0
+                          {/* {Math.floor(Math.random() * 1001) +
                               "/" +
                               Math.floor(Math.random() * 501)} */}
-                          </Button>
-                        </Stack>
+                        </Button>
                       </Stack>
-                    </ListItem>
-                    <Divider />
-
-                    <Divider />
-                  </Box>
-                ))}
-            </Box>
-          ))}
-        </List>
+                    </Stack>
+                  </AccordionDetails>
+                  <Divider sx={{ mx: 1 }} />
+                </Box>
+              ))}
+          </Accordion>
+        ))}
       </Box>
     </Box>
   );

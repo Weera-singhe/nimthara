@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 import { JOBS_API_URL } from "../../api/urls";
@@ -12,28 +12,17 @@ import axios from "axios";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import List from "@mui/material/List";
-import ListSubheader from "@mui/material/ListSubheader";
 import Divider from "@mui/material/Divider";
 import ListItemButton from "@mui/material/ListItemButton";
 
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
-import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
-import Avatar from "@mui/material/Avatar";
 import Num from "../../helpers/Num";
-import Popover from "@mui/material/Popover";
-import Button from "@mui/material/Button";
 import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
 import Switch from "@mui/material/Switch";
-import Radio from "@mui/material/Radio";
-import FormLabel from "@mui/material/FormLabel";
-import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Stack from "@mui/material/Stack";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
 import MyFormBox from "../../helpers/MyFormBox";
