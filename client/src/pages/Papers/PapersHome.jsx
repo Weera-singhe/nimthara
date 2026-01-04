@@ -26,6 +26,8 @@ import {
   MenuItem,
   Select,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
@@ -128,12 +130,18 @@ export default function PapersHome({ user }) {
             setForm(defForm);
           }}
           disabled={!user?.level_paper}
-          sx={{ width: 140 }}
-          variant="outlined"
+          variant={!addPanel && "outlined"}
+          sx={{ width: 85 }}
         >
-          {!addPanel && "New Paper"}
+          {!addPanel && "add"}
         </Button>
-        <Button startIcon={<NotesRoundedIcon />} variant="outlined">
+        <Button
+          startIcon={<NotesRoundedIcon />}
+          variant="outlined"
+          disabled={!user?.level_paper}
+          component={Link}
+          to="/papers/log"
+        >
           LOG
         </Button>
       </Stack>
@@ -166,24 +174,21 @@ export default function PapersHome({ user }) {
               ))}
             </Select>
           </FormControl>
-          <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
-            <InputLabel>Density</InputLabel>
-            <Select
-              name="den_unit"
-              value={form?.den_unit}
-              label="Density"
-              onChange={onNUM(setForm)}
-              MenuProps={{
-                PaperProps: { style: { maxHeight: 300 } },
-              }}
-            >
-              {specs?.den_units?.map((du) => (
-                <MenuItem key={du?.id} value={du?.id}>
-                  {du?.denunit}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <ToggleButtonGroup
+            value={form?.den_unit}
+            exclusive
+            onChange={(e, v) => {
+              v !== null && setForm((p) => ({ ...p, den_unit: v }));
+            }}
+            size="small"
+            color="primary"
+          >
+            {specs?.den_units?.map((du) => (
+              <ToggleButton key={du?.id} value={du?.id}>
+                {du?.denunit}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
           <Num
             label={form?.den_unit === 1 ? "gsm" : "mm"}
             onChange={onNUM(setForm)}
@@ -238,24 +243,21 @@ export default function PapersHome({ user }) {
               ))}
             </Select>
           </FormControl>
-          <FormControl sx={{ minWidth: 80, maxWidth: "80%" }} size="small">
-            <InputLabel>Units</InputLabel>
-            <Select
-              name="unit_type"
-              value={form?.unit_type}
-              label="Units"
-              onChange={onNUM(setForm)}
-              MenuProps={{
-                PaperProps: { style: { maxHeight: 300 } },
-              }}
-            >
-              {specs?.unit_types?.map((ut) => (
-                <MenuItem key={ut?.id} value={ut?.id}>
-                  {ut?.unit_type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>{" "}
+          <ToggleButtonGroup
+            value={form?.unit_type}
+            exclusive
+            onChange={(e, v) => {
+              v !== null && setForm((p) => ({ ...p, unit_type: v }));
+            }}
+            size="small"
+            color="primary"
+          >
+            {specs?.unit_types?.map((ut) => (
+              <ToggleButton key={ut?.id} value={ut?.id}>
+                {ut?.unit_type}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
           <Num
             label={form?.unit_type === 1 ? "sheets" : "KG"}
             onChange={onNUM(setForm)}
@@ -278,12 +280,11 @@ export default function PapersHome({ user }) {
                 sx={{
                   px: 1.5,
                   mx: 1.5,
-                  height: 24,
                   display: "flex",
                   alignItems: "center",
                   borderRadius: 1,
                   backgroundColor: "#9cb6b6ff",
-                  fontWeight: 500,
+                  fontWeight: 450,
                 }}
               >
                 {paperList?.reduce(
@@ -318,7 +319,7 @@ export default function PapersHome({ user }) {
                         <Button
                           size="small"
                           sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
-                          component={Link}
+                          component={user?.loggedIn && Link}
                           to={`/papers/price/${pp?.id}`}
                         >
                           {toLKR(pp?.last_price)}
@@ -328,6 +329,8 @@ export default function PapersHome({ user }) {
                           size="small"
                           variant="outlined"
                           sx={{ width: 60 }}
+                          component={user?.loggedIn && Link}
+                          to={`/papers/log/${pp?.id}`}
                         >
                           0/0
                           {/* {Math.floor(Math.random() * 1001) +

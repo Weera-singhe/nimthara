@@ -13,7 +13,7 @@ const {
   GetPapersFullData,
   GetAllPaperSpecs,
 } = require("../Helpers/dbFunc");
-const { dateTimeCon } = require("../Helpers/dates");
+const { dateTimeCon, dateCon } = require("../Helpers/dates");
 
 router.get("/", async (req, res) => {
   try {
@@ -208,6 +208,109 @@ router.post("/price/rec", requiredLogged, async (req, res) => {
     );
 
     res.status(200).json({ success: true, priceLog });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get("/stockLog/:id", requiredLogged, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const stockLogSQL = `
+      SELECT *, ${dateCon("rec_at")}
+      FROM paper_stock
+      WHERE paper_id = $1
+      ORDER BY rec_at DESC, stock_rec DESC
+    `;
+
+    const { rows: stockLog } = await pool.query(stockLogSQL, [id]);
+
+    res.json({ success: true, stockLog });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/log/rec", requiredLogged, async (req, res) => {
+  try {
+    const { change, direction, id, rec_at, storage, storageTo } = req.body;
+    console.log(req.body);
+    console.log("reqbody done");
+    const recDate = new Date(rec_at);
+    const paperId = Number(id);
+
+    const isTransfer = direction === 0;
+    const changedXdir = isTransfer ? change * -1 : change * direction;
+    const recAtValid = recDate <= new Date();
+    const transferSame = isTransfer && storage === storageTo;
+
+    console.log(
+      "isTransfer",
+      isTransfer,
+      "recAtValid",
+      recAtValid,
+      "transferSame",
+      transferSame
+    );
+
+    if (!changedXdir || !recAtValid || transferSame) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid or missing field`,
+      });
+    }
+
+    if (!requiredLevel(req, res, "level_paper", 2)) return;
+
+    const checkSql = `SELECT * from paper_list where id = $1`;
+    const { rows: checkrows } = await pool.query(checkSql, [paperId]);
+    if (!checkrows.length) {
+      return res.status(404).json({ success: false, message: "Wrong Paper" });
+    }
+
+    const insertSql = `
+      INSERT INTO paper_stock (paper_id, rec_at, change, storage) VALUES ($1,$2,$3,$4) RETURNING *
+    `;
+    const { rows: insertRows } = await pool.query(insertSql, [
+      paperId,
+      recDate,
+      changedXdir,
+      storage,
+    ]);
+    if (!!isTransfer) {
+      await pool.query(insertSql, [paperId, recDate, change, storageTo]);
+    }
+
+    const stockLogSQL = `
+      SELECT *, ${dateCon("rec_at")}
+      FROM paper_stock
+      WHERE paper_id = $1
+      ORDER BY rec_at DESC, stock_rec DESC
+    `;
+
+    const { rows: stockLog } = await pool.query(stockLogSQL, [id]);
+
+    const user_id = getUserID(req);
+
+    const act = isTransfer ? "transfer" : direction === 1 ? "plus" : "minus";
+
+    await RecActivity(
+      user_id,
+      act,
+      "{}",
+      change,
+      "/log/rec",
+      paperId,
+      null,
+      null,
+      null,
+      "paper_stock"
+    );
+
+    res.status(200).json({ success: true, stockLog });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });

@@ -380,93 +380,89 @@ export default function JobFile({ user }) {
         )}
       </MyFormBox>
 
-      {/* ////////////////
-      DOCS DOCUMENTS
-      ///////////////// */}
-      <DocUpload
-        located_id={"jobfile" + fileid}
-        label="Documents"
-        prefix={jobfileTag(fileid)}
-        folder_name="jobs/file"
-        can_upload={user?.loggedIn}
-        can_delete={user?.level > 2 && user?.loggedIn}
-        can_view={user?.loggedIn}
-        user={user}
-      />
-      {/* ////////////////
-      FORM 2 FORM2
-      ///////////////// */}
       {isSavedFile && (
-        <MyFormBox
-          label="Bid Submission"
-          clickable={passedForm2}
-          onPress={() => SubmitForm2(jobFilesTemp?.bid_submit)}
-          user={user}
-        >
-          <FormControl sx={{ minWidth: 150, maxWidth: "90%" }} size="small">
-            <InputLabel>Submit By</InputLabel>
-            <Select
-              name="method"
-              value={bidSubJson?.method || ""}
-              label="Submit By"
-              onChange={onNUM_BS}
-              MenuProps={{
-                PaperProps: { style: { maxHeight: 300 } },
-              }}
-            >
-              <MenuItem value="">-</MenuItem>
-              <MenuItem value={1}>email</MenuItem>
-              <MenuItem value={2}>deliver</MenuItem>
-              <MenuItem value={3}>post</MenuItem>
-              <MenuItem value={4}>direct</MenuItem>
-              <MenuItem value={5}>not bidding</MenuItem>
-            </Select>
-          </FormControl>
+        <>
+          <DocUpload
+            located_id={"jobfile" + fileid}
+            label="Documents"
+            prefix={jobfileTag(fileid)}
+            folder_name="jobs/file"
+            can_upload={user?.loggedIn}
+            can_delete={user?.level > 2 && user?.loggedIn}
+            can_view={user?.loggedIn}
+            user={user}
+          />
+          <MyFormBox
+            label="Bid Submission"
+            clickable={passedForm2}
+            onPress={() => SubmitForm2(jobFilesTemp?.bid_submit)}
+            user={user}
+          >
+            <FormControl sx={{ minWidth: 150, maxWidth: "90%" }} size="small">
+              <InputLabel>Submit By</InputLabel>
+              <Select
+                name="method"
+                value={bidSubJson?.method || ""}
+                label="Submit By"
+                onChange={onNUM_BS}
+                MenuProps={{
+                  PaperProps: { style: { maxHeight: 300 } },
+                }}
+              >
+                <MenuItem value="">-</MenuItem>
+                <MenuItem value={1}>email</MenuItem>
+                <MenuItem value={2}>deliver</MenuItem>
+                <MenuItem value={3}>post</MenuItem>
+                <MenuItem value={4}>direct</MenuItem>
+                <MenuItem value={5}>not bidding</MenuItem>
+              </Select>
+            </FormControl>
 
-          {bidSubJson?.method === 5 ? (
-            <TextField
-              label="Reason"
-              variant="outlined"
-              size="small"
-              name="reason"
-              value={bidSubJson?.reason || ""}
-              onChange={onStr_BS}
-              sx={{ width: 300 }}
-            />
-          ) : (
-            <>
+            {bidSubJson?.method === 5 ? (
               <TextField
-                label="To"
+                label="Reason"
                 variant="outlined"
                 size="small"
-                name="to"
-                value={bidSubJson?.to || ""}
+                name="reason"
+                value={bidSubJson?.reason || ""}
                 onChange={onStr_BS}
                 sx={{ width: 300 }}
               />
+            ) : (
+              <>
+                <TextField
+                  label="To"
+                  variant="outlined"
+                  size="small"
+                  name="to"
+                  value={bidSubJson?.to || ""}
+                  onChange={onStr_BS}
+                  sx={{ width: 300 }}
+                />
 
-              <TextField
-                label="By"
-                variant="outlined"
-                size="small"
-                name="by"
-                value={bidSubJson?.by || ""}
-                onChange={onStr_BS}
-                sx={{ width: 300 }}
-              />
-              <TextField
-                label="Date"
-                sx={{ width: 150 }}
-                type="date"
-                size="small"
-                onChange={onStr_BS}
-                name="when"
-                value={bidSubJson?.when || ""}
-                InputLabelProps={{ shrink: true }}
-              />
-            </>
-          )}
-        </MyFormBox>
+                <TextField
+                  label="By"
+                  variant="outlined"
+                  size="small"
+                  name="by"
+                  value={bidSubJson?.by || ""}
+                  onChange={onStr_BS}
+                  sx={{ width: 300 }}
+                />
+                <TextField
+                  label="Date"
+                  sx={{ width: 150 }}
+                  type="date"
+                  size="small"
+                  onChange={onStr_BS}
+                  name="when"
+                  value={bidSubJson?.when || ""}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </>
+            )}
+          </MyFormBox>
+        </>
       )}
     </Box>
   );

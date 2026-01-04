@@ -17,7 +17,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { PAPERS_API_URL } from "../../api/urls";
 import { handleApiError, onNUM, onSTR } from "../../helpers/HandleChange";
 import MyFormBox from "../../helpers/MyFormBox";
@@ -30,7 +30,9 @@ export default function PaperPrice({ user }) {
     .slice(0, 16);
 
   const { id } = useParams();
-  const [form, setForm] = useState({ id: 0 });
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({ rec_at: nowLK });
   const [paperList, setPaperList] = useState([]);
   const [priceLog, setPriceLog] = useState([]);
   const [DBLoading, SetDBLoading] = useState(true);
@@ -42,9 +44,9 @@ export default function PaperPrice({ user }) {
         const paperList_ = res.data.papers;
         setPaperList(paperList_);
 
-        const routeId = Number(id || 0);
+        const routeId = Number(id);
         paperList_.some((p) => p.id === routeId) &&
-          setForm((p) => ({ ...p, id: routeId, rec_at: nowLK }));
+          setForm((p) => ({ ...p, id: routeId }));
 
         //console.log(res.data);
         res.data.success && SetDBLoading(false);
@@ -52,34 +54,40 @@ export default function PaperPrice({ user }) {
       .catch((err) => console.error("Error fetching papers:", err));
   }, []);
 
-  //   useEffect(() => {
-  //     console.log("form", form);
-  //   }, [form]);
-
-  useEffect(() => {}, [paperList]);
+  // useEffect(() => {
+  //   console.log("form", form);
+  // }, [form]);
 
   useEffect(() => {
-    // console.log("id changed");
     SetDBLoading(true);
+
+    const safeID = Number(id || 0);
     axios
-      .get(`${PAPERS_API_URL}/priceLog/${form?.id}`)
+      .get(`${PAPERS_API_URL}/priceLog/${safeID}`)
       .then((res) => {
-        setPriceLog(res.data.priceLog || {});
-        //console.log(res.data);
-        res.data.success && SetDBLoading(false);
+        if (res.data.success) {
+          setPriceLog(res.data.priceLog || []);
+          SetDBLoading(false);
+        }
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [form?.id]);
+  }, [id]);
 
-  function SubmitNewPaper() {
+  const changeSelect = (e) => {
+    const nextId = Number(e.target.value);
+    setForm((p) => ({ ...p, id: nextId }));
+    navigate(`/papers/price/${nextId}`, { replace: false });
+  };
+
+  function SubmitLog() {
     SetDBLoading(true);
 
     axios
       .post(`${PAPERS_API_URL}/price/rec`, form)
       .then((res) => {
         if (res.data.success) {
-          setPriceLog(res.data.priceLog || {});
-          setForm((p) => ({ ...p, price: 0, rec_at: "" }));
+          setPriceLog(res.data.priceLog || []);
+          setForm((p) => ({ ...p, price: 0 }));
         }
       })
       .catch(handleApiError)
@@ -95,14 +103,14 @@ export default function PaperPrice({ user }) {
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
-      <MyFormBox clickable={formIsFilled} user={user} onPress={SubmitNewPaper}>
+      <MyFormBox clickable={formIsFilled} user={user} onPress={SubmitLog}>
         <FormControl sx={{ minWidth: 230, maxWidth: "80%" }} size="small">
           <InputLabel>Paper</InputLabel>
           <Select
             name="id"
-            value={form?.id}
+            value={form?.id || 0}
             label="Paper"
-            onChange={onNUM(setForm)}
+            onChange={changeSelect}
             MenuProps={{
               PaperProps: { style: { maxHeight: 300 } },
             }}

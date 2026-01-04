@@ -22,6 +22,7 @@ import axios from "axios";
 import "./index.css";
 import Box from "@mui/material/Box";
 import Esti from "./pages/Esti/Esti";
+import PaperLog from "./pages/Papers/PaperLog";
 
 axios.defaults.withCredentials = true;
 
@@ -70,6 +71,30 @@ const App = () => {
           element={
             <ProtectedRoute user={user}>
               <PaperPrice user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="papers/price"
+          element={
+            <ProtectedRoute user={user}>
+              <PaperPrice user={user} />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="papers/log/:id"
+          element={
+            <ProtectedRoute user={user}>
+              <PaperLog user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="papers/log"
+          element={
+            <ProtectedRoute user={user}>
+              <PaperLog user={user} />
             </ProtectedRoute>
           }
         />
