@@ -43,7 +43,7 @@ app.use(
       httpOnly: true,
       secure: isProd,
       sameSite: "lax",
-      domain: ".nimthara.com",
+      domain: isProd ? ".nimthara.com" : undefined,
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
     },
