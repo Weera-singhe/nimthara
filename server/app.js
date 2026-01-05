@@ -31,21 +31,19 @@ app.use(express.json());
 
 app.set("trust proxy", 1);
 
-app.set("trust proxy", 1);
-
 app.use(
   session({
     name: "connect.sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-
     proxy: isProd,
 
     cookie: {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      sameSite: "lax",
+      domain: ".nimthara.com",
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
     },
