@@ -36,27 +36,29 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user) => {
-    if (err) return next(err); // <-- CHANGED: handle auth errors
+    if (err) return next(err);
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Login failed" }); // <-- CHANGED: generic
+      return res.status(401).json({ success: false, message: "Login failed" });
     }
 
-    // <-- CHANGED: prevent session fixation
     req.session.regenerate((regenErr) => {
       if (regenErr) return next(regenErr);
 
       req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr); // <-- CHANGED: handle login errors
-
-        // <-- CHANGED: never send full user object (may include sensitive fields)
-        // CHANGED HERE
+        if (loginErr) return next(loginErr);
         const safeUser = {
           loggedIn: true,
-          ...user,
+          id: user.id,
+          username: user.username,
+          display_name: user.display_name,
+          level: user.level,
+          level_jobs: user.level_jobs,
+          level_audit: user.level_audit,
+          level_paper: user.level_paper,
         };
 
-        return res.json({ success: true, user: safeUser }); // <-- CHANGED
+        return res.json({ success: true, user: safeUser });
       });
     });
   })(req, res, next);
@@ -64,14 +66,16 @@ router.post("/login", (req, res, next) => {
 
 router.post("/logout", (req, res, next) => {
   req.logout((err) => {
-    if (err) return next(err); // <-- CHANGED: handle error
+    if (err) return next(err);
 
     req.session.destroy(() => {
       res.clearCookie("connect.sid", {
         path: "/",
-        httpOnly: true, // <-- CHANGED: match session cookie security
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // <-- CHANGED
-        secure: process.env.NODE_ENV === "production", // <-- CHANGED
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production" ? ".nimthara.com" : undefined,
       });
 
       return res.status(200).json({ success: true });
@@ -80,19 +84,35 @@ router.post("/logout", (req, res, next) => {
 });
 
 router.get("/check-auth", (req, res) => {
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, private"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   if (req.isAuthenticated && req.isAuthenticated()) {
-    res.json({
+    const safeUser = {
       loggedIn: true,
-      ...req.user,
-    });
-  } else {
-    res.json({
-      loggedIn: false,
-      level: 0,
-      level_jobs: 0,
-      level_audit: 0,
-      level_paper: 0,
-    });
+      id: user.id,
+      username: user.username,
+      display_name: user.display_name,
+      level: user.level,
+      level_jobs: user.level_jobs,
+      level_audit: user.level_audit,
+      level_paper: user.level_paper,
+    };
+
+    return res.json({ success: true, user: safeUser });
   }
+
+  return res.json({
+    loggedIn: false,
+    level: 0,
+    level_jobs: 0,
+    level_audit: 0,
+    level_paper: 0,
+  });
 });
+
 module.exports = router;
