@@ -33,19 +33,6 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 
-// if (process.env.NODE_ENV !== "production") {
-//   app.use((req, res, next) => {
-//     const t0 = Date.now();
-//     res.on("finish", () => {
-//       const ms = Date.now() - t0;
-//       console.log(
-//         `${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`
-//       );
-//     });
-//     next();
-//   });
-// }
-
 app.set("trust proxy", 1);
 
 app.use(
@@ -54,10 +41,15 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+
+    proxy: process.env.NODE_ENV === "production",
+
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 4 * 1,
     },
   })
 );
