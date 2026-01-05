@@ -20,11 +20,7 @@ const app = express();
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? [
-          "https://nimthara.com",
-          "https://www.nimthara.com",
-          "https://nimthara.onrender.com",
-        ]
+      ? ["https://nimthara.com", "https://www.nimthara.com"]
       : ["http://localhost:3000"],
   credentials: true,
 };
@@ -35,21 +31,23 @@ app.use(express.json());
 
 app.set("trust proxy", 1);
 
+const isProd = process.env.NODE_ENV === "production";
+
 app.use(
   session({
     name: "connect.sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-
-    proxy: process.env.NODE_ENV === "production",
+    proxy: isProd,
 
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProd,
+      sameSite: isProd ? "lax" : "lax",
+      domain: isProd ? ".nimthara.com" : undefined,
       path: "/",
-      maxAge: 1000 * 60 * 60 * 4 * 1,
+      maxAge: 1000 * 60 * 60 * 4,
     },
   })
 );
