@@ -58,8 +58,9 @@ router.post("/login", (req, res, next) => {
           level_audit: user.level_audit,
           level_paper: user.level_paper,
         };
-
         req.session.save(() => {
+          res.setHeader("Cache-Control", "no-store");
+          res.setHeader("Pragma", "no-cache");
           return res.json({ success: true, user: safeUser });
         });
       });
@@ -75,8 +76,8 @@ router.post("/logout", (req, res, next) => {
       res.clearCookie("connect.sid", {
         path: "/",
         httpOnly: true,
-        sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         domain:
           process.env.NODE_ENV === "production" ? ".nimthara.com" : undefined,
       });

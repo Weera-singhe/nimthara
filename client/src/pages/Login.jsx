@@ -21,8 +21,6 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-axios.defaults.withCredentials = true;
-
 export default function Login({ user, setUser }) {
   const navigate = useNavigate();
 
@@ -119,10 +117,9 @@ export default function Login({ user, setUser }) {
         username: loginDetails.username.trim(),
         password: loginDetails.password,
       });
-      if (res?.data?.success) {
-        const authRes = await api.get(`/check-auth`);
 
-        setUser(authRes.data);
+      if (res?.data?.success) {
+        setUser(res.data.user);
 
         setTimeout(() => {
           navigate("/", { replace: true });

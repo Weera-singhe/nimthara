@@ -23,6 +23,15 @@ export default function MyAppBar({ user, setUser }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const navigate = useNavigate();
 
+  const api = React.useMemo(() => {
+    return axios.create({
+      baseURL: AUTH_API_URL,
+      withCredentials: true,
+      timeout: 15000,
+      headers: { "Content-Type": "application/json" },
+    });
+  }, []);
+
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -32,7 +41,7 @@ export default function MyAppBar({ user, setUser }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${AUTH_API_URL}/logout`, {}, { withCredentials: true });
+      await api.post("/logout");
       setUser({
         loggedIn: false,
         level: 0,
