@@ -17,11 +17,11 @@ const papersRoutes = require("./routes/papers.routes");
 
 const app = express();
 
+const isProd = process.env.NODE_ENV === "production";
 const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? ["https://nimthara.com", "https://www.nimthara.com"]
-      : ["http://localhost:3000"],
+  origin: isProd
+    ? ["https://nimthara.com", "https://www.nimthara.com"]
+    : ["http://localhost:3000"],
   credentials: true,
 };
 
@@ -31,8 +31,7 @@ app.use(express.json());
 
 app.set("trust proxy", 1);
 
-const isProd = process.env.NODE_ENV === "production";
-const isSameSiteDomain = process.env.COOKIE_MODE === "same-site";
+app.set("trust proxy", 1);
 
 app.use(
   session({
@@ -40,13 +39,13 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+
     proxy: isProd,
 
     cookie: {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? (isSameSiteDomain ? "lax" : "none") : "lax",
-      domain: isProd && isSameSiteDomain ? ".nimthara.com" : undefined,
+      sameSite: isProd ? "none" : "lax",
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
     },
