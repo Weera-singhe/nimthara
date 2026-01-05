@@ -122,7 +122,7 @@ export default function Login({ user, setUser }) {
         setUser(res.data.user);
 
         setTimeout(() => {
-          navigate("/", { replace: true });
+          navigate("/papers", { replace: true });
         }, 0);
       } else {
         setSafeMessage(
@@ -164,7 +164,7 @@ export default function Login({ user, setUser }) {
   };
   useEffect(() => {
     if (user?.loggedIn) {
-      navigate("/", { replace: true });
+      navigate("/papers", { replace: true });
     }
   }, [user, navigate]);
 
