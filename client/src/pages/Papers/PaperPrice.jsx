@@ -54,9 +54,9 @@ export default function PaperPrice({ user }) {
       .catch((err) => console.error("Error fetching papers:", err));
   }, []);
 
-  // useEffect(() => {
-  //   console.log("form", form);
-  // }, [form]);
+  useEffect(() => {
+    console.log("form", form);
+  }, [form]);
 
   useEffect(() => {
     SetDBLoading(true);

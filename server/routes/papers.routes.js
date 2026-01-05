@@ -64,7 +64,7 @@ router.post("/add", requiredLogged, async (req, res) => {
     for (const field of requiredFields) {
       const value = Number(req.body[field] || 0);
 
-      if (!value) {
+      if (value <= 0) {
         return res.status(400).json({
           success: false,
           message: `Invalid or missing field: ${field}`,
@@ -161,13 +161,14 @@ router.post("/price/rec", requiredLogged, async (req, res) => {
     const recDate = new Date(rec_at);
     const paperId = Number(id);
 
-    const recAtValid = recDate <= new Date();
+    const recAtValid =
+      Number.isFinite(recDate.getTime()) &&
+      recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
 
-    if (!paperPrice || !recAtValid) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid or missing field`,
-      });
+    if (!paperPrice || paperPrice <= 0 || !recAtValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or missing field" });
     }
 
     if (!requiredLevel(req, res, "level_paper", 2)) return;
@@ -248,7 +249,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
 
     const isTransfer = direction === 0;
     const changedXdir = isTransfer ? change * -1 : change * direction;
-    const recAtValid = recDate <= new Date();
+    const recAtValid = recDate <= new Date() + 5.5 * 60 * 60 * 1000;
     const transferSame = isTransfer && storage === storageTo;
 
     console.log(
@@ -260,7 +261,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       transferSame
     );
 
-    if (!changedXdir || !recAtValid || transferSame) {
+    if (!changedXdir || !recAtValid || transferSame || !change || change <= 0) {
       return res.status(400).json({
         success: false,
         message: `Invalid or missing field`,
