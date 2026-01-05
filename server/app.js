@@ -37,12 +37,13 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+
     proxy: isProd,
 
     cookie: {
       httpOnly: true,
       secure: isProd,
-      sameSite: "lax",
+      sameSite: isProd ? "none" : "lax",
       domain: isProd ? ".nimthara.com" : undefined,
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
