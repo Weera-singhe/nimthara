@@ -249,17 +249,12 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
 
     const isTransfer = direction === 0;
     const changedXdir = isTransfer ? change * -1 : change * direction;
-    const recAtValid = recDate <= new Date() + 5.5 * 60 * 60 * 1000;
-    const transferSame = isTransfer && storage === storageTo;
 
-    console.log(
-      "isTransfer",
-      isTransfer,
-      "recAtValid",
-      recAtValid,
-      "transferSame",
-      transferSame
-    );
+    const recAtValid =
+      Number.isFinite(recDate.getTime()) &&
+      recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
+
+    const transferSame = isTransfer && storage === storageTo;
 
     if (!changedXdir || !recAtValid || transferSame || !change || change <= 0) {
       return res.status(400).json({
@@ -315,7 +310,8 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       "paper_stock"
     );
 
-    res.status(200).json({ success: true, stockLog });
+    const papers = await GetPapersFullData();
+    res.status(200).json({ success: true, stockLog, papers });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });

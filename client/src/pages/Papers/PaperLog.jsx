@@ -108,6 +108,7 @@ export default function PaperLog({ user }) {
         if (res.data.success) {
           setStockLog(res.data.stockLog || []);
           setForm((p) => ({ ...p, change: 0 }));
+          setPaperList(res.data.papers || []);
         }
       })
       .catch(handleApiError)
@@ -229,10 +230,33 @@ export default function PaperLog({ user }) {
           sx={{
             border: "1px solid grey",
             borderRadius: 1,
-            backgroundColor: "#e0f2e0ff",
+            backgroundColor: "#e0f2f1",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            overflowX: "auto",
+            whiteSpace: "nowrap",
+            "& > *": { flexShrink: 0, color: "black" },
+            color: "black",
           }}
         >
-          {selectedPaper?.display_as}
+          {selectedPaper?.display_as || "Select Paper"}
+          <Box sx={{ flexGrow: 1 }} />{" "}
+          <Button size="small" variant="outlined">
+            {`A ]${selectedPaper?.stock_a < 0 ? " -" : ""} ${
+              Math.floor(Math.abs(selectedPaper?.stock_a) / unitVal) || 0
+            } | ${Math.abs(selectedPaper?.stock_a) % unitVal || 0}`}
+          </Button>
+          <Button size="small" variant="outlined">
+            {`B ]${selectedPaper?.stock_b < 0 ? " -" : ""} ${
+              Math.floor(Math.abs(selectedPaper?.stock_b) / unitVal) || 0
+            } | ${Math.abs(selectedPaper?.stock_b) % unitVal || 0}`}
+          </Button>
+          <Button size="small" variant="outlined">
+            {`${selectedPaper?.stock_all < 0 ? "- " : ""}${
+              Math.floor(Math.abs(selectedPaper?.stock_all) / unitVal) || 0
+            } | ${Math.abs(selectedPaper?.stock_all) % unitVal || 0}`}
+          </Button>
         </ListSubheader>
 
         {stockLog?.map((pl) => (
@@ -244,9 +268,10 @@ export default function PaperLog({ user }) {
                 variant="outlined"
                 color={pl?.change < 0 ? "error" : "primary"}
               >
-                {Math.floor(Math.abs(pl?.change) / unitVal)}
+                {pl?.change < 0 && "- "}
+                {Math.floor(Math.abs(pl?.change) / unitVal) || 0}
                 {" | "}
-                {Math.abs(pl?.change) % unitVal}
+                {Math.abs(pl?.change) % unitVal || 0}
               </Button>
             </ListItem>
 

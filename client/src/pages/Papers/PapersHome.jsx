@@ -332,10 +332,11 @@ export default function PapersHome({ user }) {
                           component={user?.loggedIn && Link}
                           to={`/papers/log/${pp?.id}`}
                         >
-                          0/0
-                          {/* {Math.floor(Math.random() * 1001) +
-                              "/" +
-                              Math.floor(Math.random() * 501)} */}
+                          {`${pp?.stock_all < 0 ? "- " : ""}${
+                            Math.floor(
+                              Math.abs(pp?.stock_all) / pp?.unit_val
+                            ) || 0
+                          } | ${Math.abs(pp?.stock_all) % pp?.unit_val || 0}`}
                         </Button>
                       </Stack>
                     </Stack>
