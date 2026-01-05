@@ -32,6 +32,7 @@ app.use(express.json());
 app.set("trust proxy", 1);
 
 const isProd = process.env.NODE_ENV === "production";
+const isSameSiteDomain = process.env.COOKIE_MODE === "same-site";
 
 app.use(
   session({
@@ -44,8 +45,8 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? "lax" : "lax",
-      domain: isProd ? ".nimthara.com" : undefined,
+      sameSite: isProd ? (isSameSiteDomain ? "lax" : "none") : "lax",
+      domain: isProd && isSameSiteDomain ? ".nimthara.com" : undefined,
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
     },
