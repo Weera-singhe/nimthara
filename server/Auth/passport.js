@@ -22,19 +22,30 @@ passport.use(
   })
 );
 
-// CHANGED HERE: store a minimal user snapshot in session
 passport.serializeUser((user, done) => {
-  done(null, {
-    id: user.id,
-    display_name: user.display_name,
-    level: user.level,
-    level_jobs: user.level_jobs,
-    level_paper: user.level_paper,
-    level_audit: user.level_audit,
-  });
+  done(null, user.id);
 });
 
-// CHANGED HERE: no DB hit on every request
-passport.deserializeUser((user, done) => {
-  done(null, user);
+passport.deserializeUser(async (id, done) => {
+  try {
+    const { rows } = await pool.query(
+      `
+      SELECT
+        id,
+        username,
+        display_name,
+        level,
+        level_jobs,
+        level_paper,
+        level_audit
+      FROM users
+      WHERE id = $1
+      `,
+      [id]
+    );
+
+    done(null, rows[0] || null);
+  } catch (err) {
+    done(err);
+  }
 });

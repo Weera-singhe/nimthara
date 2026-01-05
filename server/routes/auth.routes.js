@@ -47,6 +47,7 @@ router.post("/login", (req, res, next) => {
 
       req.login(user, (loginErr) => {
         if (loginErr) return next(loginErr);
+
         const safeUser = {
           loggedIn: true,
           id: user.id,
@@ -58,7 +59,9 @@ router.post("/login", (req, res, next) => {
           level_paper: user.level_paper,
         };
 
-        return res.json({ success: true, user: safeUser });
+        req.session.save(() => {
+          return res.json({ success: true, user: safeUser });
+        });
       });
     });
   })(req, res, next);
@@ -91,19 +94,19 @@ router.get("/check-auth", (req, res) => {
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
 
-  if (req.isAuthenticated && req.isAuthenticated()) {
-    const safeUser = {
-      loggedIn: true,
-      id: user.id,
-      username: user.username,
-      display_name: user.display_name,
-      level: user.level,
-      level_jobs: user.level_jobs,
-      level_audit: user.level_audit,
-      level_paper: user.level_paper,
-    };
+  if (req.isAuthenticated?.() && req.user) {
+    const u = req.user;
 
-    return res.json({ success: true, user: safeUser });
+    return res.json({
+      loggedIn: true,
+      id: u.id,
+      username: u.username,
+      display_name: u.display_name,
+      level: u.level,
+      level_jobs: u.level_jobs,
+      level_audit: u.level_audit,
+      level_paper: u.level_paper,
+    });
   }
 
   return res.json({

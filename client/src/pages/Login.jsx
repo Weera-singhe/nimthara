@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
 import { AUTH_API_URL } from "../api/urls";
 import { useNavigate } from "react-router-dom";
@@ -51,6 +51,7 @@ export default function Login({ user, setUser }) {
 
   const api = useMemo(() => {
     const instance = axios.create({
+      baseURL: AUTH_API_URL,
       withCredentials: true,
       timeout: 15000,
       headers: {
@@ -114,18 +115,18 @@ export default function Login({ user, setUser }) {
 
     setLoading(true);
     try {
-      const res = await api.post(`${AUTH_API_URL}/login`, {
+      const res = await api.post(`/login`, {
         username: loginDetails.username.trim(),
         password: loginDetails.password,
       });
-
       if (res?.data?.success) {
-        // Fetch auth state after login (cookie-based)
-        const authRes = await api.get(`${AUTH_API_URL}/check-auth`);
+        const authRes = await api.get(`/check-auth`);
+
         setUser(authRes.data);
 
-        // SPA navigation
-        navigate("/", { replace: true });
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 0);
       } else {
         setSafeMessage(
           "Login failed. Please check your details and try again."
@@ -147,7 +148,7 @@ export default function Login({ user, setUser }) {
 
     setLoading(true);
     try {
-      const res = await api.post(`${AUTH_API_URL}/register`, {
+      const res = await api.post(`/register`, {
         display_name: regDetails.display_name.trim(),
         regname: regDetails.regname.trim(),
         pwr: regDetails.pwr,
@@ -164,8 +165,11 @@ export default function Login({ user, setUser }) {
       setLoading(false);
     }
   };
-
-  if (!user || user.loggedIn) return null;
+  useEffect(() => {
+    if (user?.loggedIn) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 3, sm: 6 } }}>
