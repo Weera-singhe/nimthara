@@ -77,11 +77,15 @@ router.post("/add", requiredLogged, async (req, res) => {
     const insertSql = `
       INSERT INTO paper_list
         (type_, color_, den, size_h, size_w, brand_, unit_val, unit_type, den_unit_)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-      ON CONFLICT (type_, color_, den, size_h, size_w, brand_ )
-      DO NOTHING
-      RETURNING *;
-    `;
+      SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9
+      WHERE NOT EXISTS ( SELECT 1 FROM paper_list
+        WHERE type_  = $1
+          AND color_ = $2
+          AND den    = $3
+          AND size_h = $4
+          AND size_w = $5
+          AND brand_ = $6
+      )RETURNING *`;
 
     const params = [
       type,
@@ -97,12 +101,12 @@ router.post("/add", requiredLogged, async (req, res) => {
 
     const { rows } = await pool.query(insertSql, params);
 
-    // if (rows.length === 0) {
-    //   return res.status(409).json({
-    //     success: false,
-    //     message: "Paper already exists",
-    //   });
-    // }
+    if (rows.length === 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Paper already exists",
+      });
+    }
 
     const newPaper = rows[0];
     const user_id = getUserID(req);
