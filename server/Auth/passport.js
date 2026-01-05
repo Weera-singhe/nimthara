@@ -5,14 +5,21 @@ const pool = require("../Db/pool");
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
+      const uname = String(username || "").trim();
+
       const result = await pool.query(
-        "SELECT * FROM users WHERE username = $1 AND reg_done = true",
-        [username]
+        `
+        SELECT *
+        FROM users
+        WHERE username = $1 AND reg_done = true
+        `,
+        [uname]
       );
 
       if (!result.rows.length) return done(null, false);
 
       const user = result.rows[0];
+
       if (user.password !== password) return done(null, false);
 
       return done(null, user);

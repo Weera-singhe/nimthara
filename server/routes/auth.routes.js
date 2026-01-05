@@ -1,5 +1,3 @@
-//LOGIN and REGISTER      ///////////////////////////
-
 const express = require("express");
 const router = express.Router();
 
@@ -7,30 +5,39 @@ const passport = require("passport");
 const pool = require("../Db/pool");
 
 router.post("/register", async (req, res) => {
-  const { display_name, regname, pwr } = req.body;
+  const display_name = String(req.body.display_name || "").trim();
+  const regname = String(req.body.regname || "").trim();
+  const pwr = String(req.body.pwr || "");
+
+  if (!display_name || !regname || !pwr) {
+    return res.status(400).json({ success: false, message: "Invalid request" });
+  }
 
   try {
     const result = await pool.query(
-      "SELECT * FROM users WHERE username = $1 AND reg_done = false",
+      "SELECT id FROM users WHERE username = $1 AND reg_done = false",
       [regname]
     );
 
     if (result.rows.length > 0) {
       await pool.query(
-        `UPDATE users SET password = $1, display_name =$2, reg_done = true WHERE username = $3`,
+        `UPDATE users
+         SET password = $1, display_name = $2, reg_done = true
+         WHERE username = $3`,
         [pwr, display_name, regname]
       );
-      res
+
+      return res
         .status(200)
         .json({ success: true, message: "Password set successfully" });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: "Invalid Username or already registered",
-      });
     }
+
+    return res.status(401).json({
+      success: false,
+      message: "Registration failed",
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
@@ -51,13 +58,13 @@ router.post("/login", (req, res, next) => {
         const safeUser = {
           loggedIn: true,
           id: user.id,
-          username: user.username,
           display_name: user.display_name,
           level: user.level,
           level_jobs: user.level_jobs,
           level_audit: user.level_audit,
           level_paper: user.level_paper,
         };
+
         req.session.save(() => {
           res.setHeader("Cache-Control", "no-store");
           res.setHeader("Pragma", "no-cache");
@@ -101,7 +108,6 @@ router.get("/check-auth", (req, res) => {
     return res.json({
       loggedIn: true,
       id: u.id,
-      username: u.username,
       display_name: u.display_name,
       level: u.level,
       level_jobs: u.level_jobs,

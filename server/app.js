@@ -3,7 +3,6 @@ const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
 
-// passport config MUST still be loaded
 require("./Auth/passport");
 
 const jobsRoutes = require("./routes/jobs.routes");
@@ -11,13 +10,11 @@ const docRoutes = require("./routes/doc.routes");
 const authRoutes = require("./routes/auth.routes");
 const estiRoutes = require("./routes/esti.routes");
 const papersRoutes = require("./routes/papers.routes");
-// ================================
-// CHANGED HERE: request timing log (dev only)
-// ================================
 
 const app = express();
 
 const isProd = process.env.NODE_ENV === "production";
+
 const corsOptions = {
   origin: isProd
     ? ["https://nimthara.com", "https://www.nimthara.com"]
@@ -27,9 +24,15 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
-app.use(express.json());
+
+app.use(express.json({ limit: "1mb" }));
 
 app.set("trust proxy", 1);
+
+app.use((req, res, next) => {
+  res.header("Vary", "Origin");
+  next();
+});
 
 app.use(
   session({
@@ -37,7 +40,6 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-
     proxy: isProd,
 
     cookie: {

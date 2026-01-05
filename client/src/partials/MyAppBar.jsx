@@ -32,12 +32,8 @@ export default function MyAppBar({ user, setUser }) {
     });
   }, []);
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
+  const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
+  const handleCloseNavMenu = () => setAnchorElNav(null);
 
   const handleLogout = async () => {
     try {
@@ -50,28 +46,21 @@ export default function MyAppBar({ user, setUser }) {
         level_audit: 0,
       });
       navigate("/login");
-    } catch {
-      alert("Logout failed");
+    } catch (err) {
+      console.error("Logout failed:", err?.message);
     }
   };
 
   const handleLoginLogout = () => {
-    if (user?.loggedIn) {
-      handleLogout();
-    } else {
-      navigate("/login");
-    }
+    handleCloseNavMenu();
+    if (user?.loggedIn) handleLogout();
+    else navigate("/login");
   };
 
   return (
     <AppBar
       position="static"
-      sx={{
-        bgcolor: "white",
-        borderRadius: 4,
-        overflow: "hidden",
-        mb: 4,
-      }}
+      sx={{ bgcolor: "white", borderRadius: 4, overflow: "hidden", mb: 4 }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
@@ -100,17 +89,12 @@ export default function MyAppBar({ user, setUser }) {
             >
               <MenuIcon />
             </IconButton>
+
             <Menu
               anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
               keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: "block", md: "block", lg: "none" } }}
@@ -162,6 +146,7 @@ export default function MyAppBar({ user, setUser }) {
               </Button>
             ))}
           </Box>
+
           <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center" }}>
             <Typography
               variant="button"
@@ -172,13 +157,14 @@ export default function MyAppBar({ user, setUser }) {
               }}
               color="success"
             >
-              {user.loggedIn && (user?.display_name || "")}
+              {user?.loggedIn && (user?.display_name || "")}{" "}
             </Typography>
+
             <IconButton
               onClick={handleLoginLogout}
-              color={user.loggedIn ? "error" : "primary"}
+              color={user?.loggedIn ? "error" : "primary"}
             >
-              {user.loggedIn ? <LogoutRoundedIcon /> : <LoginRoundedIcon />}
+              {user?.loggedIn ? <LogoutRoundedIcon /> : <LoginRoundedIcon />}{" "}
             </IconButton>
           </Box>
         </Toolbar>
