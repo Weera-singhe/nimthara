@@ -103,7 +103,11 @@ export default function PaperPrice({ user }) {
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
-      <MyFormBox clickable={formIsFilled} user={user} onPress={SubmitLog}>
+      <MyFormBox
+        clickable={formIsFilled && user?.level_paper >= 1}
+        user={user}
+        onPress={SubmitLog}
+      >
         <FormControl sx={{ minWidth: 230, maxWidth: "80%" }} size="small">
           <InputLabel>Paper</InputLabel>
           <Select

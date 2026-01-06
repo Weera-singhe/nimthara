@@ -126,7 +126,7 @@ export default function PaperLog({ user }) {
         <CircularProgress color="inherit" />
       </Backdrop>
       <MyFormBox
-        clickable={formIsFilled && !transferSame}
+        clickable={formIsFilled && !transferSame && user?.level_paper >= 1}
         user={user}
         onPress={SubmitLog}
       >

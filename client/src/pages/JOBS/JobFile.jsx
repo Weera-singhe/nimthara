@@ -136,7 +136,7 @@ export default function JobFile({ user }) {
       (jobFilesSaved?.bidbond?.status || 0);
 
   const canAddForm1 =
-    form1Filled && !form1Same && user?.loggedIn && user?.level_jobs;
+    form1Filled && !form1Same && user?.loggedIn && user?.level_jobs >= 1;
   const canEditForm1 =
     form1Filled && !form1Same && user?.loggedIn && user?.level_jobs >= 3;
   const passedForm1 = fileid ? canEditForm1 : canAddForm1;
@@ -163,7 +163,7 @@ export default function JobFile({ user }) {
     !form2Same &&
     form2Filled &&
     user?.loggedIn &&
-    user?.level_jobs &&
+    user?.level_jobs >= 1 &&
     !unsubmitting;
 
   const isSavedFile = jobFilesSaved?.customer_id;
@@ -388,7 +388,6 @@ export default function JobFile({ user }) {
             prefix={jobfileTag(fileid)}
             folder_name="jobs/file"
             can_upload={user?.loggedIn}
-            can_delete={user?.level > 2 && user?.loggedIn}
             can_view={user?.loggedIn}
             user={user}
           />

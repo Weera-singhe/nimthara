@@ -97,7 +97,7 @@ export default function Esti({ user }) {
       </Backdrop>
       <MyFormBox
         label={linkid}
-        clickable={!isSame}
+        clickable={!isSame && user.level_jobs >= 3}
         onPress={SubmitSave}
         user={user}
       >

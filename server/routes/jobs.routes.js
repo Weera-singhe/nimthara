@@ -399,7 +399,7 @@ router.post("/job/form1", requiredLogged, async (req, res) => {
     const exists = beforeRes.rowCount > 0;
 
     if (exists) {
-      if (!requiredLevel(req, res, "level_jobs", 2)) return;
+      if (!requiredLevel(req, res, "level_jobs", 1)) return;
     }
     const sql = exists
       ? `

@@ -19,7 +19,6 @@ import { handleApiError } from "./HandleChange";
 export default function DocUpload({
   located_id,
   can_upload = false,
-  can_delete = false,
   can_view = false,
   folder_name,
   prefix,
@@ -194,7 +193,7 @@ export default function DocUpload({
                   <b>{`${file.filename}.${file.format}`}</b>
                 </small>
               </a>
-              {can_delete && (
+              {user?.level >= 3 && (
                 <IconButton
                   onClick={() => deleteFile(file)}
                   disabled={deleting}

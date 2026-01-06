@@ -72,7 +72,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       }
     }
 
-    if (!requiredLevel(req, res, "level_paper", 2)) return;
+    if (!requiredLevel(req, res, "level_paper", 1)) return;
 
     const insertSql = `
       INSERT INTO paper_list
@@ -171,7 +171,7 @@ router.post("/price/rec", requiredLogged, async (req, res) => {
         .json({ success: false, message: "Invalid or missing field" });
     }
 
-    if (!requiredLevel(req, res, "level_paper", 2)) return;
+    if (!requiredLevel(req, res, "level_paper", 1)) return;
 
     const checkSql = `SELECT * from paper_list where id = $1`;
     const { rows: checkrows } = await pool.query(checkSql, [paperId]);
@@ -263,7 +263,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       });
     }
 
-    if (!requiredLevel(req, res, "level_paper", 2)) return;
+    if (!requiredLevel(req, res, "level_paper", 1)) return;
 
     const checkSql = `SELECT * from paper_list where id = $1`;
     const { rows: checkrows } = await pool.query(checkSql, [paperId]);

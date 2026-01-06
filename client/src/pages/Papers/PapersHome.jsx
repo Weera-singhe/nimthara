@@ -148,7 +148,7 @@ export default function PapersHome({ user }) {
       {addPanel && (
         <MyFormBox
           label={"Add New Paper"}
-          clickable={formIsFilled}
+          clickable={formIsFilled && user?.level_paper >= 1}
           onPress={() => SubmitNewPaper()}
           user={user}
         >

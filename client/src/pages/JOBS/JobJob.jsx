@@ -169,7 +169,7 @@ export default function JobJob({ user }) {
     same(jobSaved?.job_name, jobTemp.job_name, "") &&
     same(jobSaved?.job_code, jobTemp.job_code, "");
 
-  const form1Acess = isSavedJob ? user?.level_jobs >= 2 : user?.level_jobs;
+  const form1Acess = isSavedJob ? user?.level_jobs >= 1 : user?.level_jobs;
 
   const passedForm1 = !form1Same && user?.loggedIn && form1Acess;
 
@@ -293,7 +293,7 @@ export default function JobJob({ user }) {
   const passedForm2 =
     !form2Same &&
     form2Filled &&
-    Boolean(isSavedJob && user?.loggedIn && user?.level_jobs);
+    Boolean(isSavedJob && user?.loggedIn && user?.level_jobs >= 1);
 
   function SubmitForm2() {
     setDBLoading(true);
@@ -538,7 +538,6 @@ export default function JobJob({ user }) {
             prefix={jobfileTag(fileid)}
             folder_name="jobs/file"
             can_upload={false}
-            can_delete={false}
             can_view={user?.loggedIn}
             user={user}
             noBttn
@@ -549,7 +548,6 @@ export default function JobJob({ user }) {
             prefix={`${jobfileTag(fileid)}_${jobindex}`}
             folder_name="jobs/job"
             can_upload={user?.loggedIn}
-            can_delete={user?.level > 2 && user?.loggedIn}
             can_view={user?.loggedIn}
             user={user}
           />
@@ -729,7 +727,7 @@ export default function JobJob({ user }) {
                 ) : (
                   <Stack direction="row" spacing={1} alignItems="center">
                     <IconButton
-                      disabled={user?.level_jobs < 3}
+                      disabled={!(user?.level_jobs >= 3)}
                       onClick={EstiDeploy}
                       color="primary"
                     >
