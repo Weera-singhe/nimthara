@@ -241,7 +241,8 @@ router.get("/stockLog/:id", requiredLogged, async (req, res) => {
 
 router.post("/log/rec", requiredLogged, async (req, res) => {
   try {
-    const { change, direction, id, rec_at, storage, storageTo } = req.body;
+    const { change, direction, id, rec_at, storage, storageTo, dealer, note } =
+      req.body;
     console.log(req.body);
     console.log("reqbody done");
     const recDate = new Date(rec_at);
@@ -250,13 +251,33 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
     const isTransfer = direction === 0;
     const changedXdir = isTransfer ? change * -1 : change * direction;
 
+    const dealer_ = isTransfer ? "" : dealer;
     const recAtValid =
       Number.isFinite(recDate.getTime()) &&
       recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
 
     const transferSame = isTransfer && storage === storageTo;
 
-    if (!changedXdir || !recAtValid || transferSame || !change || change <= 0) {
+    const checkSql = `SELECT * from paper_data where id = $1`;
+    const { rows: checkrows } = await pool.query(checkSql, [paperId]);
+    if (!checkrows.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Paper cannot find" });
+    }
+
+    const minusStock =
+      storage === 1 ? checkrows[0]?.stock_a ?? 0 : checkrows[0]?.stock_b ?? 0;
+    const moreThan = direction < 1 && minusStock < change;
+
+    if (
+      !changedXdir ||
+      !recAtValid ||
+      transferSame ||
+      !change ||
+      change <= 0 ||
+      moreThan
+    ) {
       return res.status(400).json({
         success: false,
         message: `Invalid or missing field`,
@@ -264,24 +285,26 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
     }
 
     if (!requiredLevel(req, res, "level_paper", 1)) return;
-
-    const checkSql = `SELECT * from paper_list where id = $1`;
-    const { rows: checkrows } = await pool.query(checkSql, [paperId]);
-    if (!checkrows.length) {
-      return res.status(404).json({ success: false, message: "Wrong Paper" });
-    }
-
     const insertSql = `
-      INSERT INTO paper_stock (paper_id, rec_at, change, storage) VALUES ($1,$2,$3,$4) RETURNING *
+      INSERT INTO paper_stock (paper_id, rec_at, change, storage, dealer, note) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *
     `;
     const { rows: insertRows } = await pool.query(insertSql, [
       paperId,
       recDate,
       changedXdir,
       storage,
+      dealer_,
+      note,
     ]);
     if (!!isTransfer) {
-      await pool.query(insertSql, [paperId, recDate, change, storageTo]);
+      await pool.query(insertSql, [
+        paperId,
+        recDate,
+        change,
+        storageTo,
+        dealer_,
+        note,
+      ]);
     }
 
     const stockLogSQL = `

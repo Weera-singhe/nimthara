@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import Num from "../../helpers/Num";
 import axios from "axios";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Backdrop,
   Box,
   Button,
@@ -34,6 +37,8 @@ import { toLKR } from "../../helpers/cal";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
+
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 
 export default function PaperLog({ user }) {
   const today_ = new Date()
@@ -71,7 +76,7 @@ export default function PaperLog({ user }) {
   }, [id]);
 
   useEffect(() => {
-    console.log("form", form);
+    console.log(form);
   }, [form]);
 
   useEffect(() => {
@@ -119,6 +124,12 @@ export default function PaperLog({ user }) {
     new Date(form.rec_at) <= new Date(today_) && form?.id && form?.change;
   const transferSame = !form?.direction && form?.storage === form?.storageTo;
 
+  const minusStock =
+    form?.storage === 1
+      ? selectedPaper?.stock_a ?? 0
+      : selectedPaper?.stock_b ?? 0;
+  const moreThan = form?.direction < 1 && minusStock < form?.change;
+
   const makeItLoad = DBLoading || !user?.loggedIn;
   return (
     <Box sx={{ mt: 2, mx: 1 }}>
@@ -126,7 +137,9 @@ export default function PaperLog({ user }) {
         <CircularProgress color="inherit" />
       </Backdrop>
       <MyFormBox
-        clickable={formIsFilled && !transferSame && user?.level_paper >= 1}
+        clickable={
+          formIsFilled && !transferSame && user?.level_paper >= 1 && !moreThan
+        }
         user={user}
         onPress={SubmitLog}
       >
@@ -149,7 +162,15 @@ export default function PaperLog({ user }) {
             ))}
           </Select>
         </FormControl>
-
+        {form?.direction !== 0 && (
+          <TextField
+            name="dealer"
+            size="small"
+            label="Dealer"
+            value={form?.dealer || ""}
+            onChange={onSTR(setForm)}
+          />
+        )}
         <ToggleButtonGroup
           value={form.direction}
           exclusive
@@ -205,6 +226,7 @@ export default function PaperLog({ user }) {
             onChange={onNUM(setForm)}
             label="Quantity"
             deci={0}
+            color={moreThan && "red"}
           />
           {!!form?.change && (
             <Box
@@ -223,6 +245,14 @@ export default function PaperLog({ user }) {
           value={form?.rec_at || ""}
           size="small"
           onChange={onSTR(setForm)}
+        />
+        <TextField
+          name="note"
+          size="small"
+          label="Note"
+          value={form?.note || ""}
+          onChange={onSTR(setForm)}
+          sx={{ width: 300 }}
         />
       </MyFormBox>
       <List>
@@ -243,12 +273,14 @@ export default function PaperLog({ user }) {
           {selectedPaper?.display_as || "Select Paper"}
           <Box sx={{ flexGrow: 1 }} />{" "}
           <Button size="small" variant="outlined">
-            {`A ]${selectedPaper?.stock_a < 0 ? " -" : ""} ${
+            <small style={{ marginRight: 8 }}>A</small>
+            {`${selectedPaper?.stock_a < 0 ? "- " : ""}${
               Math.floor(Math.abs(selectedPaper?.stock_a) / unitVal) || 0
             } | ${Math.abs(selectedPaper?.stock_a) % unitVal || 0}`}
           </Button>
           <Button size="small" variant="outlined">
-            {`B ]${selectedPaper?.stock_b < 0 ? " -" : ""} ${
+            <small style={{ marginRight: 8 }}>B</small>
+            {`${selectedPaper?.stock_b < 0 ? "- " : ""}${
               Math.floor(Math.abs(selectedPaper?.stock_b) / unitVal) || 0
             } | ${Math.abs(selectedPaper?.stock_b) % unitVal || 0}`}
           </Button>
@@ -258,6 +290,40 @@ export default function PaperLog({ user }) {
             } | ${Math.abs(selectedPaper?.stock_all) % unitVal || 0}`}
           </Button>
         </ListSubheader>
+        {stockLog?.map((pl) => (
+          <Accordion key={pl.stock_rec}>
+            <AccordionSummary expandIcon={<ExpandMoreRoundedIcon />}>
+              <Typography component="span" sx={{ mt: 1 }}>
+                {pl?.rec_at_}
+              </Typography>
+              <Box
+                sx={{
+                  ml: "auto",
+                  mr: 2,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Button sx={{ minWidth: 30, width: 30 }}>
+                  {pl?.storage === 1 ? "A" : "B"}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color={pl?.change < 0 ? "error" : "primary"}
+                >
+                  {pl?.change < 0 && "- "}
+                  {Math.floor(Math.abs(pl?.change) / unitVal) || 0}
+                  {" | "}
+                  {Math.abs(pl?.change) % unitVal || 0}
+                </Button>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>Dealer : {pl?.dealer}</Typography>
+              <Typography> Note : {pl?.note}</Typography>
+            </AccordionDetails>
+          </Accordion>
+        ))}
 
         {stockLog?.map((pl) => (
           <React.Fragment key={pl.stock_rec}>

@@ -323,6 +323,7 @@ export default function PapersHome({ user }) {
                           to={`/papers/price/${pp?.id}`}
                         >
                           {toLKR(pp?.last_price)}
+                          <small>&nbsp;/{pp?.unit_val}</small>
                         </Button>
 
                         <Button
