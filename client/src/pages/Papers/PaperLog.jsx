@@ -324,26 +324,6 @@ export default function PaperLog({ user }) {
             </AccordionDetails>
           </Accordion>
         ))}
-
-        {stockLog?.map((pl) => (
-          <React.Fragment key={pl.stock_rec}>
-            <ListItem alignItems="center">
-              <ListItemText primary={pl?.rec_at_} />
-              <Button>{pl?.storage === 1 ? "A" : "B"}</Button>
-              <Button
-                variant="outlined"
-                color={pl?.change < 0 ? "error" : "primary"}
-              >
-                {pl?.change < 0 && "- "}
-                {Math.floor(Math.abs(pl?.change) / unitVal) || 0}
-                {" | "}
-                {Math.abs(pl?.change) % unitVal || 0}
-              </Button>
-            </ListItem>
-
-            <Divider sx={{ mx: 1.5 }} />
-          </React.Fragment>
-        ))}
       </List>
     </Box>
   );
