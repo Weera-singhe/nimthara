@@ -329,7 +329,7 @@ export default function PapersHome({ user }) {
                         <Button
                           size="small"
                           variant="outlined"
-                          sx={{ width: 60 }}
+                          sx={{ minWidth: 70 }}
                           component={user?.loggedIn && Link}
                           to={`/papers/log/${pp?.id}`}
                         >
