@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import Num from "../../helpers/Num";
-import { toLKR } from "../../helpers/cal";
+import { toDeci, toLKR } from "../../helpers/cal";
 import { PAPERS_API_URL } from "../../api/urls";
 import { Link } from "react-router-dom";
 import PrintIcon from "@mui/icons-material/Print";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 import {
   Accordion,
   AccordionDetails,
@@ -116,7 +117,7 @@ export default function PapersHome({ user }) {
           <PrintIcon />
         )}
       </Fab>
-      <Stack direction="row" flexWrap="wrap" gap={1.5} sx={{ mb: 3 }}>
+      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         <Button
           startIcon={
             addPanel ? (
@@ -136,13 +137,22 @@ export default function PapersHome({ user }) {
           {!addPanel && "add"}
         </Button>
         <Button
+          startIcon={<AttachMoneyRoundedIcon />}
+          variant="outlined"
+          disabled={!user?.level_paper}
+          component={Link}
+          to="/papers/price"
+        >
+          Price
+        </Button>
+        <Button
           startIcon={<NotesRoundedIcon />}
           variant="outlined"
           disabled={!user?.level_paper}
           component={Link}
           to="/papers/log"
         >
-          LOG
+          STOCK
         </Button>
       </Stack>
       {addPanel && (
@@ -303,14 +313,9 @@ export default function PapersHome({ user }) {
                       py: 1,
                     }}
                   >
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      width="100%"
-                      gap={1}
-                    >
+                    <Stack direction="row" alignItems="center" width="100%">
                       {/* LEFT: text grows */}
-                      <Typography sx={{ flexGrow: 1 }}>
+                      <Typography sx={{ flexGrow: 1, mr: 0.5 }}>
                         {pp?.display_as}
                       </Typography>
 
@@ -329,7 +334,7 @@ export default function PapersHome({ user }) {
                         <Button
                           size="small"
                           variant="outlined"
-                          sx={{ minWidth: 70 }}
+                          sx={{ minWidth: 80 }}
                           component={user?.loggedIn && Link}
                           to={`/papers/log/${pp?.id}`}
                         >

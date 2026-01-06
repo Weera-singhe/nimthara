@@ -418,6 +418,7 @@ export default function JobJob({ user }) {
                   to={fileid && `/jobs/job/${fileid}/${ii}`}
                   sx={{ ml: 4 }}
                   selected={ii === Number(jobindex)}
+                  onClick={() => setJobTemp([])}
                 >
                   <ListItemAvatar>
                     <WorkOutlineRoundedIcon />
@@ -461,46 +462,6 @@ export default function JobJob({ user }) {
               </React.Fragment>
             );
           })}
-          {/* <ListItemButton sx={{ ml: 4 }} selected>
-            <ListItemAvatar>
-              <WorkOutlineRoundedIcon />
-            </ListItemAvatar>
-            <ListItemText
-              primary={
-                <>
-                  {"#" +
-                    jobfileTag(jobSaved?.file_id) +
-                    "_" +
-                    (jobTemp?.job_code || jobindex)}
-                  <b>{` - ${CustomerName}`}</b>
-                </>
-              }
-              secondary={
-                <Box
-                  sx={{ display: "flex", flexWrap: "wrap" }}
-                  component="span"
-                >
-                  {jobSaved?.doc_name && (
-                    <Typography component="span" sx={{ mx: 0.25 }}>
-                      {jobSaved.doc_name}
-                    </Typography>
-                  )}
-
-                  {jobSaved?.file_name && (
-                    <Typography component="span" sx={{ mx: 0.25 }}>
-                      ({jobSaved.file_name})
-                    </Typography>
-                  )}
-                  {jobTemp?.job_name && (
-                    <Typography component="span" sx={{ mx: 0.25 }}>
-                      - {jobTemp.job_name}
-                    </Typography>
-                  )}
-                </Box>
-              }
-            />
-          </ListItemButton>
-          <Divider sx={{ ml: 4 }} /> */}
         </List>
       </Box>
       <MyFormBox

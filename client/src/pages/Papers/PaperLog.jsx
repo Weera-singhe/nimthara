@@ -24,7 +24,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { PAPERS_API_URL } from "../../api/urls";
 import {
   handleApiError,
@@ -39,6 +39,10 @@ import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
 
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+
+import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 
 export default function PaperLog({ user }) {
   const today_ = new Date()
@@ -136,6 +140,28 @@ export default function PaperLog({ user }) {
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
+      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
+        <Button
+          variant="outlined"
+          sx={{ width: 85 }}
+          component={Link}
+          to="/papers"
+        >
+          list
+        </Button>
+        <Button
+          startIcon={<AttachMoneyRoundedIcon />}
+          variant="outlined"
+          disabled={!user?.level_paper}
+          component={Link}
+          to={`/papers/price${id ? "/" + id : ""}`}
+        >
+          Price
+        </Button>
+        <Button startIcon={<NotesRoundedIcon />} variant="outlined" disabled>
+          log
+        </Button>
+      </Stack>
       <MyFormBox
         clickable={
           formIsFilled && !transferSame && user?.level_paper >= 1 && !moreThan
@@ -318,6 +344,7 @@ export default function PaperLog({ user }) {
                 </Button>
               </Box>
             </AccordionSummary>
+            <Divider sx={{ mx: 2 }} />
             <AccordionDetails>
               <Typography>Dealer : {pl?.dealer}</Typography>
               <Typography> Note : {pl?.note}</Typography>

@@ -15,13 +15,18 @@ import {
   ListSubheader,
   MenuItem,
   Select,
+  Stack,
   TextField,
 } from "@mui/material";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { PAPERS_API_URL } from "../../api/urls";
 import { handleApiError, onNUM, onSTR } from "../../helpers/HandleChange";
 import MyFormBox from "../../helpers/MyFormBox";
 import { toLKR } from "../../helpers/cal";
+
+import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 
 export default function PaperPrice({ user }) {
   const nowLK = new Date()
@@ -55,8 +60,10 @@ export default function PaperPrice({ user }) {
   }, []);
 
   useEffect(() => {
-    console.log("form", form);
+    console.log(form);
   }, [form]);
+
+  const selectedPaper = paperList.find((p) => p.id === Number(form.id));
 
   useEffect(() => {
     SetDBLoading(true);
@@ -103,6 +110,32 @@ export default function PaperPrice({ user }) {
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
+      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
+        <Button
+          variant="outlined"
+          sx={{ width: 85 }}
+          component={Link}
+          to="/papers"
+        >
+          list
+        </Button>
+        <Button
+          startIcon={<AttachMoneyRoundedIcon />}
+          variant="outlined"
+          disabled
+        >
+          Price
+        </Button>
+        <Button
+          startIcon={<NotesRoundedIcon />}
+          variant="outlined"
+          disabled={!user?.level_paper}
+          component={Link}
+          to={`/papers/log${id ? "/" + id : ""}`}
+        >
+          log
+        </Button>
+      </Stack>
       <MyFormBox
         clickable={formIsFilled && user?.level_paper >= 1}
         user={user}
@@ -131,7 +164,7 @@ export default function PaperPrice({ user }) {
           name="price"
           value={form?.price}
           onChange={onNUM(setForm)}
-          label="Price"
+          label={`Price of ${selectedPaper?.unit_val || 1}`}
         />
         <TextField
           type="datetime-local"
@@ -147,9 +180,10 @@ export default function PaperPrice({ user }) {
             border: "1px solid grey",
             borderRadius: 1,
             backgroundColor: "#e0f2e0ff",
+            color: "black",
           }}
         >
-          Price Log
+          {selectedPaper?.display_as || "Select Paper"}
         </ListSubheader>
 
         {priceLog?.map((pl) => (
