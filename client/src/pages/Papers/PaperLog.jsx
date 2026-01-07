@@ -39,8 +39,8 @@ import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
 
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-
-import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 
@@ -282,60 +282,77 @@ export default function PaperLog({ user }) {
         />
       </MyFormBox>
       <List>
-        <ListSubheader
+        <Stack
+          direction="row"
+          gap={1}
+          alignItems="center"
+          flexWrap="wrap"
           sx={{
+            p: 2,
             border: "1px solid grey",
             borderRadius: 1,
             backgroundColor: "#e0f2f1",
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            overflowX: "auto",
-            whiteSpace: "nowrap",
-            "& > *": { flexShrink: 0, color: "black" },
-            color: "black",
           }}
         >
-          {selectedPaper?.display_as || "Select Paper"}
-          <Box sx={{ flexGrow: 1 }} />{" "}
-          <Button size="small" variant="outlined">
-            <small style={{ marginRight: 8 }}>A</small>
-            {`${selectedPaper?.stock_a < 0 ? "- " : ""}${
-              Math.floor(Math.abs(selectedPaper?.stock_a) / unitVal) || 0
-            } | ${Math.abs(selectedPaper?.stock_a) % unitVal || 0}`}
-          </Button>
-          <Button size="small" variant="outlined">
-            <small style={{ marginRight: 8 }}>B</small>
-            {`${selectedPaper?.stock_b < 0 ? "- " : ""}${
-              Math.floor(Math.abs(selectedPaper?.stock_b) / unitVal) || 0
-            } | ${Math.abs(selectedPaper?.stock_b) % unitVal || 0}`}
-          </Button>
-          <Button size="small" variant="outlined">
-            {`${selectedPaper?.stock_all < 0 ? "- " : ""}${
-              Math.floor(Math.abs(selectedPaper?.stock_all) / unitVal) || 0
-            } | ${Math.abs(selectedPaper?.stock_all) % unitVal || 0}`}
-          </Button>
-        </ListSubheader>
+          <Typography component="span" fontWeight={450} sx={{ mr: 5 }}>
+            {selectedPaper?.display_as || "Select Paper"}
+          </Typography>
+
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button size="small" variant="outlined">
+              <small style={{ marginRight: 8 }}>A</small>
+              {`${selectedPaper?.stock_a < 0 ? "- " : ""}${
+                Math.floor(Math.abs(selectedPaper?.stock_a) / unitVal) || 0
+              } | ${Math.abs(selectedPaper?.stock_a) % unitVal || 0}`}
+            </Button>
+            <Button size="small" variant="outlined">
+              <small style={{ marginRight: 8 }}>B</small>
+              {`${selectedPaper?.stock_b < 0 ? "- " : ""}${
+                Math.floor(Math.abs(selectedPaper?.stock_b) / unitVal) || 0
+              } | ${Math.abs(selectedPaper?.stock_b) % unitVal || 0}`}
+            </Button>
+            <Button size="small" variant="outlined">
+              {`${selectedPaper?.stock_all < 0 ? "- " : ""}${
+                Math.floor(Math.abs(selectedPaper?.stock_all) / unitVal) || 0
+              } | ${Math.abs(selectedPaper?.stock_all) % unitVal || 0}`}
+            </Button>
+          </Stack>
+        </Stack>
+
         {stockLog?.map((pl) => (
           <Accordion key={pl.stock_rec}>
             <AccordionSummary expandIcon={<ExpandMoreRoundedIcon />}>
-              <Typography component="span" sx={{ mt: 1 }}>
-                {pl?.rec_at_}
-              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: { xs: 0.5, sm: 2 },
+                  pt: 1,
+                }}
+              >
+                <Typography component="span" fontWeight={450}>
+                  #{String(pl?.stock_rec).padStart(6, "0")}
+                </Typography>
+                <Typography component="span">{pl?.rec_at_}</Typography>
+              </Box>
               <Box
                 sx={{
                   ml: "auto",
                   mr: 2,
                   display: "flex",
                   alignItems: "center",
+                  gap: 1,
+                  flexShrink: 0,
                 }}
               >
-                <Button sx={{ minWidth: 30, width: 30 }}>
+                <TaskAltRoundedIcon color="success" fontSize="small" />
+                <Button sx={{ minWidth: 30, width: 30 }} component="span">
                   {pl?.storage === 1 ? "A" : "B"}
                 </Button>
                 <Button
                   variant="outlined"
                   color={pl?.change < 0 ? "error" : "primary"}
+                  component="span"
                 >
                   {pl?.change < 0 && "- "}
                   {Math.floor(Math.abs(pl?.change) / unitVal) || 0}

@@ -38,6 +38,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       size_w,
       unit_val,
       type,
+      new_brand,
     } = req.body;
 
     // console.log(req.body);
@@ -53,7 +54,6 @@ router.post("/add", requiredLogged, async (req, res) => {
       "type",
       "color",
       "den_unit",
-      "brand",
       "unit_type",
       "den",
       "size_w",
@@ -62,7 +62,7 @@ router.post("/add", requiredLogged, async (req, res) => {
 
     // check presence + > 0
     for (const field of requiredFields) {
-      const value = Number(req.body[field] || 0);
+      const value = Number(req.body[field]);
 
       if (value <= 0) {
         return res.status(400).json({
@@ -72,7 +72,29 @@ router.post("/add", requiredLogged, async (req, res) => {
       }
     }
 
+    const addNewBrand = Number(brand) === 0;
+    const newBrandName = (new_brand || "").replace(/\s+/g, "");
+
+    if (addNewBrand && !newBrandName) {
+      return res.status(400).json({
+        success: false,
+        message: "Brand name is invalid",
+      });
+    }
+
     if (!requiredLevel(req, res, "level_paper", 1)) return;
+
+    let brand_id = brand;
+
+    if (addNewBrand) {
+      const addBrSql = `
+        INSERT INTO paper_specs (p_brand)
+        VALUES ($1)
+        RETURNING id
+      `;
+      const result = await pool.query(addBrSql, [newBrandName]);
+      brand_id = result.rows[0].id;
+    }
 
     const insertSql = `
       INSERT INTO paper_list
@@ -93,7 +115,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       den,
       shortside,
       longside,
-      brand,
+      brand_id,
       unit_val,
       unit_type,
       den_unit,

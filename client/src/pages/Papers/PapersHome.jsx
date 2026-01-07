@@ -9,6 +9,7 @@ import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import {
   Accordion,
   AccordionDetails,
@@ -27,13 +28,14 @@ import {
   MenuItem,
   Select,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
 import MyFormBox from "../../helpers/MyFormBox";
-import { handleApiError, onNUM } from "../../helpers/HandleChange";
+import { handleApiError, onNUM, onSTRCode } from "../../helpers/HandleChange";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 export default function PapersHome({ user }) {
   const defForm = {
@@ -79,15 +81,23 @@ export default function PapersHome({ user }) {
       .then((res) => {
         if (res.data.success) {
           setPaperList(res.data.papers || {});
-          setForm((p) => ({ ...p, size_h: 0, size_w: 0, den: 0 }));
+          setForm((p) => ({
+            ...p,
+            size_h: 0,
+            size_w: 0,
+            den: 0,
+            new_brand: "",
+            brand: 1,
+          }));
         }
       })
       .catch(handleApiError)
       .finally(() => SetDBLoading(false));
   }
 
+  const hasBrand = form?.brand ? true : form?.new_brand;
   const formIsFilled =
-    form?.type && form?.den && form?.size_w && form?.unit_val;
+    form?.type && form?.den && form?.size_w && form?.unit_val && hasBrand;
 
   const makeItLoad = DBLoading;
   return (
@@ -233,8 +243,20 @@ export default function PapersHome({ user }) {
                   {br?.brand || "\u00A0"}
                 </MenuItem>
               ))}
+              <MenuItem value={0}>
+                <AddCircleOutlineRoundedIcon fontSize="small" />
+              </MenuItem>
             </Select>
           </FormControl>
+          {!form?.brand && (
+            <TextField
+              label="Brand Name"
+              size="small"
+              onChange={onSTRCode(setForm)}
+              name="new_brand"
+              value={form?.new_brand}
+            />
+          )}
           <FormControl sx={{ minWidth: 110, maxWidth: "80%" }} size="small">
             <InputLabel>Color</InputLabel>
             <Select

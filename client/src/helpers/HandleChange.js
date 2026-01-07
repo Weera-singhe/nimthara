@@ -8,10 +8,11 @@ export const onSTR = (set) => (e) => {
 export const onSTRCode = (set) => (e) => {
   const { name, value } = e.target;
 
-  const val = (value || "")
-    .toUpperCase()
+  const cleaned = (value || "")
     .replace(/^\s+/, "")
-    .replace(/[^A-Z0-9_]/g, "");
+    .replace(/[^a-zA-Z0-9_]/g, "");
+
+  const val = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 
   set((prev) => ({ ...prev, [name]: val }));
 };
