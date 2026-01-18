@@ -22,7 +22,7 @@ export default function Num({
   const [fixedV, setFixedV] = useState(value_ ?? 0);
   const [userV, setUserV] = useState(value_ ?? 0);
   const [fixedStrV, setFixedStrV] = useState(
-    commas ? (value_ || 0).toLocaleString() : String(value_ || 0)
+    commas ? (value_ || 0).toLocaleString() : String(value_ || 0),
   );
 
   const open = Boolean(anchorEl);

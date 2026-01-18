@@ -82,7 +82,7 @@ export default function JobFile({ user }) {
       .then((res) =>
         !fileid
           ? navigate(`/jobs/file/${res.data.load_this_id}`)
-          : setJobFilesSaved(res.data.thisJobFile || {})
+          : setJobFilesSaved(res.data.thisJobFile || {}),
       )
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
@@ -110,7 +110,7 @@ export default function JobFile({ user }) {
 
   const unreg_cus_selected = jobFilesTemp?.customer_id === 1;
   const selectedCustomer = customers.find(
-    (c) => c.id === jobFilesTemp?.customer_id
+    (c) => c.id === jobFilesTemp?.customer_id,
   );
   const CustomerName = unreg_cus_selected
     ? jobFilesTemp?.unreg_customer || "Unregistered"
@@ -175,7 +175,7 @@ export default function JobFile({ user }) {
         acc[job.job_index] = job;
         return acc;
       }, {}),
-    [theseJobs]
+    [theseJobs],
   );
 
   return (

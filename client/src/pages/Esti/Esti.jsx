@@ -1,5 +1,5 @@
 import { ESTI_API_URL } from "../../api/urls";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toLKR, SumsOfQuot, SumEachRow, toDeci } from "../../helpers/cal";
@@ -12,6 +12,7 @@ import {
   Backdrop,
   Box,
   CircularProgress,
+  Fab,
   Paper,
   Stack,
   Switch,
@@ -25,8 +26,9 @@ import {
   Typography,
 } from "@mui/material";
 import EstiMid from "./EstiMid";
-
 import deepEqual from "fast-deep-equal";
+import { useReactToPrint } from "react-to-print";
+import PrintIcon from "@mui/icons-material/Print";
 
 export default function Esti({ user }) {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ export default function Esti({ user }) {
 
   const [calEsti, CalculatEsti] = useState();
   const [SavinglinkAt, setSavingLinkAt] = useState();
+  const printRef = useRef(null);
 
   useEffect(() => {
     axios
@@ -90,11 +93,34 @@ export default function Esti({ user }) {
     CalculatEsti(() => SumsOfQuot(qtsComp, estiTemp));
   }, [estiTemp]);
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Estimation",
+  });
+
   return (
     <>
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={dbLoading}>
         <CircularProgress color="inherit" />
       </Backdrop>
+      <Fab
+        color="primary"
+        size="small"
+        onClick={handlePrint}
+        disabled={dbLoading}
+        sx={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 1200,
+          "@media print": {
+            display: "none",
+          },
+        }}
+      >
+        <PrintIcon />
+      </Fab>
+
       <MyFormBox
         label={linkid}
         clickable={!isSame && user.level_jobs >= 3}
@@ -150,7 +176,7 @@ export default function Esti({ user }) {
                     name,
                     estiTemp?.vals,
                     c?.name,
-                    c?.min_cal_res
+                    c?.min_cal_res,
                   );
 
                   return (
@@ -257,7 +283,9 @@ export default function Esti({ user }) {
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell>{calEsti?.unit_count || 1}</TableCell>
+                <TableCell>
+                  {(calEsti.unit_count || 1).toLocaleString()}
+                </TableCell>
                 <TableCell align="right">
                   {toLKR(calEsti?.total_price)}
                 </TableCell>
@@ -287,6 +315,105 @@ export default function Esti({ user }) {
           <option value="jobs_ext">jobs_ext</option>
         </select>
       </MyFormBox>
+      <Box
+        ref={printRef}
+        sx={{
+          display: "none",
+          "@media print": { display: "block" },
+        }}
+      >
+        <Typography variant="h5">Esimation #{linkid}</Typography>
+        <TableContainer component={Paper} sx={{ width: 1200, my: 2 }}>
+          <Table size="small">
+            <TableBody>
+              {qtsComp.map((c) => {
+                const count = estiTemp?.loops?.[c?.name] ?? 0;
+
+                return Array.from({ length: count }).map((_, i) => {
+                  const name = `${c?.name}_${i}`;
+                  const { calResult, isBelowMin } = SumEachRow(
+                    name,
+                    estiTemp?.vals,
+                    c?.name,
+                    c?.min_cal_res,
+                  );
+
+                  return (
+                    <TableRow key={`${c.id}-${i}`}>
+                      {c?.name === "Other" ? (
+                        <TableCell sx={{ p: 0, width: 60 }}>
+                          <TextField
+                            size="small"
+                            sx={{ width: "100%" }}
+                            name={c?.name + "_" + i}
+                            value={estiTemp?.renames?.[c?.name + "_" + i]}
+                            onChange={onStrRename}
+                          />
+                        </TableCell>
+                      ) : (
+                        <TableCell sx={{ width: 60 }}> {c?.name}</TableCell>
+                      )}
+
+                      <TableCell sx={{ backgroundColor: "#f1f8e9" }}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <EstiMid
+                            name={`${c?.name}_${i}`}
+                            changed={onNUMV}
+                            v={estiTemp?.vals}
+                            compID={c?.name}
+                            allPapers={allPapers}
+                          />
+                        </Stack>
+                      </TableCell>
+
+                      <TableCell align="right">
+                        <span style={{ color: isBelowMin ? "red" : "black" }}>
+                          {toLKR(calResult)}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                });
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <TableContainer component={Paper} sx={{ width: 600 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Units</TableCell>
+                <TableCell align="right">NET</TableCell>
+                <TableCell align="right">VAT</TableCell>
+                <TableCell align="right">NET+VAT</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  {(calEsti.unit_count || 1).toLocaleString()}
+                </TableCell>
+                <TableCell align="right">
+                  {toLKR(calEsti?.total_price)}
+                </TableCell>
+                <TableCell align="right">{toLKR(calEsti?.total_vat)}</TableCell>
+                <TableCell align="right">
+                  {toLKR(calEsti?.total_vat_)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>1</TableCell>
+                <TableCell align="right">
+                  {toLKR(calEsti?.unit_price)}
+                </TableCell>
+                <TableCell align="right">{toLKR(calEsti?.unit_vat)}</TableCell>
+                <TableCell align="right">{toLKR(calEsti?.unit_vat_)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </>
   );
 }

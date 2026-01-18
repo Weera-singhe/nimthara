@@ -36,7 +36,13 @@ export default function MyAppBar({ user, setUser }) {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const isActive = (page) => location.pathname === `/${page}`;
+
+  const isActive = (page) => {
+    const base = `/${page}`;
+    return (
+      location.pathname === base || location.pathname.startsWith(`${base}/`)
+    );
+  };
 
   const handleLogout = async () => {
     try {
@@ -175,7 +181,11 @@ export default function MyAppBar({ user, setUser }) {
               onClick={handleLoginLogout}
               color={user?.loggedIn ? "error" : "primary"}
             >
-              {user?.loggedIn ? <LogoutRoundedIcon /> : <LoginRoundedIcon />}{" "}
+              {user?.loggedIn ? (
+                <LogoutRoundedIcon />
+              ) : (
+                <LoginRoundedIcon />
+              )}{" "}
             </IconButton>
           </Box>
         </Toolbar>

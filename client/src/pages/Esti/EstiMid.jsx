@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import Num from "../../helpers/Num";
 import { toLKR } from "../../helpers/cal";
 import { onNUM_N } from "../../helpers/HandleChange";
-import { Typography } from "@mui/material";
+import { FormControl, MenuItem, Select, Typography } from "@mui/material";
 
 export default function EstiMid({ name, changed, v, compID, allPapers }) {
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
             </small>
             {Math.round(
               (v?.[name + "_0"] / v?.[name + "_1"]) * v?.[name + "_2"],
-            )}
+            ).toLocaleString()}
           </small>
           <b> x </b>
           <Num
@@ -244,7 +244,25 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
 
           return (
             <>
-              <select
+              <FormControl sx={{ minWidth: 100, maxWidth: "20%" }} size="small">
+                <Select
+                  name={name + "_0"}
+                  value={v?.[name + "_0"]}
+                  onChange={changed}
+                  sx={{ backgroundColor: "white" }}
+                  MenuProps={{
+                    PaperProps: { style: { maxHeight: 300 } },
+                  }}
+                >
+                  <MenuItem value={0}>-</MenuItem>
+                  {allPapers.map((p, i) => (
+                    <MenuItem key={i} value={p.id}>
+                      {p.display_as}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {/* <select
                 name={name + "_0"}
                 value={v?.[name + "_0"]}
                 onChange={changed}
@@ -256,7 +274,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
                     {p.display_as}
                   </option>
                 ))}
-              </select>
+              </select> */}
               <small>
                 <b>{toLKR(latest_price)}</b>
               </small>
@@ -331,7 +349,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
               />
               <b> + </b>
               <Num
-                width={70}
+                width={80}
                 name={name + "_5"}
                 onChange={changed}
                 value={v?.[name + "_5"]}

@@ -103,7 +103,7 @@ export default function PaperLog({ user }) {
         }
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [id]);
+  }, [id, navigate, bsns]);
 
   const getPaper = (id) => {
     if (id == null) return undefined;
@@ -160,8 +160,8 @@ export default function PaperLog({ user }) {
 
   const reducingStock =
     form?.storage === 1
-      ? selectedPaper?.stock_a ?? 0
-      : selectedPaper?.stock_b ?? 0;
+      ? (selectedPaper?.stock_a ?? 0)
+      : (selectedPaper?.stock_b ?? 0);
   const moreThan = !isPlus && reducingStock < form?.change;
 
   const makeItLoad = DBLoading || !user?.loggedIn;
@@ -340,7 +340,7 @@ export default function PaperLog({ user }) {
                   <MenuItem key={code} value={code}>
                     {label}
                   </MenuItem>
-                )
+                ),
               )}
             </Select>
           </FormControl>

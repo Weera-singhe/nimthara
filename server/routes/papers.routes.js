@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/add", requiredLogged, async (req, res) => {
+router.post("/:bsns/add", requiredLogged, async (req, res) => {
   try {
     const {
       color,
@@ -40,8 +40,12 @@ router.post("/add", requiredLogged, async (req, res) => {
       type,
       // new_brand,
     } = req.body;
+    const { bsns } = req.params;
+    const isGts = bsns === "gts";
+    const levelKey = isGts ? "level_paper" : "level_stock";
 
     // console.log(req.body);
+    // console.log("bsns", bsns);
     // console.log("reqbody done");
 
     const longside = size_h >= size_w ? size_h : size_w;
@@ -73,29 +77,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       }
     }
 
-    // const addNewBrand = Number(brand) === 0;
-    // const newBrandName = (new_brand || "").replace(/\s+/g, "");
-
-    // if (addNewBrand && !newBrandName) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Brand name is invalid",
-    //   });
-    // }
-
-    if (!requiredLevel(req, res, "level_paper", 1)) return;
-
-    // let brand_id = brand;
-
-    // if (addNewBrand) {
-    //   const addBrSql = `
-    //     INSERT INTO paper_specs (p_brand)
-    //     VALUES ($1)
-    //     RETURNING id
-    //   `;
-    //   const result = await pool.query(addBrSql, [newBrandName]);
-    //   brand_id = result.rows[0].id;
-    // }
+    if (!requiredLevel(req, res, levelKey, 1)) return;
 
     const insertSql = `
       INSERT INTO paper_list
@@ -144,7 +126,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       null,
       null,
       null,
-      "paper_list"
+      "paper_list",
     );
 
     const papersAfter = await GetPapersFullData();
@@ -154,7 +136,8 @@ router.post("/add", requiredLogged, async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-router.get("/priceLog/:id", requiredLogged, async (req, res) => {
+
+router.get("/:bsns/priceLog/:id", requiredLogged, async (req, res) => {
   const { id } = req.params;
   console.log(id);
   try {
@@ -174,7 +157,7 @@ router.get("/priceLog/:id", requiredLogged, async (req, res) => {
   }
 });
 
-router.post("/price/rec", requiredLogged, async (req, res) => {
+router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
   try {
     const { price, id, rec_at } = req.body;
 
@@ -184,11 +167,14 @@ router.post("/price/rec", requiredLogged, async (req, res) => {
     const recDate = new Date(rec_at);
     const paperId = Number(id);
 
+    const { bsns } = req.params;
+    const isGts = bsns === "gts";
+
     const recAtValid =
       Number.isFinite(recDate.getTime()) &&
       recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
 
-    if (!paperPrice || paperPrice <= 0 || !recAtValid) {
+    if (!paperPrice || paperPrice <= 0 || !recAtValid || !isGts) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid or missing field" });
@@ -232,7 +218,7 @@ router.post("/price/rec", requiredLogged, async (req, res) => {
       null,
       null,
       null,
-      "paper_price"
+      "paper_price",
     );
 
     res.status(200).json({ success: true, priceLog });
@@ -300,7 +286,9 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
     }
 
     const minusStock =
-      storage === 1 ? checkrows[0]?.stock_a ?? 0 : checkrows[0]?.stock_b ?? 0;
+      storage === 1
+        ? (checkrows[0]?.stock_a ?? 0)
+        : (checkrows[0]?.stock_b ?? 0);
     const moreThan = direction < 1 && minusStock < change;
 
     if (
@@ -364,7 +352,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       null,
       null,
       null,
-      "paper_stock"
+      "paper_stock",
     );
 
     const papers = await GetPapersFullData();

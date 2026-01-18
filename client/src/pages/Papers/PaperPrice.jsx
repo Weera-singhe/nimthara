@@ -77,7 +77,7 @@ export default function PaperPrice({ user }) {
 
     const safeID = Number(id || 0);
     axios
-      .get(`${PAPERS_API_URL}/priceLog/${safeID}`)
+      .get(`${PAPERS_API_URL}/gts/priceLog/${safeID}`)
       .then((res) => {
         if (res.data.success) {
           setPriceLog(res.data.priceLog || []);
@@ -85,7 +85,7 @@ export default function PaperPrice({ user }) {
         }
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [id]);
+  }, [id, bsns, navigate]);
 
   const changeSelect = (e) => {
     const nextId = Number(e.target.value);
@@ -97,7 +97,7 @@ export default function PaperPrice({ user }) {
     SetDBLoading(true);
 
     axios
-      .post(`${PAPERS_API_URL}/price/rec`, form)
+      .post(`${PAPERS_API_URL}/gts/price/rec`, form)
       .then((res) => {
         if (res.data.success) {
           setPriceLog(res.data.priceLog || []);
@@ -153,7 +153,7 @@ export default function PaperPrice({ user }) {
         </Button>
       </Stack>
       <MyFormBox
-        clickable={formIsFilled && user?.level_paper >= 1}
+        clickable={formIsFilled && user?.level_paper >= 2}
         user={user}
         onPress={SubmitLog}
       >

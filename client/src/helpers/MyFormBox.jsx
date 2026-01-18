@@ -19,7 +19,7 @@ export default function MyFormBox({
       component="form"
       sx={{
         position: "relative",
-        "& > :not(style)": { mx: 1, my: 2 },
+        "& > :not(style)": { mx: 1, mt: 1.5, mb: 0.5 },
         my: 4,
         px: 1,
         pt: 3,
@@ -34,7 +34,7 @@ export default function MyFormBox({
       <FormLabel
         sx={{
           position: "absolute",
-          top: -28,
+          top: -23,
           left: 12,
           backgroundColor: "white",
           px: 1,

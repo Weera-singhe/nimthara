@@ -9,7 +9,6 @@ import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
-import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import {
   Accordion,
   AccordionDetails,
@@ -36,7 +35,6 @@ import { useReactToPrint } from "react-to-print";
 import MyFormBox from "../../helpers/MyFormBox";
 import { handleApiError, onNUM, onSTRCode } from "../../helpers/HandleChange";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { green } from "@mui/material/colors";
 export default function PapersHome({ user }) {
   const { bsns } = useParams();
   const navigate = useNavigate();
@@ -75,9 +73,9 @@ export default function PapersHome({ user }) {
       .catch((err) => console.error("Error fetching papers:", err));
   }, [bsns, navigate]);
 
-  // useEffect(() => {
-  //   console.log("form", form);
-  // }, [form]);
+  useEffect(() => {
+    console.log("form", form);
+  }, [form]);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -88,7 +86,7 @@ export default function PapersHome({ user }) {
     SetDBLoading(true);
 
     axios
-      .post(`${PAPERS_API_URL}/add/`, form)
+      .post(`${PAPERS_API_URL}/${bsns}/add/`, form)
       .then((res) => {
         if (res.data.success) {
           setPaperList(res.data.papers || {});
@@ -109,7 +107,7 @@ export default function PapersHome({ user }) {
     SetDBLoading(true);
 
     axios
-      .post(`${PAPERS_API_URL}/spec/`, form)
+      .post(`${PAPERS_API_URL}/${bsns}/addspec/`, form)
       .then((res) => {
         if (res.data.success) {
           setSpecs(res.data.specs || {});
@@ -119,8 +117,11 @@ export default function PapersHome({ user }) {
       .catch(handleApiError)
       .finally(() => SetDBLoading(false));
   }
-
+  const isGts = bsns === "gts";
   const form1Filled = form?.type && form?.den && form?.size_w && form?.unit_val;
+  const lvl1Ok = isGts
+    ? user?.level_paper >= 1 && user?.loggedIn
+    : user?.level_stock >= 1 && user?.loggedIn;
 
   const makeItLoad = DBLoading;
   return (
@@ -150,57 +151,61 @@ export default function PapersHome({ user }) {
           <PrintIcon />
         )}
       </Fab>
-      <ToggleButtonGroup
-        value={bsns}
-        exclusive
-        onChange={(e, v) => {
-          navigate(`/papers/${v}`);
-        }}
-        size="small"
-        color="primary"
-        sx={{ mb: 1 }}
-      >
-        <ToggleButton value={"gts"}>gts papers</ToggleButton>
-        <ToggleButton value={"nimthara"}>nimthara</ToggleButton>
-      </ToggleButtonGroup>
-      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
-        <Button
-          startIcon={<NoteAddOutlinedIcon />}
-          onClick={() => {
-            setAddPanel((p) => !p);
-            setForm(defForm);
-          }}
-          disabled={!user?.level_paper}
-          variant={!addPanel ? "outlined" : "contained"}
-          sx={{ width: 85 }}
-        >
-          add
-        </Button>
-        {bsns === "gts" && (
-          <Button
-            startIcon={<AttachMoneyRoundedIcon />}
-            variant="outlined"
-            disabled={!user?.level_paper}
-            component={Link}
-            to={`/papers/gts/price`}
+      {user?.loggedIn && (
+        <>
+          <ToggleButtonGroup
+            value={bsns}
+            exclusive
+            onChange={(e, v) => {
+              navigate(`/papers/${v}`);
+            }}
+            size="small"
+            color="primary"
+            sx={{ mb: 1 }}
           >
-            Price
-          </Button>
-        )}
-        <Button
-          startIcon={<NotesRoundedIcon />}
-          variant="outlined"
-          disabled={!user?.level_paper}
-          component={Link}
-          to={`/papers/${bsns}/log`}
-        >
-          STOCK
-        </Button>
-      </Stack>
+            <ToggleButton value={"gts"}>gts papers</ToggleButton>
+            <ToggleButton value={"nimthara"}>nimthara</ToggleButton>
+          </ToggleButtonGroup>
+          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
+            <Button
+              startIcon={<NoteAddOutlinedIcon />}
+              onClick={() => {
+                setAddPanel((p) => !p);
+                setForm(defForm);
+              }}
+              disabled={!user?.level_paper}
+              variant={!addPanel ? "outlined" : "contained"}
+              sx={{ width: 85 }}
+            >
+              add
+            </Button>
+            {isGts && (
+              <Button
+                startIcon={<AttachMoneyRoundedIcon />}
+                variant="outlined"
+                disabled={!user?.level_paper}
+                component={Link}
+                to={`/papers/gts/price`}
+              >
+                Price
+              </Button>
+            )}
+            <Button
+              startIcon={<NotesRoundedIcon />}
+              variant="outlined"
+              disabled={!user?.level_paper}
+              component={Link}
+              to={`/papers/${bsns}/log`}
+            >
+              STOCK
+            </Button>
+          </Stack>
+        </>
+      )}
       <Collapse in={addPanel} unmountOnExit>
         <MyFormBox
           label={"New Paper"}
-          clickable={form1Filled && user?.level_paper >= 1}
+          clickable={form1Filled && lvl1Ok}
           onPress={() => SubmitNewPaper()}
           user={user}
           sx={{ mt: 1 }}
@@ -318,12 +323,6 @@ export default function PapersHome({ user }) {
             name="unit_val"
           />
         </MyFormBox>
-        <MyFormBox
-          label={"New Spec"}
-          clickable={form1Filled && user?.level_paper >= 1}
-          onPress={() => SubmitNewPaper()}
-          user={user}
-        ></MyFormBox>
       </Collapse>
 
       <Box ref={printRef}>
@@ -349,7 +348,7 @@ export default function PapersHome({ user }) {
               >
                 {paperList?.reduce(
                   (n, pp) => n + (pp?.type_ === ty?.id ? 1 : 0),
-                  0
+                  0,
                 )}
               </Box>
             </AccordionSummary>
@@ -371,7 +370,7 @@ export default function PapersHome({ user }) {
 
                       {/* RIGHT: buttons stay together */}
                       <Stack direction="row" gap={1}>
-                        {bsns === "gts" && (
+                        {isGts && (
                           <Button
                             size="small"
                             sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
@@ -390,19 +389,17 @@ export default function PapersHome({ user }) {
                           to={`/papers/${bsns}/log/${pp?.id}`}
                         >
                           {`${
-                            (bsns === "gts" ? pp?.stock_gts : pp?.stock_nim) < 0
+                            (isGts ? pp?.stock_gts : pp?.stock_nim) < 0
                               ? "- "
                               : ""
                           }${
                             Math.floor(
-                              Math.abs(
-                                bsns === "gts" ? pp?.stock_gts : pp?.stock_nim
-                              ) / pp?.unit_val
+                              Math.abs(isGts ? pp?.stock_gts : pp?.stock_nim) /
+                                pp?.unit_val,
                             ) || 0
                           } | ${
-                            Math.abs(
-                              bsns === "gts" ? pp?.stock_gts : pp?.stock_nim
-                            ) % pp?.unit_val || 0
+                            Math.abs(isGts ? pp?.stock_gts : pp?.stock_nim) %
+                              pp?.unit_val || 0
                           }`}
                         </Button>
                       </Stack>
