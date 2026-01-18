@@ -38,7 +38,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       size_w,
       unit_val,
       type,
-      new_brand,
+      // new_brand,
     } = req.body;
 
     // console.log(req.body);
@@ -58,6 +58,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       "den",
       "size_w",
       "unit_val",
+      "brand",
     ];
 
     // check presence + > 0
@@ -72,29 +73,29 @@ router.post("/add", requiredLogged, async (req, res) => {
       }
     }
 
-    const addNewBrand = Number(brand) === 0;
-    const newBrandName = (new_brand || "").replace(/\s+/g, "");
+    // const addNewBrand = Number(brand) === 0;
+    // const newBrandName = (new_brand || "").replace(/\s+/g, "");
 
-    if (addNewBrand && !newBrandName) {
-      return res.status(400).json({
-        success: false,
-        message: "Brand name is invalid",
-      });
-    }
+    // if (addNewBrand && !newBrandName) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Brand name is invalid",
+    //   });
+    // }
 
     if (!requiredLevel(req, res, "level_paper", 1)) return;
 
-    let brand_id = brand;
+    // let brand_id = brand;
 
-    if (addNewBrand) {
-      const addBrSql = `
-        INSERT INTO paper_specs (p_brand)
-        VALUES ($1)
-        RETURNING id
-      `;
-      const result = await pool.query(addBrSql, [newBrandName]);
-      brand_id = result.rows[0].id;
-    }
+    // if (addNewBrand) {
+    //   const addBrSql = `
+    //     INSERT INTO paper_specs (p_brand)
+    //     VALUES ($1)
+    //     RETURNING id
+    //   `;
+    //   const result = await pool.query(addBrSql, [newBrandName]);
+    //   brand_id = result.rows[0].id;
+    // }
 
     const insertSql = `
       INSERT INTO paper_list
@@ -115,7 +116,7 @@ router.post("/add", requiredLogged, async (req, res) => {
       den,
       shortside,
       longside,
-      brand_id,
+      brand,
       unit_val,
       unit_type,
       den_unit,
@@ -263,8 +264,17 @@ router.get("/stockLog/:id", requiredLogged, async (req, res) => {
 
 router.post("/log/rec", requiredLogged, async (req, res) => {
   try {
-    const { change, direction, id, rec_at, storage, storageTo, dealer, note } =
-      req.body;
+    const {
+      change,
+      direction,
+      id,
+      rec_at,
+      storage,
+      storageTo,
+      //  dealer,
+      note,
+      type,
+    } = req.body;
     console.log(req.body);
     console.log("reqbody done");
     const recDate = new Date(rec_at);
@@ -272,8 +282,9 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
 
     const isTransfer = direction === 0;
     const changedXdir = isTransfer ? change * -1 : change * direction;
+    const type_ = isTransfer ? "trn" : type;
 
-    const dealer_ = isTransfer ? "" : dealer;
+    // const dealer_ = isTransfer ? "" : dealer;
     const recAtValid =
       Number.isFinite(recDate.getTime()) &&
       recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
@@ -298,7 +309,8 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       transferSame ||
       !change ||
       change <= 0 ||
-      moreThan
+      moreThan ||
+      !type_
     ) {
       return res.status(400).json({
         success: false,
@@ -308,15 +320,15 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
 
     if (!requiredLevel(req, res, "level_paper", 1)) return;
     const insertSql = `
-      INSERT INTO paper_stock (paper_id, rec_at, change, storage, dealer, note) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *
+      INSERT INTO paper_stock (paper_id, rec_at, change, storage, note, type) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *
     `;
     const { rows: insertRows } = await pool.query(insertSql, [
       paperId,
       recDate,
       changedXdir,
       storage,
-      dealer_,
       note,
+      type_,
     ]);
     if (!!isTransfer) {
       await pool.query(insertSql, [
@@ -324,8 +336,8 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
         recDate,
         change,
         storageTo,
-        dealer_,
         note,
+        type_,
       ]);
     }
 

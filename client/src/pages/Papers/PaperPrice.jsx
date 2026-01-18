@@ -17,6 +17,8 @@ import {
   Select,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { PAPERS_API_URL } from "../../api/urls";
@@ -24,7 +26,6 @@ import { handleApiError, onNUM, onSTR } from "../../helpers/HandleChange";
 import MyFormBox from "../../helpers/MyFormBox";
 import { toLKR } from "../../helpers/cal";
 
-import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 
@@ -34,7 +35,7 @@ export default function PaperPrice({ user }) {
     .replace(" ", "T")
     .slice(0, 16);
 
-  const { id } = useParams();
+  const { bsns, id } = useParams();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ rec_at: nowLK });
@@ -43,6 +44,12 @@ export default function PaperPrice({ user }) {
   const [DBLoading, SetDBLoading] = useState(true);
 
   useEffect(() => {
+    SetDBLoading(true);
+    setForm({ rec_at: nowLK });
+
+    if (bsns !== "gts") {
+      navigate("/papers/gts/price", { replace: true });
+    }
     axios
       .get(PAPERS_API_URL)
       .then((res) => {
@@ -57,11 +64,11 @@ export default function PaperPrice({ user }) {
         res.data.success && SetDBLoading(false);
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, []);
+  }, [id, navigate, bsns]);
 
-  useEffect(() => {
-    console.log(form);
-  }, [form]);
+  // useEffect(() => {
+  //   console.log(form);
+  // }, [form]);
 
   const selectedPaper = paperList.find((p) => p.id === Number(form.id));
 
@@ -83,7 +90,7 @@ export default function PaperPrice({ user }) {
   const changeSelect = (e) => {
     const nextId = Number(e.target.value);
     setForm((p) => ({ ...p, id: nextId }));
-    navigate(`/papers/price/${nextId}`, { replace: false });
+    navigate(`/papers/${bsns}/price/${nextId}`, { replace: false });
   };
 
   function SubmitLog() {
@@ -110,20 +117,29 @@ export default function PaperPrice({ user }) {
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
+      <ToggleButtonGroup
+        value={bsns}
+        exclusive
+        onChange={(e, v) => {
+          navigate(`/papers/${v}/price${id ? "/" + id : ""}`);
+        }}
+        size="small"
+        color="primary"
+        sx={{ mb: 1 }}
+      >
+        <ToggleButton value={"gts"}>gts papers</ToggleButton>
+        {/* <ToggleButton value={"nimthara"}>nimthara</ToggleButton> */}
+      </ToggleButtonGroup>
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         <Button
           variant="outlined"
           sx={{ width: 85 }}
           component={Link}
-          to="/papers"
+          to={`/papers/${bsns}`}
         >
           list
         </Button>
-        <Button
-          startIcon={<AttachMoneyRoundedIcon />}
-          variant="outlined"
-          disabled
-        >
+        <Button startIcon={<AttachMoneyRoundedIcon />} variant="contained">
           Price
         </Button>
         <Button
@@ -131,9 +147,9 @@ export default function PaperPrice({ user }) {
           variant="outlined"
           disabled={!user?.level_paper}
           component={Link}
-          to={`/papers/log${id ? "/" + id : ""}`}
+          to={`/papers/${bsns}/log${id ? "/" + id : ""}`}
         >
-          log
+          stock
         </Button>
       </Stack>
       <MyFormBox

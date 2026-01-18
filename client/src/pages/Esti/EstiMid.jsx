@@ -93,7 +93,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
               <b> impressions : </b>
             </small>
             {Math.round(
-              (v?.[name + "_0"] / v?.[name + "_1"]) * v?.[name + "_2"]
+              (v?.[name + "_0"] / v?.[name + "_1"]) * v?.[name + "_2"],
             )}
           </small>
           <b> x </b>
@@ -231,7 +231,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
       {compID === "Paper" &&
         (() => {
           const selectedPaper = allPapers.find(
-            (p) => p.id === v?.[name + "_0"]
+            (p) => p.id === v?.[name + "_0"],
           );
           const latest_price = selectedPaper?.last_price || 0;
           const input_price = v?.[name + "_1"] || 0;
@@ -317,7 +317,7 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
                 name={name + "_7"}
                 onChange={changed}
                 value={v?.[name + "_7"]}
-                deci={0}
+                deci={2}
                 def={1}
               />
               <b> / </b>

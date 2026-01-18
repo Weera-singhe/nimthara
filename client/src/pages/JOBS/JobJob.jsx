@@ -139,10 +139,13 @@ export default function JobJob({ user }) {
         setDBLoading(false);
       });
   }, [fileid, jobindex]);
-  // useEffect(() => {
-  //   console.log("temp", jobTemp);
-  //   console.log("saved", jobSaved);
-  // }, [jobTemp]);
+  useEffect(() => {
+    console.log("temp", jobTemp);
+  }, [jobTemp]);
+
+  useEffect(() => {
+    console.log("bidResTemp", bidResTemp);
+  }, [bidResTemp]);
 
   // useEffect(() => {
   //   console.log("quotVals", calEsti);
@@ -153,9 +156,9 @@ export default function JobJob({ user }) {
   // useEffect(() => {
   //   console.log("deli", deliTemp);
   // }, [deliTemp]);
-  // useEffect(() => {
-  //   console.log("elemnt = ", elementz);
-  // }, [elementz]);
+  useEffect(() => {
+    console.log("elemnt = ", elementz);
+  }, [elementz]);
 
   const isSavedJob = jobSaved?.job_index;
   const isSavedFile = jobSaved?.file_id;
@@ -410,7 +413,8 @@ export default function JobJob({ user }) {
           <Divider />
           {Array.from({ length: jobSaved?.jobs_count || 1 }).map((_, i) => {
             const ii = i + 1;
-            const job_ = ii === Number(jobindex) ? jobTemp : jobsByIndex[i + 1];
+            const eql = ii === Number(jobindex);
+            const job_ = eql ? jobTemp : jobsByIndex[i + 1];
             return (
               <React.Fragment key={i}>
                 <ListItemButton
@@ -418,7 +422,7 @@ export default function JobJob({ user }) {
                   to={fileid && `/jobs/job/${fileid}/${ii}`}
                   sx={{ ml: 4 }}
                   selected={ii === Number(jobindex)}
-                  onClick={() => setJobTemp([])}
+                  onClick={() => !eql && setJobTemp([])}
                 >
                   <ListItemAvatar>
                     <WorkOutlineRoundedIcon />
@@ -720,7 +724,7 @@ export default function JobJob({ user }) {
                           ...p,
                           items: Object.fromEntries(
                             Object.entries(p?.items ?? {}).filter(
-                              ([k]) => k !== count - 1
+                              ([k]) => k !== String(count - 1)
                             )
                           ),
                           data: {
@@ -878,14 +882,14 @@ export default function JobJob({ user }) {
                         ...p,
                         log: Object.fromEntries(
                           Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k !== count - 1
+                            ([k]) => k !== String(count - 1)
                           )
                         ),
                       }));
 
                       setElementz((p) => ({
                         ...p,
-                        bidres: Math.max((p?.bidres ?? 0) - 1, 0),
+                        bidres: p.bidres - 1,
                       }));
                     }}
                     disabled={(elementz?.bidres ?? 0) < 1}
@@ -1302,7 +1306,7 @@ export default function JobJob({ user }) {
                         ...p,
                         log: Object.fromEntries(
                           Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k !== count - 1
+                            ([k]) => k !== String(count - 1)
                           )
                         ),
                       }));

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { AUTH_API_URL } from "../api/urls";
 
@@ -21,7 +21,6 @@ const pages = ["papers", "audit", "customers", "jobs"];
 
 export default function MyAppBar({ user, setUser }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const navigate = useNavigate();
 
   const api = React.useMemo(() => {
     return axios.create({
@@ -34,6 +33,10 @@ export default function MyAppBar({ user, setUser }) {
 
   const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = (page) => location.pathname === `/${page}`;
 
   const handleLogout = async () => {
     try {
@@ -60,7 +63,7 @@ export default function MyAppBar({ user, setUser }) {
   return (
     <AppBar
       position="static"
-      sx={{ bgcolor: "white", borderRadius: 4, overflow: "hidden", mb: 4 }}
+      sx={{ bgcolor: "white", borderRadius: 2, overflow: "hidden", mb: 4 }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
@@ -105,6 +108,9 @@ export default function MyAppBar({ user, setUser }) {
                   component={Link}
                   to={`/${page}`}
                   onClick={handleCloseNavMenu}
+                  sx={{
+                    bgcolor: isActive(page) ? "action.selected" : "inherit",
+                  }}
                 >
                   <Typography sx={{ textAlign: "center", color: "black" }}>
                     {page}
@@ -140,7 +146,12 @@ export default function MyAppBar({ user, setUser }) {
                 to={`/${page}`}
                 key={page}
                 onClick={handleCloseNavMenu}
-                sx={{ mx: 2, color: "black", display: "block" }}
+                sx={{
+                  mx: 2,
+                  color: "black",
+                  display: "block",
+                  fontWeight: isActive(page) ? "bold" : "normal",
+                }}
               >
                 {page}
               </Button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Num from "../../helpers/Num";
 import axios from "axios";
 import {
@@ -13,9 +13,6 @@ import {
   FormControl,
   InputLabel,
   List,
-  ListItem,
-  ListItemText,
-  ListSubheader,
   MenuItem,
   Select,
   Stack,
@@ -37,32 +34,41 @@ import { toLKR } from "../../helpers/cal";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
-
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
+import PrintOut from "../../helpers/PrintOut";
+import PurchaseOrder from "../../forms/PurchaseOrder";
+import VatInvoice from "../../forms/VatInvoice";
 
 export default function PaperLog({ user }) {
   const today_ = new Date()
     .toLocaleString("sv-SE", { timeZone: "Asia/Colombo" })
     .slice(0, 10);
 
-  const { id } = useParams();
+  const { bsns, id } = useParams();
   const navigate = useNavigate();
-
-  const [form, setForm] = useState({
+  const defForm = {
     rec_at: today_,
     direction: -1,
     storage: 1,
     storageTo: 2,
-  });
+  };
+  const [form, setForm] = useState(defForm);
   const [paperList, setPaperList] = useState([]);
   const [stockLog, setStockLog] = useState([]);
   const [DBLoading, SetDBLoading] = useState(true);
 
   useEffect(() => {
+    SetDBLoading(true);
+    setForm(defForm);
+    const validBsns = ["nimthara", "gts"];
+
+    if (!bsns || !validBsns.includes(bsns)) {
+      navigate("/papers/gts/log", { replace: true });
+    }
+
     axios
       .get(PAPERS_API_URL)
       .then((res) => {
@@ -77,11 +83,11 @@ export default function PaperLog({ user }) {
         res.data.success && SetDBLoading(false);
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [id]);
+  }, [id, navigate, bsns]);
 
-  useEffect(() => {
-    console.log(form);
-  }, [form]);
+  // useEffect(() => {
+  //   console.log(form);
+  // }, [form]);
 
   useEffect(() => {
     SetDBLoading(true);
@@ -99,13 +105,19 @@ export default function PaperLog({ user }) {
       .catch((err) => console.error("Error fetching papers:", err));
   }, [id]);
 
-  const selectedPaper = paperList.find((p) => p.id === Number(form.id));
+  const getPaper = (id) => {
+    if (id == null) return undefined;
+    return paperList.find((p) => p.id === Number(id));
+  };
+
+  const selectedPaper = getPaper(form?.id);
+
   const unitVal = selectedPaper?.unit_val;
 
   const changePaper = (e) => {
     const nextId = Number(e.target.value);
     setForm((p) => ({ ...p, id: nextId }));
-    navigate(`/papers/log/${nextId}`, { replace: false });
+    navigate(`/papers/${bsns}/log/${nextId}`);
   };
 
   function SubmitLog() {
@@ -123,16 +135,34 @@ export default function PaperLog({ user }) {
       .catch(handleApiError)
       .finally(() => SetDBLoading(false));
   }
+  const plus_types = {
+    lby: "Buy Local",
+    shp: "Shipment",
+    fix: "Correction",
+  };
 
+  const min_types = {
+    vsl: "Sell VAT",
+    nsl: "Sell noVAT",
+    fix: "Correction",
+  };
+  const isTrans = !form?.direction;
+  const isPlus = form?.direction === 1;
+
+  const typeOk = isTrans ? true : form?.type;
   const formIsFilled =
-    new Date(form.rec_at) <= new Date(today_) && form?.id && form?.change;
-  const transferSame = !form?.direction && form?.storage === form?.storageTo;
+    new Date(form?.rec_at) <= new Date(today_) &&
+    form?.id &&
+    form?.change &&
+    form?.rec_at &&
+    typeOk;
+  const transferSame = isTrans && form?.storage === form?.storageTo;
 
-  const minusStock =
+  const reducingStock =
     form?.storage === 1
       ? selectedPaper?.stock_a ?? 0
       : selectedPaper?.stock_b ?? 0;
-  const moreThan = form?.direction < 1 && minusStock < form?.change;
+  const moreThan = !isPlus && reducingStock < form?.change;
 
   const makeItLoad = DBLoading || !user?.loggedIn;
   return (
@@ -140,26 +170,41 @@ export default function PaperLog({ user }) {
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
+      <ToggleButtonGroup
+        value={bsns}
+        exclusive
+        onChange={(e, v) => {
+          navigate(`/papers/${v}/log${id ? "/" + id : ""}`);
+        }}
+        size="small"
+        color="primary"
+        sx={{ mb: 1 }}
+      >
+        <ToggleButton value={"gts"}>gts papers</ToggleButton>
+        <ToggleButton value={"nimthara"}>nimthara</ToggleButton>
+      </ToggleButtonGroup>
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         <Button
           variant="outlined"
           sx={{ width: 85 }}
           component={Link}
-          to="/papers"
+          to={`/papers/${bsns}`}
         >
           list
         </Button>
-        <Button
-          startIcon={<AttachMoneyRoundedIcon />}
-          variant="outlined"
-          disabled={!user?.level_paper}
-          component={Link}
-          to={`/papers/price${id ? "/" + id : ""}`}
-        >
-          Price
-        </Button>
-        <Button startIcon={<NotesRoundedIcon />} variant="outlined" disabled>
-          log
+        {bsns === "gts" && (
+          <Button
+            startIcon={<AttachMoneyRoundedIcon />}
+            variant="outlined"
+            disabled={!user?.level_paper}
+            component={Link}
+            to={`/papers/gts/price`}
+          >
+            price
+          </Button>
+        )}
+        <Button startIcon={<NotesRoundedIcon />} variant="contained">
+          stock
         </Button>
       </Stack>
       <MyFormBox
@@ -188,20 +233,18 @@ export default function PaperLog({ user }) {
             ))}
           </Select>
         </FormControl>
-        {form?.direction !== 0 && (
-          <TextField
-            name="dealer"
-            size="small"
-            label="Dealer"
-            value={form?.dealer || ""}
-            onChange={onSTR(setForm)}
-          />
-        )}
+
         <ToggleButtonGroup
-          value={form.direction}
+          value={form?.direction}
           exclusive
           onChange={(e, v) => {
-            v !== null && setForm((p) => ({ ...p, direction: v }));
+            v !== null &&
+              setForm((p) => ({
+                ...p,
+                type: "",
+                type_data: null,
+                direction: v,
+              }));
           }}
           size="small"
           color="primary"
@@ -216,10 +259,9 @@ export default function PaperLog({ user }) {
             <AddRoundedIcon />
           </ToggleButton>
         </ToggleButtonGroup>
+
         <FormControl sx={{ minWidth: 100, maxWidth: "80%" }} size="small">
-          <InputLabel>{`Warehouse [ ${
-            form.direction === 1 ? "+" : "-"
-          } ]`}</InputLabel>
+          <InputLabel>{`Warehouse [ ${isPlus ? "+" : "-"} ]`}</InputLabel>
           <Select
             name="storage"
             value={form?.storage}
@@ -230,7 +272,7 @@ export default function PaperLog({ user }) {
             <MenuItem value={2}>B - TempleRoad</MenuItem>
           </Select>
         </FormControl>
-        {form?.direction === 0 && (
+        {isTrans && (
           <FormControl sx={{ minWidth: 100, maxWidth: "80%" }} size="small">
             <InputLabel> Warehouse [ + ]</InputLabel>
             <Select
@@ -280,6 +322,29 @@ export default function PaperLog({ user }) {
           onChange={onSTR(setForm)}
           sx={{ width: 300 }}
         />
+        {!isTrans && (
+          <FormControl sx={{ minWidth: 80, maxWidth: "80%" }} size="small">
+            <InputLabel>Type</InputLabel>
+            <Select
+              name="type"
+              value={form?.type || ""}
+              label="Type"
+              onChange={onSTR(setForm)}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              <MenuItem value="">-</MenuItem>
+              {Object.entries(isPlus ? plus_types : min_types).map(
+                ([code, label]) => (
+                  <MenuItem key={code} value={code}>
+                    {label}
+                  </MenuItem>
+                )
+              )}
+            </Select>
+          </FormControl>
+        )}
       </MyFormBox>
       <List>
         <Stack
@@ -363,7 +428,34 @@ export default function PaperLog({ user }) {
             </AccordionSummary>
             <Divider sx={{ mx: 2 }} />
             <AccordionDetails>
-              <Typography>Dealer : {pl?.dealer}</Typography>
+              <PrintOut paperSize="A5">
+                <VatInvoice
+                  data={{
+                    number: `#${String(pl?.stock_rec).padStart(6, "0")}`,
+                    date: pl?.rec_at_,
+                    company: {
+                      name: "My Shop",
+                      address: "No 12, Main Road\nKandy, Sri Lanka",
+                      phone: "077 123 4567",
+                    },
+                    vendor: {
+                      name: "ABC Suppliers",
+                      address: "45, Station Rd\nColombo, Sri Lanka",
+                      phone: "011 234 5678",
+                    },
+                    notes: "Deliver between 9AM - 5PM.\nCall before delivery.",
+                    authorizedBy: "Manager",
+                  }}
+                  items={[
+                    {
+                      name: getPaper(pl.paper_id)?.display_as,
+                      id: "PPR-A4-80",
+                      qty: Math.abs(pl?.change),
+                      unitPrice: 2200,
+                    },
+                  ]}
+                />
+              </PrintOut>
               <Typography> Note : {pl?.note}</Typography>
             </AccordionDetails>
           </Accordion>

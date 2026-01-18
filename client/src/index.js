@@ -71,9 +71,10 @@ const App = () => {
         />
 
         <Route path="/papers" element={<PapersHome user={user} />} />
+        <Route path="/papers/:bsns" element={<PapersHome user={user} />} />
 
         <Route
-          path="papers/price/:id"
+          path="papers/:bsns/price/:id"
           element={
             <ProtectedRoute user={user}>
               <PaperPrice user={user} />
@@ -81,7 +82,7 @@ const App = () => {
           }
         />
         <Route
-          path="papers/price"
+          path="papers/:bsns/price"
           element={
             <ProtectedRoute user={user}>
               <PaperPrice user={user} />
@@ -90,7 +91,7 @@ const App = () => {
         />
 
         <Route
-          path="papers/log/:id"
+          path="papers/:bsns/log/:id"
           element={
             <ProtectedRoute user={user}>
               <PaperLog user={user} />
@@ -98,7 +99,7 @@ const App = () => {
           }
         />
         <Route
-          path="papers/log"
+          path="papers/:bsns/log"
           element={
             <ProtectedRoute user={user}>
               <PaperLog user={user} />
