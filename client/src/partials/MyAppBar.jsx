@@ -53,6 +53,7 @@ export default function MyAppBar({ user, setUser }) {
         level_jobs: 0,
         level_paper: 0,
         level_audit: 0,
+        level_stock: 0,
       });
       navigate("/login");
     } catch (err) {

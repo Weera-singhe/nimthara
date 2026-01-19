@@ -61,6 +61,7 @@ export default function PapersHome({ user }) {
 
     if (!bsns || !validBsns.includes(bsns)) {
       navigate("/papers/gts", { replace: true });
+      return;
     }
     axios
       .get(PAPERS_API_URL)
@@ -77,11 +78,6 @@ export default function PapersHome({ user }) {
     console.log("form", form);
   }, [form]);
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: "Paper Price List",
-  });
-
   function SubmitNewPaper() {
     SetDBLoading(true);
 
@@ -95,7 +91,6 @@ export default function PapersHome({ user }) {
             size_h: 0,
             size_w: 0,
             den: 0,
-            brand: 1,
           }));
         }
       })
@@ -117,6 +112,12 @@ export default function PapersHome({ user }) {
       .catch(handleApiError)
       .finally(() => SetDBLoading(false));
   }
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Paper Price List",
+  });
+
   const isGts = bsns === "gts";
   const form1Filled = form?.type && form?.den && form?.size_w && form?.unit_val;
   const lvl1Ok = isGts
@@ -157,6 +158,7 @@ export default function PapersHome({ user }) {
             value={bsns}
             exclusive
             onChange={(e, v) => {
+              if (v === null) return;
               navigate(`/papers/${v}`);
             }}
             size="small"
@@ -173,7 +175,6 @@ export default function PapersHome({ user }) {
                 setAddPanel((p) => !p);
                 setForm(defForm);
               }}
-              disabled={!user?.level_paper}
               variant={!addPanel ? "outlined" : "contained"}
               sx={{ width: 85 }}
             >
@@ -183,7 +184,6 @@ export default function PapersHome({ user }) {
               <Button
                 startIcon={<AttachMoneyRoundedIcon />}
                 variant="outlined"
-                disabled={!user?.level_paper}
                 component={Link}
                 to={`/papers/gts/price`}
               >
@@ -193,7 +193,6 @@ export default function PapersHome({ user }) {
             <Button
               startIcon={<NotesRoundedIcon />}
               variant="outlined"
-              disabled={!user?.level_paper}
               component={Link}
               to={`/papers/${bsns}/log`}
             >

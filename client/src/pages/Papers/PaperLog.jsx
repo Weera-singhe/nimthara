@@ -63,10 +63,11 @@ export default function PaperLog({ user }) {
   useEffect(() => {
     SetDBLoading(true);
     setForm(defForm);
-    const validBsns = ["nimthara", "gts"];
 
+    const validBsns = ["nimthara", "gts"];
     if (!bsns || !validBsns.includes(bsns)) {
       navigate("/papers/gts/log", { replace: true });
+      return;
     }
 
     axios
@@ -79,22 +80,30 @@ export default function PaperLog({ user }) {
         paperList_.some((p) => p.id === routeId) &&
           setForm((p) => ({ ...p, id: routeId }));
 
-        console.log(res.data);
         res.data.success && SetDBLoading(false);
+        //console.log(res.data);
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [id, navigate, bsns]);
+  }, []);
 
-  // useEffect(() => {
-  //   console.log(form);
-  // }, [form]);
+  useEffect(() => {
+    console.log(form);
+  }, [form]);
+
+  const getPaper = (id) => {
+    if (id == null) return undefined;
+    return paperList.find((p) => p.id === Number(id));
+  };
+
+  const selectedPaper = getPaper(form?.id);
+
+  const isGts = bsns === "gts";
 
   useEffect(() => {
     SetDBLoading(true);
-
     const safeFormID = Number(id || 0);
     axios
-      .get(`${PAPERS_API_URL}/stockLog/${safeFormID}`)
+      .get(`${PAPERS_API_URL}/${bsns}/stockLog/${safeFormID}`)
       .then((res) => {
         if (res.data.success) {
           console.log(res.data);
@@ -104,13 +113,6 @@ export default function PaperLog({ user }) {
       })
       .catch((err) => console.error("Error fetching papers:", err));
   }, [id, navigate, bsns]);
-
-  const getPaper = (id) => {
-    if (id == null) return undefined;
-    return paperList.find((p) => p.id === Number(id));
-  };
-
-  const selectedPaper = getPaper(form?.id);
 
   const unitVal = selectedPaper?.unit_val;
 
@@ -124,7 +126,7 @@ export default function PaperLog({ user }) {
     SetDBLoading(true);
 
     axios
-      .post(`${PAPERS_API_URL}/log/rec`, form)
+      .post(`${PAPERS_API_URL}/:${bsns}/log/rec`, form)
       .then((res) => {
         if (res.data.success) {
           setStockLog(res.data.stockLog || []);
@@ -158,11 +160,17 @@ export default function PaperLog({ user }) {
     typeOk;
   const transferSame = isTrans && form?.storage === form?.storageTo;
 
-  const reducingStock =
-    form?.storage === 1
+  const reducingStock = !isGts
+    ? (selectedPaper?.stock_nim ?? 0)
+    : form?.storage === 1
       ? (selectedPaper?.stock_a ?? 0)
       : (selectedPaper?.stock_b ?? 0);
+
   const moreThan = !isPlus && reducingStock < form?.change;
+
+  const lvl1Ok = isGts
+    ? user?.level_paper >= 1 && user?.loggedIn
+    : user?.level_stock >= 1 && user?.loggedIn;
 
   const makeItLoad = DBLoading || !user?.loggedIn;
   return (
@@ -174,7 +182,9 @@ export default function PaperLog({ user }) {
         value={bsns}
         exclusive
         onChange={(e, v) => {
+          if (v === null) return;
           navigate(`/papers/${v}/log${id ? "/" + id : ""}`);
+          setForm(defForm);
         }}
         size="small"
         color="primary"
@@ -196,7 +206,6 @@ export default function PaperLog({ user }) {
           <Button
             startIcon={<AttachMoneyRoundedIcon />}
             variant="outlined"
-            disabled={!user?.level_paper}
             component={Link}
             to={`/papers/gts/price`}
           >
@@ -208,9 +217,7 @@ export default function PaperLog({ user }) {
         </Button>
       </Stack>
       <MyFormBox
-        clickable={
-          formIsFilled && !transferSame && user?.level_paper >= 1 && !moreThan
-        }
+        clickable={formIsFilled && !transferSame && lvl1Ok && !moreThan}
         user={user}
         onPress={SubmitLog}
       >
@@ -252,26 +259,29 @@ export default function PaperLog({ user }) {
           <ToggleButton value={-1}>
             <RemoveRoundedIcon />
           </ToggleButton>
-          <ToggleButton value={0}>
-            <SwapHorizRoundedIcon />
-          </ToggleButton>
+          {isGts && (
+            <ToggleButton value={0}>
+              <SwapHorizRoundedIcon />
+            </ToggleButton>
+          )}
           <ToggleButton value={1}>
             <AddRoundedIcon />
           </ToggleButton>
         </ToggleButtonGroup>
-
-        <FormControl sx={{ minWidth: 100, maxWidth: "80%" }} size="small">
-          <InputLabel>{`Warehouse [ ${isPlus ? "+" : "-"} ]`}</InputLabel>
-          <Select
-            name="storage"
-            value={form?.storage}
-            label="Warehouse [ + ]"
-            onChange={onNUM(setForm)}
-          >
-            <MenuItem value={1}>A - StationRoad</MenuItem>
-            <MenuItem value={2}>B - TempleRoad</MenuItem>
-          </Select>
-        </FormControl>
+        {isGts && (
+          <FormControl sx={{ minWidth: 100, maxWidth: "80%" }} size="small">
+            <InputLabel>{`Warehouse [ ${isPlus ? "+" : "-"} ]`}</InputLabel>
+            <Select
+              name="storage"
+              value={form?.storage}
+              label="Warehouse [ + ]"
+              onChange={onNUM(setForm)}
+            >
+              <MenuItem value={1}>A - StationRoad</MenuItem>
+              <MenuItem value={2}>B - TempleRoad</MenuItem>
+            </Select>
+          </FormControl>
+        )}
         {isTrans && (
           <FormControl sx={{ minWidth: 100, maxWidth: "80%" }} size="small">
             <InputLabel> Warehouse [ + ]</InputLabel>
@@ -362,26 +372,33 @@ export default function PaperLog({ user }) {
           <Typography component="span" fontWeight={450} sx={{ mr: 5 }}>
             {selectedPaper?.display_as || "Select Paper"}
           </Typography>
-
-          <Stack direction="row" spacing={1} alignItems="center">
+          {isGts ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Button size="small" variant="outlined">
+                <small style={{ marginRight: 8 }}>A</small>
+                {`${selectedPaper?.stock_a < 0 ? "- " : ""}${
+                  Math.floor(Math.abs(selectedPaper?.stock_a) / unitVal) || 0
+                } | ${Math.abs(selectedPaper?.stock_a) % unitVal || 0}`}
+              </Button>
+              <Button size="small" variant="outlined">
+                <small style={{ marginRight: 8 }}>B</small>
+                {`${selectedPaper?.stock_b < 0 ? "- " : ""}${
+                  Math.floor(Math.abs(selectedPaper?.stock_b) / unitVal) || 0
+                } | ${Math.abs(selectedPaper?.stock_b) % unitVal || 0}`}
+              </Button>
+              <Button size="small" variant="outlined">
+                {`${selectedPaper?.stock_gts < 0 ? "- " : ""}${
+                  Math.floor(Math.abs(selectedPaper?.stock_gts) / unitVal) || 0
+                } | ${Math.abs(selectedPaper?.stock_gts) % unitVal || 0}`}
+              </Button>
+            </Stack>
+          ) : (
             <Button size="small" variant="outlined">
-              <small style={{ marginRight: 8 }}>A</small>
-              {`${selectedPaper?.stock_a < 0 ? "- " : ""}${
-                Math.floor(Math.abs(selectedPaper?.stock_a) / unitVal) || 0
-              } | ${Math.abs(selectedPaper?.stock_a) % unitVal || 0}`}
+              {`${selectedPaper?.stock_nim < 0 ? "- " : ""}${
+                Math.floor(Math.abs(selectedPaper?.stock_nim) / unitVal) || 0
+              } | ${Math.abs(selectedPaper?.stock_nim) % unitVal || 0}`}
             </Button>
-            <Button size="small" variant="outlined">
-              <small style={{ marginRight: 8 }}>B</small>
-              {`${selectedPaper?.stock_b < 0 ? "- " : ""}${
-                Math.floor(Math.abs(selectedPaper?.stock_b) / unitVal) || 0
-              } | ${Math.abs(selectedPaper?.stock_b) % unitVal || 0}`}
-            </Button>
-            <Button size="small" variant="outlined">
-              {`${selectedPaper?.stock_all < 0 ? "- " : ""}${
-                Math.floor(Math.abs(selectedPaper?.stock_all) / unitVal) || 0
-              } | ${Math.abs(selectedPaper?.stock_all) % unitVal || 0}`}
-            </Button>
-          </Stack>
+          )}
         </Stack>
 
         {stockLog?.map((pl) => (

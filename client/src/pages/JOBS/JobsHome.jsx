@@ -71,7 +71,7 @@ export default function JobsHome({ user }) {
           startIcon={<CreateNewFolderRoundedIcon />}
           color="action"
         >
-          JOB FILE
+          FILE
         </Button>
 
         <Tabs
@@ -366,7 +366,7 @@ export default function JobsHome({ user }) {
                 .filter((j) => !j?.esti_ok_all && !j?.notbidding)
                 .sort(
                   (a, b) =>
-                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline),
                 )
                 .map((jf) => (
                   <React.Fragment key={jf.file_id}>
@@ -423,11 +423,11 @@ export default function JobsHome({ user }) {
               {allJobFiles
                 .filter(
                   (j) =>
-                    j?.esti_ok_all && !j?.notbidding && !j?.bid_submit?.method
+                    j?.esti_ok_all && !j?.notbidding && !j?.bid_submit?.method,
                 )
                 .sort(
                   (a, b) =>
-                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline),
                 )
                 .map((jf) => (
                   <React.Fragment key={jf.file_id}>
@@ -478,11 +478,11 @@ export default function JobsHome({ user }) {
               {allJobFiles
                 .filter(
                   (j) =>
-                    j?.esti_ok_all && !j?.notbidding && j?.bid_submit?.method
+                    j?.esti_ok_all && !j?.notbidding && j?.bid_submit?.method,
                 )
                 .sort(
                   (b, a) =>
-                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline),
                 )
                 .map((jf) => (
                   <React.Fragment key={jf.file_id}>
@@ -534,7 +534,7 @@ export default function JobsHome({ user }) {
                 .filter((j) => j?.notbidding)
                 .sort(
                   (b, a) =>
-                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline)
+                    new Date(a?.bid_deadline) - new Date(b?.bid_deadline),
                 )
                 .map((jf) => (
                   <React.Fragment key={jf.file_id}>

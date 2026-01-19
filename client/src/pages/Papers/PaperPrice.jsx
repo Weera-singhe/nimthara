@@ -35,7 +35,6 @@ export default function PaperPrice({ user }) {
     .replace(" ", "T")
     .slice(0, 16);
 
-  const { bsns, id } = useParams();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ rec_at: nowLK });
@@ -43,12 +42,14 @@ export default function PaperPrice({ user }) {
   const [priceLog, setPriceLog] = useState([]);
   const [DBLoading, SetDBLoading] = useState(true);
 
+  const { bsns, id } = useParams();
   useEffect(() => {
     SetDBLoading(true);
     setForm({ rec_at: nowLK });
 
     if (bsns !== "gts") {
       navigate("/papers/gts/price", { replace: true });
+      return;
     }
     axios
       .get(PAPERS_API_URL)
@@ -58,23 +59,26 @@ export default function PaperPrice({ user }) {
 
         const routeId = Number(id);
         paperList_.some((p) => p.id === routeId) &&
-          setForm((p) => ({ ...p, id: routeId }));
+          setForm((p) => ({ ...p, id: routeId, rec_at: nowLK }));
 
-        //console.log(res.data);
         res.data.success && SetDBLoading(false);
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [id, navigate, bsns]);
+  }, []);
 
-  // useEffect(() => {
-  //   console.log(form);
-  // }, [form]);
+  useEffect(() => {
+    console.log(form);
+  }, [form]);
 
-  const selectedPaper = paperList.find((p) => p.id === Number(form.id));
+  const getPaper = (id) => {
+    if (id == null) return undefined;
+    return paperList.find((p) => p.id === Number(id));
+  };
+
+  const selectedPaper = getPaper(form?.id);
 
   useEffect(() => {
     SetDBLoading(true);
-
     const safeID = Number(id || 0);
     axios
       .get(`${PAPERS_API_URL}/gts/priceLog/${safeID}`)
@@ -85,12 +89,12 @@ export default function PaperPrice({ user }) {
         }
       })
       .catch((err) => console.error("Error fetching papers:", err));
-  }, [id, bsns, navigate]);
+  }, [id, navigate, bsns]);
 
   const changeSelect = (e) => {
     const nextId = Number(e.target.value);
     setForm((p) => ({ ...p, id: nextId }));
-    navigate(`/papers/${bsns}/price/${nextId}`, { replace: false });
+    navigate(`/papers/${bsns}/price/${nextId}`);
   };
 
   function SubmitLog() {
@@ -121,6 +125,7 @@ export default function PaperPrice({ user }) {
         value={bsns}
         exclusive
         onChange={(e, v) => {
+          if (v === null) return;
           navigate(`/papers/${v}/price${id ? "/" + id : ""}`);
         }}
         size="small"
@@ -128,7 +133,6 @@ export default function PaperPrice({ user }) {
         sx={{ mb: 1 }}
       >
         <ToggleButton value={"gts"}>gts papers</ToggleButton>
-        {/* <ToggleButton value={"nimthara"}>nimthara</ToggleButton> */}
       </ToggleButtonGroup>
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         <Button
@@ -145,7 +149,6 @@ export default function PaperPrice({ user }) {
         <Button
           startIcon={<NotesRoundedIcon />}
           variant="outlined"
-          disabled={!user?.level_paper}
           component={Link}
           to={`/papers/${bsns}/log${id ? "/" + id : ""}`}
         >
@@ -153,7 +156,7 @@ export default function PaperPrice({ user }) {
         </Button>
       </Stack>
       <MyFormBox
-        clickable={formIsFilled && user?.level_paper >= 2}
+        clickable={formIsFilled && user?.level_paper >= 1}
         user={user}
         onPress={SubmitLog}
       >

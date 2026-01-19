@@ -13,7 +13,7 @@ passport.use(
         FROM users
         WHERE username = $1 AND reg_done = true
         `,
-        [uname]
+        [uname],
       );
 
       if (!result.rows.length) return done(null, false);
@@ -26,7 +26,7 @@ passport.use(
     } catch (err) {
       return done(err);
     }
-  })
+  }),
 );
 
 passport.serializeUser((user, done) => {
@@ -44,11 +44,12 @@ passport.deserializeUser(async (id, done) => {
         level,
         level_jobs,
         level_paper,
+        level_stock,
         level_audit
       FROM users
       WHERE id = $1
       `,
-      [id]
+      [id],
     );
 
     done(null, rows[0] || null);

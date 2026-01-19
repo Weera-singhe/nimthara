@@ -16,7 +16,7 @@ router.post("/register", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT id FROM users WHERE username = $1 AND reg_done = false",
-      [regname]
+      [regname],
     );
 
     if (result.rows.length > 0) {
@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
         `UPDATE users
          SET password = $1, display_name = $2, reg_done = true
          WHERE username = $3`,
-        [pwr, display_name, regname]
+        [pwr, display_name, regname],
       );
 
       return res
@@ -63,6 +63,7 @@ router.post("/login", (req, res, next) => {
           level_jobs: user.level_jobs,
           level_audit: user.level_audit,
           level_paper: user.level_paper,
+          level_stock: user.level_stock,
         };
 
         req.session.save(() => {
@@ -97,7 +98,7 @@ router.post("/logout", (req, res, next) => {
 router.get("/check-auth", (req, res) => {
   res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, private"
+    "no-store, no-cache, must-revalidate, private",
   );
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
@@ -113,6 +114,7 @@ router.get("/check-auth", (req, res) => {
       level_jobs: u.level_jobs,
       level_audit: u.level_audit,
       level_paper: u.level_paper,
+      level_stock: u.level_stock,
     });
   }
 
@@ -122,6 +124,7 @@ router.get("/check-auth", (req, res) => {
     level_jobs: 0,
     level_audit: 0,
     level_paper: 0,
+    level_stock: 0,
   });
 });
 

@@ -228,14 +228,16 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
   }
 });
 
-router.get("/stockLog/:id", requiredLogged, async (req, res) => {
-  const { id } = req.params;
+router.get("/:bsns/stockLog/:id", requiredLogged, async (req, res) => {
+  const { bsns, id } = req.params;
+
+  const switch_ = bsns === "gts" ? "!" : "";
 
   try {
     const stockLogSQL = `
       SELECT *, ${dateCon("rec_at")}
       FROM paper_stock
-      WHERE paper_id = $1
+      WHERE paper_id = $1 AND storage ${switch_}= 9
       ORDER BY rec_at DESC, stock_rec DESC
     `;
 
@@ -248,21 +250,16 @@ router.get("/stockLog/:id", requiredLogged, async (req, res) => {
   }
 });
 
-router.post("/log/rec", requiredLogged, async (req, res) => {
+router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
   try {
-    const {
-      change,
-      direction,
-      id,
-      rec_at,
-      storage,
-      storageTo,
-      //  dealer,
-      note,
-      type,
-    } = req.body;
+    const { change, direction, id, rec_at, storage, storageTo, note, type } =
+      req.body;
     console.log(req.body);
-    console.log("reqbody done");
+
+    const { bsns } = req.params;
+    const isGts = bsns === "gts";
+    const safeStorage = isGts ? storage : 9;
+
     const recDate = new Date(rec_at);
     const paperId = Number(id);
 
@@ -276,6 +273,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
 
     const transferSame = isTransfer && storage === storageTo;
+    const nimTransfering = !isGts && isTransfer;
 
     const checkSql = `SELECT * from paper_data where id = $1`;
     const { rows: checkrows } = await pool.query(checkSql, [paperId]);
@@ -285,8 +283,9 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
         .json({ success: false, message: "Paper cannot find" });
     }
 
-    const minusStock =
-      storage === 1
+    const minusStock = !isGts
+      ? (checkrows[0]?.stock_nim ?? 0)
+      : safeStorage === 1
         ? (checkrows[0]?.stock_a ?? 0)
         : (checkrows[0]?.stock_b ?? 0);
     const moreThan = direction < 1 && minusStock < change;
@@ -295,6 +294,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       !changedXdir ||
       !recAtValid ||
       transferSame ||
+      nimTransfering ||
       !change ||
       change <= 0 ||
       moreThan ||
@@ -314,7 +314,7 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
       paperId,
       recDate,
       changedXdir,
-      storage,
+      safeStorage,
       note,
       type_,
     ]);
@@ -328,11 +328,12 @@ router.post("/log/rec", requiredLogged, async (req, res) => {
         type_,
       ]);
     }
+    const switch_ = bsns === "gts" ? "!" : "";
 
     const stockLogSQL = `
       SELECT *, ${dateCon("rec_at")}
       FROM paper_stock
-      WHERE paper_id = $1
+      WHERE paper_id = $1 AND storage ${switch_}= 9
       ORDER BY rec_at DESC, stock_rec DESC
     `;
 
