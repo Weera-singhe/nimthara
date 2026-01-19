@@ -284,7 +284,7 @@ export default function Esti({ user }) {
             <TableBody>
               <TableRow>
                 <TableCell>
-                  {(calEsti.unit_count || 1).toLocaleString()}
+                  {(calEsti?.unit_count || 1).toLocaleString()}
                 </TableCell>
                 <TableCell align="right">
                   {toLKR(calEsti?.total_price)}
@@ -392,7 +392,7 @@ export default function Esti({ user }) {
             <TableBody>
               <TableRow>
                 <TableCell>
-                  {(calEsti.unit_count || 1).toLocaleString()}
+                  {(calEsti?.unit_count || 1).toLocaleString()}
                 </TableCell>
                 <TableCell align="right">
                   {toLKR(calEsti?.total_price)}
