@@ -59,7 +59,7 @@ export default function PaperLog({ user }) {
     SetDBLoading(true);
     setForm(defForm);
 
-    const validBsns = ["nimthara", "gts"];
+    const validBsns = ["nim", "gts"];
     if (!bsns || !validBsns.includes(bsns)) {
       navigate("/papers/gts/log", { replace: true });
       return;
@@ -186,7 +186,7 @@ export default function PaperLog({ user }) {
         sx={{ mb: 1 }}
       >
         <ToggleButton value={"gts"}>gts papers</ToggleButton>
-        <ToggleButton value={"nimthara"}>nimthara</ToggleButton>
+        <ToggleButton value={"nim"}>nimthara</ToggleButton>
       </ToggleButtonGroup>
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         <Button

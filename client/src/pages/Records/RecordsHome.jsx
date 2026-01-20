@@ -109,11 +109,17 @@ export default function RecordsHome({ user }) {
               },
             }}
           >
-            <ListItemButton>Job Tickets</ListItemButton>
+            <ListItemButton component={Link} to="/records/nim/jtik">
+              Job Tickets
+            </ListItemButton>
             <Divider />
-            <ListItemButton>Paper Voucher</ListItemButton>
+            <ListItemButton component={Link} to="/records/nim/vouchppr">
+              Paper Voucher
+            </ListItemButton>
             <Divider />
-            <ListItemButton>PattyCash Voucher</ListItemButton>
+            <ListItemButton component={Link} to="/records/nim/vouchpet">
+              PattyCash Voucher
+            </ListItemButton>
             <Divider />
             <ListItemButton>Vat Invoice</ListItemButton>
             <Divider />

@@ -56,7 +56,7 @@ export default function PapersHome({ user }) {
     SetDBLoading(true);
     setForm(defForm);
     setAddPanel(false);
-    const validBsns = ["nimthara", "gts"];
+    const validBsns = ["nim", "gts"];
     console.log("bsns", bsns);
 
     if (!bsns || !validBsns.includes(bsns)) {
@@ -166,7 +166,7 @@ export default function PapersHome({ user }) {
             sx={{ mb: 1 }}
           >
             <ToggleButton value={"gts"}>gts papers</ToggleButton>
-            <ToggleButton value={"nimthara"}>nimthara</ToggleButton>
+            <ToggleButton value={"nim"}>nimthara</ToggleButton>
           </ToggleButtonGroup>
           <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
             <Button
