@@ -17,7 +17,7 @@ import LongLogo from "../assests/long_logo.png";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 
-const pages = ["papers", "audit", "customers", "jobs"];
+const pages = ["papers", "audit", "customers", "records", "jobs"];
 
 export default function MyAppBar({ user, setUser }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -182,11 +182,7 @@ export default function MyAppBar({ user, setUser }) {
               onClick={handleLoginLogout}
               color={user?.loggedIn ? "error" : "primary"}
             >
-              {user?.loggedIn ? (
-                <LogoutRoundedIcon />
-              ) : (
-                <LoginRoundedIcon />
-              )}{" "}
+              {user?.loggedIn ? <LogoutRoundedIcon /> : <LoginRoundedIcon />}
             </IconButton>
           </Box>
         </Toolbar>

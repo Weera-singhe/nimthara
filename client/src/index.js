@@ -18,6 +18,7 @@ import "./index.css";
 import Box from "@mui/material/Box";
 import Esti from "./pages/Esti/Esti";
 import PaperLog from "./pages/Papers/PaperLog";
+import RecordsHome from "./pages/Records/RecordsHome";
 
 axios.defaults.withCredentials = true;
 
@@ -69,6 +70,8 @@ const App = () => {
           path="/login"
           element={<Login user={user} setUser={setUser} />}
         />
+
+        <Route path="/records" element={<RecordsHome user={user} />} />
 
         <Route path="/papers" element={<PapersHome user={user} />} />
         <Route path="/papers/:bsns" element={<PapersHome user={user} />} />

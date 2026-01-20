@@ -6,6 +6,7 @@ const passport = require("passport");
 require("./Auth/passport");
 
 const jobsRoutes = require("./routes/jobs.routes");
+const recordsRoutes = require("./routes/records.routes");
 const docRoutes = require("./routes/doc.routes");
 const authRoutes = require("./routes/auth.routes");
 const estiRoutes = require("./routes/esti.routes");
@@ -50,7 +51,7 @@ app.use(
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
     },
-  })
+  }),
 );
 
 app.use(passport.initialize());
@@ -58,6 +59,7 @@ app.use(passport.session());
 
 // routes
 app.use("/jobs", jobsRoutes);
+app.use("/records", recordsRoutes);
 app.use("/papers", papersRoutes);
 app.use("/esti", estiRoutes);
 app.use("/doc", docRoutes);

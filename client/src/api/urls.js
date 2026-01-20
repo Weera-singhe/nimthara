@@ -7,5 +7,6 @@ const API_BASE_URL =
 export const JOBS_API_URL = `${API_BASE_URL}/jobs`;
 export const DOC_API_URL = `${API_BASE_URL}/doc`;
 export const PAPERS_API_URL = `${API_BASE_URL}/papers`;
+export const RECORDS_API_URL = `${API_BASE_URL}/records`;
 export const ESTI_API_URL = `${API_BASE_URL}/esti`;
 export const AUTH_API_URL = `${API_BASE_URL}/auth`;

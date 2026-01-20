@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Num from "../../helpers/Num";
 import axios from "axios";
 import {
@@ -23,14 +23,8 @@ import {
 } from "@mui/material";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { PAPERS_API_URL } from "../../api/urls";
-import {
-  handleApiError,
-  onNUM,
-  onNUM_N,
-  onSTR,
-} from "../../helpers/HandleChange";
+import { handleApiError, onNUM, onSTR } from "../../helpers/HandleChange";
 import MyFormBox from "../../helpers/MyFormBox";
-import { toLKR } from "../../helpers/cal";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
@@ -39,7 +33,6 @@ import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 import PrintOut from "../../helpers/PrintOut";
-import PurchaseOrder from "../../forms/PurchaseOrder";
 import VatInvoice from "../../forms/VatInvoice";
 
 export default function PaperLog({ user }) {
@@ -186,7 +179,7 @@ export default function PaperLog({ user }) {
         onChange={(e, v) => {
           if (v === null) return;
           navigate(`/papers/${v}/log${id ? "/" + id : ""}`);
-          setForm((p) => ({ ...p, ...defForm }));
+          setForm((p) => ({ ...p, type: "", type_data: null, direction: -1 }));
         }}
         size="small"
         color="primary"
@@ -298,26 +291,51 @@ export default function PaperLog({ user }) {
             </Select>
           </FormControl>
         )}
-
-        <Stack direction="row" alignItems="center">
+        <Stack direction="row" alignItems="center" gap={2}>
           <Num
             name="change"
-            value={form?.change}
+            value={form?.change ?? 0}
             onChange={onNUM(setForm)}
             label="Quantity"
             deci={0}
             color={moreThan && "red"}
           />
-          {!!form?.change && (
-            <Box
-              color="error"
-              sx={{ border: "1px solid #b9b9b9ff", p: 1.2, borderRadius: 1 }}
-            >
-              {Math.floor(form?.change / unitVal)}
-              {" | "}
-              {form?.change % unitVal}
-            </Box>
-          )}
+          <Stack direction="row">
+            <Num
+              name="packets"
+              value={Math.floor(Number(form?.change ?? 0) / unitVal)}
+              deci={0}
+              width={65}
+              onChange={(v) =>
+                setForm((p) => {
+                  const n = Number(v?.target?.value ?? v ?? 0);
+                  const total = Number(p?.change ?? 0);
+                  return {
+                    ...p,
+                    change: Math.max(0, n) * unitVal + (total % unitVal),
+                  };
+                })
+              }
+            />
+            <Num
+              name="loose"
+              value={Number(form?.change ?? 0) % unitVal}
+              deci={0}
+              width={70}
+              max={unitVal - 1}
+              onChange={(v) =>
+                setForm((p) => {
+                  const n = Number(v?.target?.value ?? v ?? 0);
+                  const total = Number(p?.change ?? 0);
+                  const loose = Math.min(unitVal - 1, Math.max(0, n));
+                  return {
+                    ...p,
+                    change: Math.floor(total / unitVal) * unitVal + loose,
+                  };
+                })
+              }
+            />
+          </Stack>
         </Stack>
         <TextField
           type="date"
@@ -447,7 +465,7 @@ export default function PaperLog({ user }) {
             </AccordionSummary>
             <Divider sx={{ mx: 2 }} />
             <AccordionDetails>
-              <PrintOut paperSize="A5">
+              {/* <PrintOut paperSize="A5">
                 <VatInvoice
                   data={{
                     number: `#${String(pl?.stock_rec).padStart(6, "0")}`,
@@ -474,7 +492,7 @@ export default function PaperLog({ user }) {
                     },
                   ]}
                 />
-              </PrintOut>
+              </PrintOut> */}
               <Typography> Note : {pl?.note}</Typography>
             </AccordionDetails>
           </Accordion>
