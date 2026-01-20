@@ -161,8 +161,8 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
   try {
     const { price, id, rec_at } = req.body;
 
-    console.log(req.body);
-    console.log("reqbody done");
+    // console.log(req.body);
+    // console.log("reqbody done");
     const paperPrice = Number(price || 0);
     const recDate = new Date(rec_at);
     const paperId = Number(id);
@@ -328,7 +328,7 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
         type_,
       ]);
     }
-    const switch_ = bsns === "gts" ? "!" : "";
+    const switch_ = isGts ? "!" : "";
 
     const stockLogSQL = `
       SELECT *, ${dateCon("rec_at")}

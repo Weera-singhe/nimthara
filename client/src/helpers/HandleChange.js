@@ -34,8 +34,8 @@ export const onSTR_NN = (set, parentKey, i) => (e) => {
   const cleaned = cleanStr(value);
 
   set((prev) => {
-    const safePrev = prev ?? {}; // ✅ handle null
-    const parent = safePrev[parentKey] ?? {}; // ✅ handle null/undefined
+    const safePrev = prev ?? {};
+    const parent = safePrev[parentKey] ?? {};
     const row = { ...(parent[key] ?? {}) };
 
     if (!cleaned) {

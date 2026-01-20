@@ -54,6 +54,8 @@ export default function PaperLog({ user }) {
     direction: -1,
     storage: 1,
     storageTo: 2,
+    type: "",
+    type_data: null,
   };
   const [form, setForm] = useState(defForm);
   const [paperList, setPaperList] = useState([]);
@@ -126,7 +128,7 @@ export default function PaperLog({ user }) {
     SetDBLoading(true);
 
     axios
-      .post(`${PAPERS_API_URL}/:${bsns}/log/rec`, form)
+      .post(`${PAPERS_API_URL}/${bsns}/log/rec`, form)
       .then((res) => {
         if (res.data.success) {
           setStockLog(res.data.stockLog || []);
@@ -184,7 +186,7 @@ export default function PaperLog({ user }) {
         onChange={(e, v) => {
           if (v === null) return;
           navigate(`/papers/${v}/log${id ? "/" + id : ""}`);
-          setForm(defForm);
+          setForm((p) => ({ ...p, ...defForm }));
         }}
         size="small"
         color="primary"
