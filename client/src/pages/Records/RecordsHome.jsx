@@ -109,7 +109,7 @@ export default function RecordsHome({ user }) {
               },
             }}
           >
-            <ListItemButton component={Link} to="/records/nim/jtik">
+            <ListItemButton component={Link} to="/records/nim/jticket">
               Job Tickets
             </ListItemButton>
             <Divider />

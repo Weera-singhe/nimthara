@@ -264,10 +264,18 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
     const paperId = Number(id);
 
     const isTransfer = direction === 0;
-    const changedXdir = isTransfer ? change * -1 : change * direction;
+
+    const dirOk = direction === -1 || isTransfer || direction === 1;
+    if (!dirOk) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid direction" });
+    }
+
+    const changed_x_dir = isTransfer ? change * -1 : change * direction;
+
     const type_ = isTransfer ? "trn" : type;
 
-    // const dealer_ = isTransfer ? "" : dealer;
     const recAtValid =
       Number.isFinite(recDate.getTime()) &&
       recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
@@ -288,16 +296,20 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
       : safeStorage === 1
         ? (checkrows[0]?.stock_a ?? 0)
         : (checkrows[0]?.stock_b ?? 0);
-    const moreThan = direction < 1 && minusStock < change;
+
+    const moreThan = changed_x_dir < 0 && minusStock < change;
+
+    if (!change || change <= 0 || moreThan) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Negative Stock" });
+    }
 
     if (
-      !changedXdir ||
+      !changed_x_dir ||
       !recAtValid ||
       transferSame ||
       nimTransfering ||
-      !change ||
-      change <= 0 ||
-      moreThan ||
       !type_
     ) {
       return res.status(400).json({
@@ -307,38 +319,21 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
     }
 
     if (!requiredLevel(req, res, "level_paper", 1)) return;
+
     const insertSql = `
       INSERT INTO paper_stock (paper_id, rec_at, change, storage, note, type) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *
     `;
+
     const { rows: insertRows } = await pool.query(insertSql, [
       paperId,
       recDate,
-      changedXdir,
+      changed_x_dir,
       safeStorage,
       note,
       type_,
     ]);
-    if (!!isTransfer) {
-      await pool.query(insertSql, [
-        paperId,
-        recDate,
-        change,
-        storageTo,
-        note,
-        type_,
-      ]);
-    }
-    const switch_ = isGts ? "!" : "";
 
-    const stockLogSQL = `
-      SELECT *, ${dateCon("rec_at")}
-      FROM paper_stock
-      WHERE paper_id = $1 AND storage ${switch_}= 9
-      ORDER BY rec_at DESC, stock_rec DESC
-    `;
-
-    const { rows: stockLog } = await pool.query(stockLogSQL, [id]);
-
+    const stock_rec1 = insertRows[0].stock_rec;
     const user_id = getUserID(req);
 
     const act = isTransfer ? "transfer" : direction === 1 ? "plus" : "minus";
@@ -350,11 +345,46 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
       change,
       "/log/rec",
       paperId,
-      null,
+      stock_rec1,
       null,
       null,
       "paper_stock",
     );
+
+    if (!!isTransfer) {
+      const { rows: insertRowsT } = await pool.query(insertSql, [
+        paperId,
+        recDate,
+        change,
+        storageTo,
+        note,
+        type_,
+      ]);
+
+      const stock_rec2 = insertRowsT[0].stock_rec;
+      await RecActivity(
+        user_id,
+        act,
+        "{}",
+        change,
+        "/log/rec",
+        paperId,
+        stock_rec2,
+        null,
+        null,
+        "paper_stock",
+      );
+    }
+    const switch_ = isGts ? "!" : "";
+
+    const stockLogSQL = `
+      SELECT *, ${dateCon("rec_at")}
+      FROM paper_stock
+      WHERE paper_id = $1 AND storage ${switch_}= 9
+      ORDER BY rec_at DESC, stock_rec DESC
+    `;
+
+    const { rows: stockLog } = await pool.query(stockLogSQL, [paperId]);
 
     const papers = await GetPapersFullData();
     res.status(200).json({ success: true, stockLog, papers });

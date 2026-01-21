@@ -19,6 +19,7 @@ import Box from "@mui/material/Box";
 import Esti from "./pages/Esti/Esti";
 import PaperLog from "./pages/Papers/PaperLog";
 import RecordsHome from "./pages/Records/RecordsHome";
+import RecJobTicket from "./pages/Records/RecJobTicket";
 
 axios.defaults.withCredentials = true;
 
@@ -72,6 +73,11 @@ const App = () => {
         />
 
         <Route path="/records" element={<RecordsHome user={user} />} />
+
+        <Route
+          path="/records/nim/jticket"
+          element={<RecJobTicket user={user} />}
+        />
 
         <Route path="/papers" element={<PapersHome user={user} />} />
         <Route path="/papers/:bsns" element={<PapersHome user={user} />} />
