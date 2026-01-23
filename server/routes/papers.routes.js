@@ -13,7 +13,6 @@ const {
   GetPapersFullData,
   GetAllPaperSpecs,
 } = require("../Helpers/dbFunc");
-const { dateTimeCon, dateCon } = require("../Helpers/dates");
 
 router.get("/", async (req, res) => {
   try {
@@ -143,12 +142,11 @@ router.get("/:bsns/priceLog/:id", requiredLogged, async (req, res) => {
   console.log(id);
   try {
     const priceLogSQL = `
-      SELECT *, ${dateTimeCon("rec_at")}
+      SELECT *
       FROM paper_price
       WHERE paper_id = $1
       ORDER BY rec_at DESC
     `;
-
     const { rows: priceLog } = await pool.query(priceLogSQL, [id]);
 
     res.json({ success: true, priceLog });
@@ -199,7 +197,7 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
     ]);
 
     const priceLogSQL = `
-      SELECT *, ${dateTimeCon("rec_at")}
+      SELECT *
       FROM paper_price
       WHERE paper_id = $1
       ORDER BY rec_at DESC
@@ -238,7 +236,7 @@ router.get("/:bsns/stockLog/:id", requiredLogged, async (req, res) => {
 
   try {
     const stockLogSQL = `
-      SELECT *, ${dateCon("rec_at")}
+      SELECT *
       FROM paper_stock
       WHERE paper_id = $1 AND storage ${switch_}= 9
       ORDER BY rec_at DESC, stock_rec DESC
@@ -381,7 +379,7 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
     const switch_ = isGts ? "!" : "";
 
     const stockLogSQL = `
-      SELECT *, ${dateCon("rec_at")}
+      SELECT *
       FROM paper_stock
       WHERE paper_id = $1 AND storage ${switch_}= 9
       ORDER BY rec_at DESC, stock_rec DESC

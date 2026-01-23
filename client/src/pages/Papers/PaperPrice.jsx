@@ -30,14 +30,13 @@ import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 
 export default function PaperPrice({ user }) {
-  const nowLK = new Date()
+  const today_ = new Date()
     .toLocaleString("sv-SE", { timeZone: "Asia/Colombo" })
-    .replace(" ", "T")
-    .slice(0, 16);
+    .slice(0, 10);
 
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ rec_at: nowLK });
+  const [form, setForm] = useState({ rec_at: today_ });
   const [paperList, setPaperList] = useState([]);
   const [priceLog, setPriceLog] = useState([]);
   const [DBLoading, SetDBLoading] = useState(true);
@@ -45,7 +44,7 @@ export default function PaperPrice({ user }) {
   const { bsns, id } = useParams();
   useEffect(() => {
     SetDBLoading(true);
-    setForm({ rec_at: nowLK });
+    setForm({ rec_at: today_ });
 
     if (bsns !== "gts") {
       navigate("/papers/gts/price", { replace: true });
@@ -59,7 +58,7 @@ export default function PaperPrice({ user }) {
 
         const routeId = Number(id);
         paperList_.some((p) => p.id === routeId) &&
-          setForm((p) => ({ ...p, id: routeId, rec_at: nowLK }));
+          setForm((p) => ({ ...p, id: routeId, rec_at: today_ }));
 
         res.data.success && SetDBLoading(false);
       })
@@ -67,8 +66,8 @@ export default function PaperPrice({ user }) {
   }, []);
 
   useEffect(() => {
-    console.log(form);
-  }, [form]);
+    console.log(priceLog);
+  }, [priceLog]);
 
   const getPaper = (id) => {
     if (id == null) return undefined;
@@ -112,8 +111,7 @@ export default function PaperPrice({ user }) {
       .finally(() => SetDBLoading(false));
   }
 
-  const formIsFilled =
-    new Date(form.rec_at) <= new Date(nowLK) && form?.id && form?.price;
+  const formIsFilled = form.rec_at <= today_ && form?.id && form?.price;
 
   const makeItLoad = DBLoading || !user?.loggedIn;
   return (
@@ -186,7 +184,7 @@ export default function PaperPrice({ user }) {
           label={`Price of ${selectedPaper?.unit_val || 1}`}
         />
         <TextField
-          type="datetime-local"
+          type="date"
           name="rec_at"
           value={form?.rec_at || ""}
           size="small"
@@ -208,7 +206,7 @@ export default function PaperPrice({ user }) {
         {priceLog?.map((pl) => (
           <React.Fragment key={pl.price_rec}>
             <ListItem alignItems="center">
-              <ListItemText primary={pl?.rec_at_t} />
+              <ListItemText primary={pl?.rec_at} />
 
               <Button>{toLKR(pl?.price)}</Button>
             </ListItem>

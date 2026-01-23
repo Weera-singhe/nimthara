@@ -84,6 +84,9 @@ export default function PaperLog({ user }) {
   useEffect(() => {
     console.log(form);
   }, [form]);
+  useEffect(() => {
+    console.log(stockLog);
+  }, [stockLog]);
 
   const getPaper = (id) => {
     if (id == null) return undefined;
@@ -148,7 +151,7 @@ export default function PaperLog({ user }) {
 
   const typeOk = isTrans ? true : form?.type;
   const formIsFilled =
-    new Date(form?.rec_at) <= new Date(today_) &&
+    form?.rec_at <= today_ &&
     form?.id &&
     form?.change &&
     form?.rec_at &&
@@ -202,7 +205,7 @@ export default function PaperLog({ user }) {
             startIcon={<AttachMoneyRoundedIcon />}
             variant="outlined"
             component={Link}
-            to={`/papers/gts/price`}
+            to={`/papers/gts/price${id ? "/" + id : ""}`}
           >
             price
           </Button>
@@ -435,7 +438,7 @@ export default function PaperLog({ user }) {
                 <Typography component="span" fontWeight={450}>
                   #{String(pl?.stock_rec).padStart(6, "0")}
                 </Typography>
-                <Typography component="span">{pl?.rec_at_}</Typography>
+                <Typography component="span">{pl?.rec_at}</Typography>
               </Box>
               <Box
                 sx={{
