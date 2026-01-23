@@ -9,10 +9,20 @@ const {
 } = require("../Auth/authcheck");
 const {
   RecActivity,
-  WhatzChanged,
   GetPapersFullData,
   GetAllPaperSpecs,
 } = require("../Helpers/dbFunc");
+
+const isValidRecAt = (rec_at) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(rec_at) &&
+  (() => {
+    const d = new Date(rec_at + "T00:00:00Z");
+    return (
+      d.getUTCFullYear() >= 2024 &&
+      d.toISOString().slice(0, 10) === rec_at &&
+      d <= new Date().setUTCHours(0, 0, 0, 0)
+    );
+  })();
 
 router.get("/", async (req, res) => {
   try {
@@ -49,9 +59,6 @@ router.post("/:bsns/add", requiredLogged, async (req, res) => {
 
     const longside = size_h >= size_w ? size_h : size_w;
     const shortside = size_h >= size_w ? size_w : size_h;
-    // console.log("shortside", shortside);
-    // console.log("longside", longside);
-    // console.log("end");
 
     const requiredFields = [
       "type",
@@ -136,18 +143,23 @@ router.post("/:bsns/add", requiredLogged, async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+async function getPriceLog(paperId) {
+  const priceLogSQL = `
+    SELECT *
+    FROM paper_price
+    WHERE paper_id = $1
+    ORDER BY rec_at DESC, price_rec DESC
+  `;
+
+  const { rows } = await pool.query(priceLogSQL, [paperId]);
+  return rows;
+}
 
 router.get("/:bsns/priceLog/:id", requiredLogged, async (req, res) => {
   const { id } = req.params;
   console.log(id);
   try {
-    const priceLogSQL = `
-      SELECT *
-      FROM paper_price
-      WHERE paper_id = $1
-      ORDER BY rec_at DESC
-    `;
-    const { rows: priceLog } = await pool.query(priceLogSQL, [id]);
+    const priceLog = await getPriceLog(id);
 
     res.json({ success: true, priceLog });
   } catch (err) {
@@ -163,15 +175,11 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
     // console.log(req.body);
     // console.log("reqbody done");
     const paperPrice = Number(price || 0);
-    const recDate = new Date(rec_at);
     const paperId = Number(id);
 
     const { bsns } = req.params;
     const isGts = bsns === "gts";
-
-    const recAtValid =
-      Number.isFinite(recDate.getTime()) &&
-      recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
+    const recAtValid = isValidRecAt(rec_at);
 
     if (!paperPrice || paperPrice <= 0 || !recAtValid || !isGts) {
       return res
@@ -192,18 +200,11 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
     `;
     const { rows: insertRows } = await pool.query(insertSql, [
       paperId,
-      recDate,
+      rec_at,
       paperPrice,
     ]);
 
-    const priceLogSQL = `
-      SELECT *
-      FROM paper_price
-      WHERE paper_id = $1
-      ORDER BY rec_at DESC
-    `;
-
-    const { rows: priceLog } = await pool.query(priceLogSQL, [paperId]);
+    const priceLog = await getPriceLog(paperId);
 
     const user_id = getUserID(req);
 
@@ -229,20 +230,26 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
   }
 });
 
+async function getStockLog(paperId, isGts) {
+  const switch_ = isGts ? "!" : "";
+
+  const stockLogSQL = `
+    SELECT *
+    FROM paper_stock
+    WHERE paper_id = $1 AND storage ${switch_}= 9
+    ORDER BY rec_at DESC, stock_rec DESC
+  `;
+
+  const { rows } = await pool.query(stockLogSQL, [paperId]);
+  return rows;
+}
+
 router.get("/:bsns/stockLog/:id", requiredLogged, async (req, res) => {
   const { bsns, id } = req.params;
 
-  const switch_ = bsns === "gts" ? "!" : "";
-
   try {
-    const stockLogSQL = `
-      SELECT *
-      FROM paper_stock
-      WHERE paper_id = $1 AND storage ${switch_}= 9
-      ORDER BY rec_at DESC, stock_rec DESC
-    `;
-
-    const { rows: stockLog } = await pool.query(stockLogSQL, [id]);
+    const isGts = bsns === "gts";
+    const stockLog = await getStockLog(id, isGts);
 
     res.json({ success: true, stockLog });
   } catch (err) {
@@ -260,13 +267,12 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
     const { bsns } = req.params;
     const isGts = bsns === "gts";
     const safeStorage = isGts ? storage : 9;
-
-    const recDate = new Date(rec_at);
     const paperId = Number(id);
 
     const isTransfer = direction === 0;
 
     const dirOk = direction === -1 || isTransfer || direction === 1;
+
     if (!dirOk) {
       return res
         .status(400)
@@ -274,15 +280,7 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
     }
 
     const changed_x_dir = isTransfer ? change * -1 : change * direction;
-
     const type_ = isTransfer ? "trn" : type;
-
-    const recAtValid =
-      Number.isFinite(recDate.getTime()) &&
-      recDate.getTime() <= Date.now() + 5.5 * 60 * 60 * 1000;
-
-    const transferSame = isTransfer && storage === storageTo;
-    const nimTransfering = !isGts && isTransfer;
 
     const checkSql = `SELECT * from paper_data where id = $1`;
     const { rows: checkrows } = await pool.query(checkSql, [paperId]);
@@ -292,30 +290,28 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
         .json({ success: false, message: "Paper cannot find" });
     }
 
-    const minusStock = !isGts
+    const reducingStorage = !isGts
       ? (checkrows[0]?.stock_nim ?? 0)
       : safeStorage === 1
         ? (checkrows[0]?.stock_a ?? 0)
         : (checkrows[0]?.stock_b ?? 0);
 
-    const moreThan = changed_x_dir < 0 && minusStock < change;
+    const moreThanHave = changed_x_dir < 0 && reducingStorage < change;
 
-    if (!change || change <= 0 || moreThan) {
+    if (!change || change <= 0 || moreThanHave || !changed_x_dir) {
       return res
         .status(400)
         .json({ success: false, message: "Negative Stock" });
     }
+    const recAtValid = isValidRecAt(rec_at);
 
-    if (
-      !changed_x_dir ||
-      !recAtValid ||
-      transferSame ||
-      nimTransfering ||
-      !type_
-    ) {
+    const transferSame = isTransfer && storage === storageTo;
+    const nimTransfering = !isGts && isTransfer;
+
+    if (!recAtValid || transferSame || nimTransfering || !type_) {
       return res.status(400).json({
         success: false,
-        message: `Invalid or missing field`,
+        message: `Invalid field`,
       });
     }
 
@@ -327,7 +323,7 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
 
     const { rows: insertRows } = await pool.query(insertSql, [
       paperId,
-      recDate,
+      rec_at,
       changed_x_dir,
       safeStorage,
       note,
@@ -355,7 +351,7 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
     if (!!isTransfer) {
       const { rows: insertRowsT } = await pool.query(insertSql, [
         paperId,
-        recDate,
+        rec_at,
         change,
         storageTo,
         note,
@@ -376,17 +372,8 @@ router.post("/:bsns/log/rec", requiredLogged, async (req, res) => {
         "paper_stock",
       );
     }
-    const switch_ = isGts ? "!" : "";
 
-    const stockLogSQL = `
-      SELECT *
-      FROM paper_stock
-      WHERE paper_id = $1 AND storage ${switch_}= 9
-      ORDER BY rec_at DESC, stock_rec DESC
-    `;
-
-    const { rows: stockLog } = await pool.query(stockLogSQL, [paperId]);
-
+    const stockLog = await getStockLog(paperId, isGts);
     const papers = await GetPapersFullData();
     res.status(200).json({ success: true, stockLog, papers });
   } catch (err) {

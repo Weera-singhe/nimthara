@@ -39,6 +39,10 @@ import IconButton from "@mui/material/IconButton";
 export default function JobFile({ user }) {
   const navigate = useNavigate();
   const { fileid } = useParams();
+  const today_ =
+    new Date()
+      .toLocaleString("sv-SE", { timeZone: "Asia/Colombo" })
+      .slice(0, 10) + "T14:00";
 
   const [jobFilesSaved, setJobFilesSaved] = useState({});
   const [jobFilesTemp, setJobFilesTemp] = useState({});
@@ -54,8 +58,8 @@ export default function JobFile({ user }) {
       .get(`${JOBS_API_URL}/file/${fileid || "new"}`)
       .then((res) => {
         setCustomers(res.data.customers || []);
-        setJobFilesSaved(res.data.thisJobFile || []);
-        setJobFilesTemp(res.data.thisJobFile || []);
+        setJobFilesSaved({ bid_deadline_i: today_, ...res.data.thisJobFile });
+        setJobFilesTemp({ bid_deadline_i: today_, ...res.data.thisJobFile });
         setTheseJobs(res.data.theseJobs || []);
         // console.log("db loaded", res.data);
       })
