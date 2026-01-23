@@ -114,6 +114,7 @@ router.post("/:bsns/add", requiredLogged, async (req, res) => {
     }
 
     const newPaper = rows[0];
+    console.log(newPaper);
     const user_id = getUserID(req);
 
     await RecActivity(
@@ -208,6 +209,8 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
 
     const user_id = getUserID(req);
 
+    const price_rec = insertRows[0].price_rec;
+
     await RecActivity(
       user_id,
       "insert",
@@ -215,7 +218,7 @@ router.post("/:bsns/price/rec", requiredLogged, async (req, res) => {
       insertRows[0],
       "/price/rec",
       paperId,
-      null,
+      price_rec,
       null,
       null,
       "paper_price",

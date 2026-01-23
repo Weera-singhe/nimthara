@@ -355,7 +355,14 @@ export default function PapersHome({ user }) {
             {paperList
               .filter((pp) => pp?.type_ === ty?.id)
               .map((pp) => (
-                <Box key={pp?.id}>
+                <Box
+                  key={pp?.id}
+                  sx={{
+                    "&:hover": {
+                      bgcolor: "#e4eded",
+                    },
+                  }}
+                >
                   <AccordionDetails
                     sx={{
                       py: 1,
