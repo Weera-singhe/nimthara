@@ -16,9 +16,9 @@ router.get("/", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-router.get("/nim/jticket", async (req, res) => {
+router.get("/nim/jticket/:id", async (req, res) => {
   try {
-    const { rows: allJobs } = await pool.query(
+    const { rows: qualiJobs } = await pool.query(
       `
       SELECT
         jj.*,
@@ -33,10 +33,10 @@ router.get("/nim/jticket", async (req, res) => {
         ON cs.id        = jf.customer_id
       WHERE jj.hide_job = FALSE 
       AND jj.job_index <= jf.jobs_count
-      AND job_status > 0
+      AND jj.job_status>0
       `,
     );
-    res.json({ success: true, allJobs });
+    res.json({ success: true, qualiJobs });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });

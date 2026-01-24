@@ -27,6 +27,7 @@ export default function PrintOut({ children, paperSize = "A5" }) {
   return (
     <>
       <Button
+        type="button"
         onClick={() => setPrintOpened(true)}
         variant="outlined"
         size="small"
@@ -38,10 +39,11 @@ export default function PrintOut({ children, paperSize = "A5" }) {
         transitionDuration={0}
         open={printOpened}
         anchorReference="none"
+        onClose={() => setPrintOpened(false)}
         PaperProps={{
           sx: {
             position: "fixed",
-            inset: "50px",
+            inset: "100px 15px 15px 15px",
             overflow: "auto",
             display: "flex",
             justifyContent: "center",
@@ -63,24 +65,25 @@ export default function PrintOut({ children, paperSize = "A5" }) {
           {children}
         </Box>
         <Fab
+          color="error"
           onClick={() => setPrintOpened(false)}
           size="small"
           sx={{
             position: "fixed",
-            top: 40,
-            left: 40,
+            top: 95,
+            left: 10,
             zIndex: 1301,
           }}
         >
-          <CloseRoundedIcon color="error" />
+          <CloseRoundedIcon fontSize="small" />
         </Fab>
         <Fab
           color="primary"
           onClick={handlePrint}
           sx={{
             position: "fixed",
-            bottom: 60,
-            left: 60,
+            bottom: 30,
+            left: 30,
             zIndex: 1301,
           }}
         >

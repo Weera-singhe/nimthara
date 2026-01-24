@@ -643,6 +643,8 @@ export default function JobJob({ user }) {
                       component={Link}
                       to={`/esti/${jobSaved?.job_id}/jobs_pre`}
                       color="primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       <AddLinkRoundedIcon />
                     </IconButton>
@@ -1156,15 +1158,6 @@ export default function JobJob({ user }) {
                     value={0}
                     onChange={onNUMAW}
                   />
-                  {/* <FormControlLabel
-                    control={<Checkbox />}
-                    label="Submitted"
-                    name="status"
-                    checked={jobsTemp?.artwork?.status === 1}
-                    disabled={jobsSaved?.artwork?.status >= 2}
-                    value={1}
-                    onChange={onNUMAW}
-                  /> */}
                   <FormControlLabel
                     control={<Checkbox color="success" />}
                     label="Approved / Ready"
@@ -1186,6 +1179,20 @@ export default function JobJob({ user }) {
                       InputLabelProps={{ shrink: true }}
                     />
                   )}
+                </Stack>
+
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" gap={1} alignItems="center">
+                  <Typography>Job Ticket</Typography>
+                  <IconButton
+                    color="primary"
+                    component={Link}
+                    to={`/records/nim/jticket/${jobSaved?.job_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <AddLinkRoundedIcon />
+                  </IconButton>
                 </Stack>
 
                 <Divider sx={{ my: 2 }} />

@@ -713,36 +713,41 @@ export default function JobsHome({ user }) {
               >
                 {allJobsSearch
                   .filter((j) => {
-                    const q = searchTxtDeb.trim().toLowerCase();
+                    const q = searchTxtDeb
+                      .toLowerCase()
+                      .replace(/[\s\-_()]+/g, " ")
+                      .trim();
+
                     if (!q) return true;
-                    const primary =
+
+                    const hay = (
                       "#" +
                       jobfileTag(j?.file_id) +
-                      "_" +
-                      (j?.job_code || j?.job_index) +
-                      " - " +
-                      CustomerName(j);
-                    const secondary = [
-                      j?.doc_name,
-                      j?.file_name ? `(${j?.file_name})` : "",
-                      j?.job_name ? `- ${j?.job_name}` : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
+                      " " +
+                      j?.job_code +
+                      " " +
+                      j?.job_index +
+                      " " +
+                      j?.customer_name +
+                      " " +
+                      j?.cus_name_short +
+                      " " +
+                      `(${j.file_name})` +
+                      " " +
+                      j?.job_name
+                    )
+                      .toLowerCase()
+                      .replace(/[\s\-_()]+/g, " ")
+                      .trim();
 
-                    const hay = (primary + " " + secondary).toLowerCase();
-
-                    return q
-                      .split(/\s+/)
-                      .filter(Boolean)
-                      .every((t) => hay.includes(t));
+                    return q.split(" ").every((t) => hay.includes(t));
                   })
                   .slice(0, LIMIT)
                   .map((j) => (
                     <ListItemButton
                       component={Link}
                       to={`/jobs/job/${j?.file_id}/${j?.job_index_base}`}
-                      key={j.job_id}
+                      key={`${j?.file_id}-${j?.job_index_base}-${j?.job_id ?? ""}`}
                     >
                       <ListItemAvatar>
                         <WorkOutlineRoundedIcon />

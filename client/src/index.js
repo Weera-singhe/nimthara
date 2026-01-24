@@ -82,6 +82,10 @@ const App = () => {
           <Route path="/records" element={<RecordsHome user={user} />} />
 
           <Route
+            path="/records/nim/jticket/:id"
+            element={<RecJobTicket user={user} />}
+          />
+          <Route
             path="/records/nim/jticket"
             element={<RecJobTicket user={user} />}
           />
