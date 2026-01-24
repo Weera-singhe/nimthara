@@ -200,16 +200,17 @@ export default function PaperLog({ user }) {
         >
           list
         </Button>
-        {bsns === "gts" && (
-          <Button
-            startIcon={<AttachMoneyRoundedIcon />}
-            variant="outlined"
-            component={Link}
-            to={`/papers/gts/price${id ? "/" + id : ""}`}
-          >
-            price
-          </Button>
-        )}
+
+        <Button
+          startIcon={<AttachMoneyRoundedIcon />}
+          variant="outlined"
+          component={Link}
+          to={`/papers/gts/price${id ? "/" + id : ""}`}
+          disabled={!isGts}
+        >
+          price
+        </Button>
+
         <Button startIcon={<NotesRoundedIcon />} variant="contained">
           stock
         </Button>

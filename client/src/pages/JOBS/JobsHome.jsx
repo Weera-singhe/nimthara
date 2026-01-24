@@ -14,32 +14,48 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+
 import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import { handleApiError } from "../../helpers/HandleChange";
+import { InputAdornment, TextField } from "@mui/material";
 
 export default function JobsHome({ user }) {
   const [dbLoading, setDbloading] = useState(true);
-
-  const [allJobs, setAllJobs] = useState([]);
+  const [qualiJobs, setQualiJobs] = useState([]);
+  const [allJobsSearch, setAllJobsSearch] = useState([]);
   const [allJobFiles, setAllJobFiles] = useState([]);
-
   const [tabV, setTabV] = useState(2);
 
+  const [searchTxt, setSearchTxt] = useState("");
+  const [searchTxtDeb, setSearchTxtDeb] = useState("");
+  const LIMIT = 100;
+
   useEffect(() => {
+    setDbloading(true);
+    setQualiJobs([]);
+    setAllJobFiles([]);
+    setAllJobsSearch([]);
     axios
       .get(JOBS_API_URL)
       .then((res) => {
-        setAllJobs(res.data.allJobs);
-        setAllJobFiles(res.data.allJobFiles);
-        ///console.log(res.data);
+        setAllJobsSearch(tabV === 3 ? res.data.allJobsSearch : []);
+        setQualiJobs(tabV === 1 ? res.data.qualiJobs : []);
+        setAllJobFiles(tabV === 2 ? res.data.allJobFiles : []);
+        console.log(res.data);
       })
       .catch(handleApiError)
       .finally(() => setDbloading(false));
-  }, []);
+  }, [tabV]);
 
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
+
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTxtDeb(searchTxt), 200); // 200ms is enough
+    return () => clearTimeout(t);
+  }, [searchTxt]);
 
   const CustomerName = (j) =>
     j?.customer_id === 1
@@ -47,15 +63,17 @@ export default function JobsHome({ user }) {
       : j?.cus_name_short || j?.customer_name;
 
   return (
-    <Box
+    <Box //main box
       sx={{
-        height: "81vh",
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        minHeight: 0,
       }}
     >
       <Box
+        //first box
         sx={{
           display: "flex",
           alignItems: "center",
@@ -67,25 +85,32 @@ export default function JobsHome({ user }) {
           component={Link}
           to="/jobs/file/new"
           variant="contained"
-          startIcon={<CreateNewFolderRoundedIcon />}
           color="action"
         >
-          FILE
+          <CreateNewFolderRoundedIcon />
         </Button>
 
         <Tabs
           value={tabV}
-          onChange={(_, v) => setTabV(v)}
+          onChange={(_, v) => {
+            setTabV(v);
+            setSearchTxt("");
+          }}
           textColor="secondary"
           indicatorColor="secondary"
+          variant="scrollable"
+          scrollButtons={false}
         >
           <Tab
             value={1}
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <WorkOutlineRoundedIcon />
-                Jobs
-                {dbLoading && <CircularProgress size={16} color="inherit" />}
+                {dbLoading ? (
+                  <CircularProgress size={24} color="secondary" />
+                ) : (
+                  <WorkOutlineRoundedIcon />
+                )}
+                Qualified
               </Box>
             }
           />
@@ -93,9 +118,25 @@ export default function JobsHome({ user }) {
             value={2}
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <FolderOutlinedIcon />
-                Job Files
-                {dbLoading && <CircularProgress size={16} color="inherit" />}
+                {dbLoading ? (
+                  <CircularProgress size={24} color="secondary" />
+                ) : (
+                  <FolderOutlinedIcon />
+                )}
+                Bidding
+              </Box>
+            }
+          />
+          <Tab
+            value={3}
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {dbLoading ? (
+                  <CircularProgress size={24} color="secondary" />
+                ) : (
+                  <SearchRoundedIcon />
+                )}
+                Search
               </Box>
             }
           />
@@ -103,10 +144,12 @@ export default function JobsHome({ user }) {
       </Box>
 
       <Box
+        // second box
         sx={{
-          flex: "1 1 auto",
-          overflowY: "auto",
+          flex: 1, // ✅ fill remaining height after first box
+          overflowY: "auto", // ✅ content scrolls, boxes stay
           mt: 1,
+          minHeight: 0,
         }}
       >
         {tabV === 1 && (
@@ -125,6 +168,10 @@ export default function JobsHome({ user }) {
                   },
                 },
                 "& .MuiListSubheader-root": {
+                  border: "1px solid grey",
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
                   border: "1px solid #ca001e",
                   borderLeft: "6px solid #ca001e",
                   my: 0.5,
@@ -133,12 +180,26 @@ export default function JobsHome({ user }) {
                     bgcolor: "#ffebee",
                   },
                 },
+                "& .cnt": {
+                  width: "fit-content",
+                  px: 1,
+                  m: 1.5,
+                  height: 24,
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: 1,
+                  backgroundColor: "#c54b5d",
+                  fontWeight: 450,
+                },
               }}
             >
-              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+              <ListSubheader>
                 Not Started
+                <Box className="cnt">
+                  {qualiJobs.filter((j) => j?.job_status === 1).length}
+                </Box>
               </ListSubheader>
-              {allJobs
+              {qualiJobs
                 .filter((j) => j?.job_status === 1)
                 .map((j) => (
                   <ListItemButton
@@ -185,10 +246,13 @@ export default function JobsHome({ user }) {
                     />
                   </ListItemButton>
                 ))}
-              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+              <ListSubheader>
                 Started
+                <Box className="cnt">
+                  {qualiJobs.filter((j) => j?.job_status === 2).length}
+                </Box>
               </ListSubheader>
-              {allJobs
+              {qualiJobs
                 .filter((j) => j?.job_status === 2)
                 .map((j) => (
                   <ListItemButton
@@ -235,10 +299,13 @@ export default function JobsHome({ user }) {
                     />
                   </ListItemButton>
                 ))}
-              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
+              <ListSubheader>
                 Finished not Delivered
+                <Box className="cnt">
+                  {qualiJobs.filter((j) => j?.job_status === 3).length}
+                </Box>
               </ListSubheader>
-              {allJobs
+              {qualiJobs
                 .filter((j) => j?.job_status === 3)
                 .map((j) => (
                   <ListItemButton
@@ -285,10 +352,13 @@ export default function JobsHome({ user }) {
                     />
                   </ListItemButton>
                 ))}
-              <ListSubheader sx={{ border: "1px solid grey", borderRadius: 1 }}>
-                Delivered
+              <ListSubheader>
+                Payment Pending
+                <Box className="cnt">
+                  {qualiJobs.filter((j) => j?.job_status === 4).length}
+                </Box>
               </ListSubheader>
-              {allJobs
+              {qualiJobs
                 .filter((j) => j?.job_status === 4)
                 .map((j) => (
                   <ListItemButton
@@ -355,6 +425,10 @@ export default function JobsHome({ user }) {
                   },
                 },
                 "& .MuiListSubheader-root": {
+                  border: "1px solid grey",
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
                   border: "1px solid #ca001e",
                   borderLeft: "6px solid #ca001e",
                   my: 0.5,
@@ -363,9 +437,28 @@ export default function JobsHome({ user }) {
                     bgcolor: "#ffebee",
                   },
                 },
+                "& .cnt": {
+                  width: "fit-content",
+                  px: 1,
+                  m: 1.5,
+                  height: 24,
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: 1,
+                  backgroundColor: "#c54b5d",
+                  fontWeight: 450,
+                },
               }}
             >
-              <ListSubheader>Estimation Pending</ListSubheader>
+              <ListSubheader>
+                Estimation Pending
+                <Box className="cnt">
+                  {
+                    allJobFiles.filter((j) => !j?.esti_ok_all && !j?.notbidding)
+                      .length
+                  }
+                </Box>
+              </ListSubheader>
 
               {allJobFiles
                 .filter((j) => !j?.esti_ok_all && !j?.notbidding)
@@ -411,7 +504,19 @@ export default function JobsHome({ user }) {
                     />
                   </ListItemButton>
                 ))}
-              <ListSubheader>Submit Pending</ListSubheader>
+              <ListSubheader>
+                Submit Pending
+                <Box className="cnt">
+                  {
+                    allJobFiles.filter(
+                      (j) =>
+                        j?.esti_ok_all &&
+                        !j?.notbidding &&
+                        !j?.bid_submit?.method,
+                    ).length
+                  }
+                </Box>
+              </ListSubheader>
               {allJobFiles
                 .filter(
                   (j) =>
@@ -459,7 +564,19 @@ export default function JobsHome({ user }) {
                     />
                   </ListItemButton>
                 ))}
-              <ListSubheader>Submitted</ListSubheader>
+              <ListSubheader>
+                Submitted
+                <Box className="cnt">
+                  {
+                    allJobFiles.filter(
+                      (j) =>
+                        j?.esti_ok_all &&
+                        !j?.notbidding &&
+                        j?.bid_submit?.method,
+                    ).length
+                  }
+                </Box>
+              </ListSubheader>
               {allJobFiles
                 .filter(
                   (j) =>
@@ -507,7 +624,12 @@ export default function JobsHome({ user }) {
                     />
                   </ListItemButton>
                 ))}
-              <ListSubheader>Not Bidding</ListSubheader>
+              <ListSubheader>
+                Not Bidding
+                <Box className="cnt">
+                  {allJobFiles.filter((j) => j?.notbidding).length}
+                </Box>
+              </ListSubheader>
               {allJobFiles
                 .filter((j) => j?.notbidding)
                 .sort(
@@ -553,6 +675,119 @@ export default function JobsHome({ user }) {
                   </ListItemButton>
                 ))}
             </List>
+          </Box>
+        )}
+        {tabV === 3 && (
+          <Box>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search..."
+              value={searchTxt}
+              onChange={(e) => setSearchTxt(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {dbLoading ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <SearchRoundedIcon />
+                    )}
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ my: 2 }}
+            />
+
+            <Box>
+              <List
+                component="div"
+                disablePadding
+                sx={{
+                  "& .MuiListItemButton-root": {
+                    border: "1px solid #448e8a",
+                    borderLeft: "4px solid #008b84",
+                    borderRadius: 1,
+                    my: 0.25,
+                    "&:hover": { bgcolor: "#f3fffe" },
+                  },
+                }}
+              >
+                {allJobsSearch
+                  .filter((j) => {
+                    const q = searchTxtDeb.trim().toLowerCase();
+                    if (!q) return true;
+                    const primary =
+                      "#" +
+                      jobfileTag(j?.file_id) +
+                      "_" +
+                      (j?.job_code || j?.job_index) +
+                      " - " +
+                      CustomerName(j);
+                    const secondary = [
+                      j?.doc_name,
+                      j?.file_name ? `(${j?.file_name})` : "",
+                      j?.job_name ? `- ${j?.job_name}` : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+
+                    const hay = (primary + " " + secondary).toLowerCase();
+
+                    return q
+                      .split(/\s+/)
+                      .filter(Boolean)
+                      .every((t) => hay.includes(t));
+                  })
+                  .slice(0, LIMIT)
+                  .map((j) => (
+                    <ListItemButton
+                      component={Link}
+                      to={`/jobs/job/${j?.file_id}/${j?.job_index_base}`}
+                      key={j.job_id}
+                    >
+                      <ListItemAvatar>
+                        <WorkOutlineRoundedIcon />
+                      </ListItemAvatar>
+
+                      <ListItemText
+                        primary={
+                          <>
+                            {"#" +
+                              jobfileTag(j?.file_id) +
+                              "_" +
+                              (j?.job_code || j?.job_index_base)}
+                            <b>{` - ${CustomerName(j)}`}</b>
+                          </>
+                        }
+                        secondary={
+                          <Box
+                            sx={{ display: "flex", flexWrap: "wrap" }}
+                            component="span"
+                          >
+                            {j?.doc_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                {j.doc_name}
+                              </Typography>
+                            )}
+
+                            {j?.file_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                ({j.file_name})
+                              </Typography>
+                            )}
+                            {j?.job_name && (
+                              <Typography component="span" sx={{ mx: 0.25 }}>
+                                - {j.job_name}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                  ))}
+              </List>
+            </Box>
           </Box>
         )}
       </Box>

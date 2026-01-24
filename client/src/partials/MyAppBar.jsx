@@ -70,7 +70,7 @@ export default function MyAppBar({ user, setUser }) {
   return (
     <AppBar
       position="static"
-      sx={{ bgcolor: "white", borderRadius: 2, overflow: "hidden", mb: 4 }}
+      sx={{ bgcolor: "white", borderRadius: 2, overflow: "hidden", mb: 3 }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
@@ -80,8 +80,8 @@ export default function MyAppBar({ user, setUser }) {
             id="pc_logo"
             sx={{
               display: { xs: "none", md: "none", lg: "flex" },
-              my: 3,
-              mr: 3,
+              my: 2,
+              mr: 2,
             }}
           >
             <img src={LongLogo} alt="Logo" style={{ height: 40 }} />
@@ -120,7 +120,7 @@ export default function MyAppBar({ user, setUser }) {
                   }}
                 >
                   <Typography sx={{ textAlign: "center", color: "black" }}>
-                    {page}
+                    {page.toUpperCase()}
                   </Typography>
                 </MenuItem>
               ))}
@@ -134,10 +134,22 @@ export default function MyAppBar({ user, setUser }) {
             sx={{
               display: { xs: "flex", md: "flex", lg: "none" },
               flexGrow: 1,
+              minWidth: 0,
               justifyContent: "center",
+              mx: 3,
             }}
           >
-            <img src={LongLogo} alt="Logo" style={{ maxHeight: 20 }} />
+            <img
+              src={LongLogo}
+              alt="Logo"
+              style={{
+                width: "100%",
+                maxWidth: 300,
+                height: "auto",
+                maxHeight: 30,
+                objectFit: "contain",
+              }}
+            />
           </Box>
 
           <Box
@@ -165,7 +177,14 @@ export default function MyAppBar({ user, setUser }) {
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center" }}>
+          <Box
+            sx={{
+              flexGrow: 0,
+              display: "flex",
+              alignItems: "center",
+              flexShrink: 0,
+            }}
+          >
             <Typography
               variant="button"
               sx={{
@@ -175,7 +194,7 @@ export default function MyAppBar({ user, setUser }) {
               }}
               color="success"
             >
-              {user?.loggedIn && (user?.display_name || "")}{" "}
+              {user?.loggedIn && (user?.display_name || "")}
             </Typography>
 
             <IconButton

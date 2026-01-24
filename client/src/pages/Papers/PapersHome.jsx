@@ -169,6 +169,27 @@ export default function PapersHome({ user }) {
             <ToggleButton value={"nim"}>nimthara</ToggleButton>
           </ToggleButtonGroup>
           <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
+            <Button variant="contained" sx={{ width: 85 }}>
+              list
+            </Button>
+            <Button
+              startIcon={<AttachMoneyRoundedIcon />}
+              variant="outlined"
+              component={Link}
+              to={`/papers/gts/price`}
+              disabled={!isGts}
+            >
+              Price
+            </Button>
+
+            <Button
+              startIcon={<NotesRoundedIcon />}
+              variant="outlined"
+              component={Link}
+              to={`/papers/${bsns}/log`}
+            >
+              STOCK
+            </Button>
             <Button
               startIcon={<NoteAddOutlinedIcon />}
               onClick={() => {
@@ -179,24 +200,6 @@ export default function PapersHome({ user }) {
               sx={{ width: 85 }}
             >
               add
-            </Button>
-            {isGts && (
-              <Button
-                startIcon={<AttachMoneyRoundedIcon />}
-                variant="outlined"
-                component={Link}
-                to={`/papers/gts/price`}
-              >
-                Price
-              </Button>
-            )}
-            <Button
-              startIcon={<NotesRoundedIcon />}
-              variant="outlined"
-              component={Link}
-              to={`/papers/${bsns}/log`}
-            >
-              STOCK
             </Button>
           </Stack>
         </>

@@ -131,6 +131,9 @@ export default function PaperPrice({ user }) {
         sx={{ mb: 1 }}
       >
         <ToggleButton value={"gts"}>gts papers</ToggleButton>
+        <ToggleButton value={"nim"} disabled>
+          nimthara
+        </ToggleButton>
       </ToggleButtonGroup>
       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
         <Button

@@ -38,7 +38,7 @@ const App = () => {
   const authApi = useMemo(() => {
     return axios.create({
       baseURL: AUTH_API_URL,
-      withCredentials: true,
+      //withCredentials: true,
       timeout: 15000,
       headers: { "Content-Type": "application/json" },
     });
@@ -63,110 +63,118 @@ const App = () => {
   }
   return (
     <BrowserRouter>
-      <MyAppBar user={user} setUser={setUser} />
+      <Box
+        sx={{
+          height: "100dvh",
+          display: "flex",
+          flexDirection: "column",
+          p: 1,
+        }}
+      >
+        <MyAppBar user={user} setUser={setUser} />
+        <Routes>
+          <Route path="/" element={<Home user={user} />} />
+          <Route
+            path="/login"
+            element={<Login user={user} setUser={setUser} />}
+          />
 
-      <Routes>
-        <Route path="/" element={<Home user={user} />} />
-        <Route
-          path="/login"
-          element={<Login user={user} setUser={setUser} />}
-        />
+          <Route path="/records" element={<RecordsHome user={user} />} />
 
-        <Route path="/records" element={<RecordsHome user={user} />} />
+          <Route
+            path="/records/nim/jticket"
+            element={<RecJobTicket user={user} />}
+          />
 
-        <Route
-          path="/records/nim/jticket"
-          element={<RecJobTicket user={user} />}
-        />
+          <Route path="/papers" element={<PapersHome user={user} />} />
+          <Route path="/papers/:bsns" element={<PapersHome user={user} />} />
 
-        <Route path="/papers" element={<PapersHome user={user} />} />
-        <Route path="/papers/:bsns" element={<PapersHome user={user} />} />
+          <Route
+            path="/papers/:bsns/price/:id"
+            element={
+              <ProtectedRoute user={user}>
+                <PaperPrice user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/papers/:bsns/price"
+            element={
+              <ProtectedRoute user={user}>
+                <PaperPrice user={user} />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="papers/:bsns/price/:id"
-          element={
-            <ProtectedRoute user={user}>
-              <PaperPrice user={user} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="papers/:bsns/price"
-          element={
-            <ProtectedRoute user={user}>
-              <PaperPrice user={user} />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/papers/:bsns/log/:id"
+            element={
+              <ProtectedRoute user={user}>
+                <PaperLog user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/papers/:bsns/log"
+            element={
+              <ProtectedRoute user={user}>
+                <PaperLog user={user} />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="papers/:bsns/log/:id"
-          element={
-            <ProtectedRoute user={user}>
-              <PaperLog user={user} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="papers/:bsns/log"
-          element={
-            <ProtectedRoute user={user}>
-              <PaperLog user={user} />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/jobs"
+            element={
+              <ProtectedRoute user={user}>
+                <JobsHome user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jobs/file/new"
+            element={
+              <ProtectedRoute user={user}>
+                <JobFile user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jobs/file/:fileid"
+            element={
+              <ProtectedRoute user={user}>
+                <JobFile user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jobs/job/:fileid/:jobindex"
+            element={
+              <ProtectedRoute user={user}>
+                <JobJob user={user} />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/jobs"
-          element={
-            <ProtectedRoute user={user}>
-              <JobsHome user={user} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/jobs/file/new"
-          element={
-            <ProtectedRoute user={user}>
-              <JobFile user={user} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/jobs/file/:fileid"
-          element={
-            <ProtectedRoute user={user}>
-              <JobFile user={user} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/jobs/job/:fileid/:jobindex"
-          element={
-            <ProtectedRoute user={user}>
-              <JobJob user={user} />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/esti/:linkid/:linkat"
+            element={
+              <ProtectedRoute user={user}>
+                <Esti user={user} />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/esti/:linkid/:linkat"
-          element={
-            <ProtectedRoute user={user}>
-              <Esti user={user} />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="audit"
-          element={
-            <ProtectedRoute user={user}>
-              <Audit user={user} />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          <Route
+            path="/audit"
+            element={
+              <ProtectedRoute user={user}>
+                <Audit user={user} />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Box>
     </BrowserRouter>
   );
 };

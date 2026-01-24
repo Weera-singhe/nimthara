@@ -37,9 +37,9 @@ router.get("/", requiredLogged, async (req, res) => {
       ) jj
         ON jj.jobfile_id = jf.file_id
       WHERE jf.hide_file = FALSE
-      `
+      `,
     );
-    const { rows: allJobs } = await pool.query(
+    const { rows: qualiJobs } = await pool.query(
       `
       SELECT
         jj.*,
@@ -54,9 +54,30 @@ router.get("/", requiredLogged, async (req, res) => {
         ON cs.id        = jf.customer_id
       WHERE jj.hide_job = FALSE 
       AND jj.job_index <= jf.jobs_count
-      `
+      AND jj.job_status>0
+      `,
     );
-    res.json({ allJobFiles, allJobs });
+    const { rows: allJobsSearch } = await pool.query(
+      `
+      SELECT
+        jf.*,
+        cs.cus_name_short,
+        cs.customer_name,
+        jj.*,
+        gs.job_index AS job_index_base  
+      FROM job_files AS jf
+      JOIN customers AS cs
+        ON cs.id = jf.customer_id
+      JOIN LATERAL generate_series(1, jf.jobs_count) AS gs(job_index)
+        ON TRUE
+      LEFT JOIN job_jobs AS jj
+        ON jj.jobfile_id = jf.file_id
+      AND jj.job_index  = gs.job_index
+      AND jj.hide_job   = FALSE
+      WHERE jf.hide_file = FALSE
+      `,
+    );
+    res.json({ allJobFiles, qualiJobs, allJobsSearch });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });
@@ -100,7 +121,7 @@ router.get("/file/:fileid", requiredLogged, async (req, res) => {
       *
       FROM customers
       WHERE id !=1
-      ORDER BY customer_name ASC`
+      ORDER BY customer_name ASC`,
     );
     const customers = getCus.rows;
 
@@ -176,7 +197,7 @@ router.post("/file/form1", requiredLogged, async (req, res) => {
           bb_status,
           fileid,
           unreg_customer,
-        ]
+        ],
       );
 
       const { old_v, new_v } = WhatzChanged(beforeUpdate, afterUpdate);
@@ -191,7 +212,7 @@ router.post("/file/form1", requiredLogged, async (req, res) => {
         null,
         "jbfilef1",
         null,
-        "job_files"
+        "job_files",
       );
 
       const thisJobFile = await GetJobFile(fileid);
@@ -227,7 +248,7 @@ router.post("/file/form1", requiredLogged, async (req, res) => {
           bb_status,
           user_id,
           unreg_customer,
-        ]
+        ],
       );
       const load_this_id = afterInsert.file_id;
       await RecActivity(
@@ -240,7 +261,7 @@ router.post("/file/form1", requiredLogged, async (req, res) => {
         null,
         "jbfilef1",
         null,
-        "job_files"
+        "job_files",
       );
 
       res.status(200).json({ success: true, load_this_id });
@@ -265,7 +286,7 @@ router.post("/file/form2", requiredLogged, async (req, res) => {
 
     const { rows: rowsBefore } = await pool.query(
       "SELECT bid_submit FROM job_files WHERE file_id = $1",
-      [fileid]
+      [fileid],
     );
 
     const beforeUpdate = rowsBefore[0];
@@ -294,7 +315,7 @@ router.post("/file/form2", requiredLogged, async (req, res) => {
     WHERE file_id = $6
     RETURNING bid_submit  
   `,
-      [safeBidSubMeth, when, to, by, reason, fileid]
+      [safeBidSubMeth, when, to, by, reason, fileid],
     );
 
     // CHANGED: rows is an array, take first row as afterUpdate
@@ -312,7 +333,7 @@ router.post("/file/form2", requiredLogged, async (req, res) => {
         null,
         "jbfilef2",
         null,
-        "job_files"
+        "job_files",
       );
     }
 
@@ -362,12 +383,12 @@ router.get("/job/:fileid/:jobindex", requiredLogged, async (req, res) => {
 
     const { rows: estiRows } = await pool.query(
       "SELECT * FROM esti WHERE link_id = $1 AND link_at = $2",
-      [thisJob?.job_id, "jobs_pre"]
+      [thisJob?.job_id, "jobs_pre"],
     );
     const esti = estiRows[0] || {};
 
     const getQtsComp = await pool.query(
-      `SELECT * FROM jobs_qts ORDER BY id ASC `
+      `SELECT * FROM jobs_qts ORDER BY id ASC `,
     );
     const qtsComps = getQtsComp.rows;
 
@@ -392,7 +413,7 @@ router.post("/job/form1", requiredLogged, async (req, res) => {
     // check if row exists
     const beforeRes = await pool.query(
       "SELECT job_code, job_name FROM job_jobs WHERE jobfile_id = $1 AND job_index = $2",
-      [fileid, jobindex]
+      [fileid, jobindex],
     );
 
     const beforeUpdate = beforeRes.rows[0] || {};
@@ -435,7 +456,7 @@ router.post("/job/form1", requiredLogged, async (req, res) => {
         jobindex,
         "jbjobsf1",
         null,
-        "job_jobs"
+        "job_jobs",
       );
     }
 
@@ -496,7 +517,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $2
           AND job_index  = $3
         `,
-        [sample, fileid, jobindex]
+        [sample, fileid, jobindex],
       );
     } else if (![1, 2, 3, 4].includes(bidSubMethod)) {
       return res
@@ -525,7 +546,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $5
           AND job_index  = $6
         `,
-        [jobStatusNow, po, delivery, bid_result, fileid, jobindex]
+        [jobStatusNow, po, delivery, bid_result, fileid, jobindex],
       );
     }
     if (tab === 2 && jobStatusNow) {
@@ -560,7 +581,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $6
           AND job_index  = $7
         `,
-        [perfbond, proof, artwork, jobStatusNow, job_info, fileid, jobindex]
+        [perfbond, proof, artwork, jobStatusNow, job_info, fileid, jobindex],
       );
     }
     if (tab === 3 && jobStatusNow > 1) {
@@ -581,7 +602,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
           AND job_index  = $4
    
         `,
-        [jobStatusNow, job_info, fileid, jobindex]
+        [jobStatusNow, job_info, fileid, jobindex],
       );
     }
 
@@ -595,7 +616,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $3
           AND job_index  = $4
         `,
-        [jobStatusNow, delivery, fileid, jobindex]
+        [jobStatusNow, delivery, fileid, jobindex],
       );
     }
 
@@ -608,7 +629,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $2
           AND job_index  = $3
         `,
-        [job_payment, fileid, jobindex]
+        [job_payment, fileid, jobindex],
       );
     }
 
@@ -625,7 +646,7 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
       jobindex,
       "jbjobsf2",
       "tabv_" + tab,
-      "job_jobs"
+      "job_jobs",
     );
 
     res.status(200).json({
@@ -654,7 +675,7 @@ router.post("/job/estiDeploy", requiredLogged, async (req, res) => {
     // check if row exists
     const beforeRes = await pool.query(
       "SELECT job_info FROM job_jobs WHERE jobfile_id = $1 AND job_index = $2",
-      [fileid, jobindex]
+      [fileid, jobindex],
     );
 
     const beforeUpdate = beforeRes.rows[0] || {};
@@ -691,7 +712,7 @@ router.post("/job/estiDeploy", requiredLogged, async (req, res) => {
         jobindex,
         "estiDeploy",
         null,
-        "job_jobs"
+        "job_jobs",
       );
     }
 
