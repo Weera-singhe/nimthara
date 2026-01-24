@@ -63,7 +63,7 @@ export default function JobsHome({ user }) {
       : j?.cus_name_short || j?.customer_name;
 
   return (
-    <Box //main box
+    <Box
       sx={{
         flex: 1,
         display: "flex",
@@ -73,7 +73,6 @@ export default function JobsHome({ user }) {
       }}
     >
       <Box
-        //first box
         sx={{
           display: "flex",
           alignItems: "center",
@@ -144,10 +143,9 @@ export default function JobsHome({ user }) {
       </Box>
 
       <Box
-        // second box
         sx={{
-          flex: 1, // ✅ fill remaining height after first box
-          overflowY: "auto", // ✅ content scrolls, boxes stay
+          flex: 1,
+          overflowY: "auto",
           mt: 1,
           minHeight: 0,
         }}

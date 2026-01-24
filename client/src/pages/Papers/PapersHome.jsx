@@ -126,7 +126,7 @@ export default function PapersHome({ user }) {
 
   const makeItLoad = DBLoading;
   return (
-    <Box sx={{ mt: 2, mx: 1 }}>
+    <Box>
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>

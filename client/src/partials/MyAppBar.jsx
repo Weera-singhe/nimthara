@@ -70,7 +70,7 @@ export default function MyAppBar({ user, setUser }) {
   return (
     <AppBar
       position="static"
-      sx={{ bgcolor: "white", borderRadius: 2, overflow: "hidden", mb: 3 }}
+      sx={{ bgcolor: "white", borderRadius: 2, overflow: "hidden", mb: 4 }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>

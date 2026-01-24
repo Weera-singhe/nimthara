@@ -39,7 +39,7 @@ export default function RecJobTicket({ user }) {
       : j?.cus_name_short || j?.customer_name;
 
   return (
-    <Box sx={{ mt: 2, mx: 1 }}>
+    <Box>
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>

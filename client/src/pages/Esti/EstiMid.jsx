@@ -52,7 +52,6 @@ export default function EstiMid({ name, changed, v, compID, allPapers }) {
             onChange={changed}
             value={v?.[name + "_3"]}
             def={1}
-            //  min={1}
             deci={0}
           />
         </>

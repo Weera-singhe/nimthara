@@ -163,7 +163,7 @@ export default function JobJob({ user }) {
   const isSavedJob = jobSaved?.job_index;
   const isSavedFile = jobSaved?.file_id;
   const isSubmittedBid = [1, 2, 3, 4].includes(
-    Number(jobSaved?.bid_submit?.method)
+    Number(jobSaved?.bid_submit?.method),
   );
 
   const same = (a, b, e) => (a || e) === (b || e);
@@ -362,12 +362,12 @@ export default function JobJob({ user }) {
         acc[job.job_index] = job;
         return acc;
       }, {}),
-    [theseJobs]
+    [theseJobs],
   );
 
   const makeItLoad = DBLoading || !isSavedFile;
   return (
-    <Box sx={{ mt: 2, mx: 1 }}>
+    <Box>
       <Backdrop sx={{ color: "#fff", zIndex: 10 }} open={makeItLoad}>
         <CircularProgress color="inherit" />
       </Backdrop>
@@ -724,12 +724,12 @@ export default function JobJob({ user }) {
                           ...p,
                           items: Object.fromEntries(
                             Object.entries(p?.items ?? {}).filter(
-                              ([k]) => k !== String(count - 1)
-                            )
+                              ([k]) => k !== String(count - 1),
+                            ),
                           ),
                           data: {
                             ...(p?.data ?? {}),
-                            status: count <= 1 ? 0 : p.data?.status ?? 0,
+                            status: count <= 1 ? 0 : (p.data?.status ?? 0),
                           },
                         }));
 
@@ -778,7 +778,7 @@ export default function JobJob({ user }) {
                           onChange={onSTR_NN(
                             setSampleTemp,
                             "items",
-                            elementz?.samp - 1
+                            elementz?.samp - 1,
                           )}
                           MenuProps={{
                             PaperProps: { style: { maxHeight: 300 } },
@@ -791,7 +791,7 @@ export default function JobJob({ user }) {
                               <MenuItem key={value} value={value}>
                                 {label}
                               </MenuItem>
-                            )
+                            ),
                           )}
                         </Select>
                       </FormControl>
@@ -809,7 +809,7 @@ export default function JobJob({ user }) {
                           onChange={onSTR_NN(
                             setSampleTemp,
                             "items",
-                            elementz?.samp - 1
+                            elementz?.samp - 1,
                           )}
                         />
                       ))}
@@ -882,8 +882,8 @@ export default function JobJob({ user }) {
                         ...p,
                         log: Object.fromEntries(
                           Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k !== String(count - 1)
-                          )
+                            ([k]) => k !== String(count - 1),
+                          ),
                         ),
                       }));
 
@@ -907,7 +907,7 @@ export default function JobJob({ user }) {
                       onChange={onSTR_NN(
                         setBidResTemp,
                         "log",
-                        elementz?.bidres - 1
+                        elementz?.bidres - 1,
                       )}
                     />
                     <Num
@@ -917,7 +917,7 @@ export default function JobJob({ user }) {
                       onChange={onNUM_NN(
                         setBidResTemp,
                         "log",
-                        elementz?.bidres - 1
+                        elementz?.bidres - 1,
                       )}
                       label="Price"
                     />
@@ -926,7 +926,7 @@ export default function JobJob({ user }) {
                 <List dense>
                   {(() => {
                     const lastKey = Object.keys(bidResTemp?.log ?? {}).slice(
-                      -1
+                      -1,
                     )[0];
 
                     return Object.entries(bidResTemp?.log ?? {})
@@ -934,7 +934,7 @@ export default function JobJob({ user }) {
                       .sort(
                         (a, b) =>
                           Number(a[1]?.v ?? Infinity) -
-                          Number(b[1]?.v ?? Infinity)
+                          Number(b[1]?.v ?? Infinity),
                       )
                       .map(([key, s], idx) => (
                         <React.Fragment key={key}>
@@ -1306,8 +1306,8 @@ export default function JobJob({ user }) {
                         ...p,
                         log: Object.fromEntries(
                           Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k !== String(count - 1)
-                          )
+                            ([k]) => k !== String(count - 1),
+                          ),
                         ),
                       }));
 
@@ -1339,7 +1339,7 @@ export default function JobJob({ user }) {
                               [
                                 s?.deli_qty != null
                                   ? `${Number(
-                                      s.deli_qty
+                                      s.deli_qty,
                                     ).toLocaleString()} Units ( ${(
                                       (s.deli_qty / calEsti.unit_count) *
                                       100
@@ -1368,7 +1368,7 @@ export default function JobJob({ user }) {
                         onChange={onNUM_NN(
                           setDeliTemp,
                           "log",
-                          elementz?.deli - 1
+                          elementz?.deli - 1,
                         )}
                         MenuProps={{
                           PaperProps: { style: { maxHeight: 300 } },
@@ -1394,7 +1394,7 @@ export default function JobJob({ user }) {
                       onChange={onSTR_NN(
                         setDeliTemp,
                         "log",
-                        elementz?.deli - 1
+                        elementz?.deli - 1,
                       )}
                     />
                     <Num
@@ -1404,7 +1404,7 @@ export default function JobJob({ user }) {
                       onChange={onNUM_NN(
                         setDeliTemp,
                         "log",
-                        elementz?.deli - 1
+                        elementz?.deli - 1,
                       )}
                       label="Units"
                     />
