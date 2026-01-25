@@ -11,7 +11,9 @@ import {
 } from "@mui/material";
 import { toDeci, toLKR } from "../helpers/cal";
 
-export default function JobTicket({}) {
+const jobfileTag = (i) => String(i || 0).padStart(5, "0");
+
+export default function JobTicket({ j }) {
   return (
     <Box
       sx={{
@@ -31,7 +33,14 @@ export default function JobTicket({}) {
           display: "flex",
         }}
       >
-        <Box sx={{ flex: "0 0 30%" }} />
+        <Box sx={{ flex: "0 0 30%", display: "flex", alignItems: "center" }}>
+          <Typography variant="h4" sx={{ mx: 2 }}>
+            Qty
+          </Typography>
+          <Typography variant="h6">
+            {!!j?.unit_count ?? j?.unit_count.toLocaleString()}
+          </Typography>
+        </Box>
         <Box
           sx={{
             flex: "0 0 40%",
@@ -41,11 +50,14 @@ export default function JobTicket({}) {
             justifyContent: "center",
           }}
         >
-          <Typography variant="h3" color="white">
+          <Typography variant="h3" color="white" fontWeight="bold">
             JOB TICKET
           </Typography>
         </Box>
-        <Box sx={{ flex: "0 0 30%" }} />
+        <Box sx={{ flex: "0 0 30%" }}>
+          {!!j?.file_id ??
+            `#${jobfileTag(j?.file_id)}_${j?.job_code || j?.job_index}`}
+        </Box>
       </Box>
 
       <Box sx={{ flex: 1, border: "1px solid black", mx: 3, mb: 3 }} />

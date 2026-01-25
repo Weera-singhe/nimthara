@@ -168,6 +168,8 @@ export default function JobJob({ user }) {
 
   const same = (a, b, e) => (a || e) === (b || e);
 
+  const inf = jobTemp?.job_info;
+
   const form1Same =
     same(jobSaved?.job_name, jobTemp.job_name, "") &&
     same(jobSaved?.job_code, jobTemp.job_code, "");
@@ -664,28 +666,28 @@ export default function JobJob({ user }) {
                       <TableBody>
                         <TableRow>
                           <TableCell>
-                            {calEsti.unit_count.toLocaleString()}
+                            {inf?.unit_count.toLocaleString()}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(calEsti.total_price)}
+                            {toLKR(inf?.unit_count * inf?.unit_price)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(calEsti.total_vat)}
+                            {toLKR(inf?.unit_count * inf?.unit_price * 0.18)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(calEsti.total_vat_)}
+                            {toLKR(inf?.unit_count * inf?.unit_price * 1.18)}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>1</TableCell>
                           <TableCell align="right">
-                            {toLKR(calEsti.unit_price)}
+                            {toLKR(inf?.unit_price)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(calEsti.unit_vat)}
+                            {toLKR(inf?.unit_price * 0.18)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(calEsti.unit_vat_)}
+                            {toLKR(inf?.unit_price * 1.18)}
                           </TableCell>
                         </TableRow>
                       </TableBody>

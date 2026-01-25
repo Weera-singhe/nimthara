@@ -104,7 +104,7 @@ export default function JobsHome({ user }) {
             value={1}
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {dbLoading ? (
+                {dbLoading && tabV === 1 ? (
                   <CircularProgress size={24} color="secondary" />
                 ) : (
                   <WorkOutlineRoundedIcon />
@@ -117,7 +117,7 @@ export default function JobsHome({ user }) {
             value={2}
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {dbLoading ? (
+                {dbLoading && tabV === 2 ? (
                   <CircularProgress size={24} color="secondary" />
                 ) : (
                   <FolderOutlinedIcon />
@@ -130,7 +130,7 @@ export default function JobsHome({ user }) {
             value={3}
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {dbLoading ? (
+                {dbLoading && tabV === 3 ? (
                   <CircularProgress size={24} color="secondary" />
                 ) : (
                   <SearchRoundedIcon />

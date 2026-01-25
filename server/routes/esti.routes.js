@@ -22,13 +22,13 @@ router.get("/:linkid/:linkat", requiredLogged, async (req, res) => {
 
     const { rows } = await pool.query(
       "SELECT * FROM esti WHERE link_id = $1 AND link_at = $2",
-      [linkid, linkat]
+      [linkid, linkat],
     );
 
     const esti = rows[0] || {};
 
     const getQtsComp = await pool.query(
-      `SELECT * FROM jobs_qts ORDER BY id ASC `
+      `SELECT * FROM jobs_qts ORDER BY id ASC `,
     );
     const qtsComps = getQtsComp.rows;
 
@@ -43,18 +43,46 @@ router.get("/:linkid/:linkat", requiredLogged, async (req, res) => {
 
 router.post("/:linkid/:linkat", requiredLogged, async (req, res) => {
   try {
-    // console.log(req.body);
-
     const { linkid, linkat } = req.params;
-    const { loops, vals, data, renames } = req.body;
+    const { loops, vals, data, renames, unit_price, unit_count } = req.body;
 
     const user_id = getUserID(req);
 
     if (!requiredLevel(req, res, "level_jobs", 3)) return;
 
+    const updJSQL = `
+        UPDATE job_jobs
+        SET job_info =
+          jsonb_set(
+            jsonb_set(
+              COALESCE(job_info, '{}'::jsonb),
+              '{unit_price}',
+              to_jsonb(ROUND($1::numeric, 2)),
+              true
+            ),
+            '{unit_count}',
+            to_jsonb($2::int),
+            true
+          )
+        WHERE job_id::text = $3
+        RETURNING *;
+      `;
+
+    const { rows: updatedJob } = await pool.query(updJSQL, [
+      unit_price,
+      unit_count,
+      linkid,
+    ]);
+
+    if (!updatedJob.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Job Doesnt Exists" });
+    }
+
     const { rows: beforeRows, rowCount: beforeCount } = await pool.query(
       "SELECT * FROM esti WHERE link_id = $1 AND link_at = $2",
-      [linkid, linkat]
+      [linkid, linkat],
     );
 
     const estiBefore = beforeRows[0] || {};
@@ -76,7 +104,7 @@ router.post("/:linkid/:linkat", requiredLogged, async (req, res) => {
     console.log("success");
     const { rows: afterRows } = await pool.query(
       "SELECT * FROM esti WHERE link_id = $1 AND link_at = $2",
-      [linkid, linkat]
+      [linkid, linkat],
     );
 
     const esti = afterRows[0] || {};
@@ -93,7 +121,7 @@ router.post("/:linkid/:linkat", requiredLogged, async (req, res) => {
       linkat,
       "esti",
       null,
-      "esti"
+      "esti",
     );
 
     return res.json({ success: true, esti });

@@ -73,9 +73,10 @@ export default function Esti({ user }) {
 
   function SubmitSave() {
     setDbloading(true);
+    const exprt = { ...estiTemp, ...calEsti };
 
     axios
-      .post(`${ESTI_API_URL}/${linkid}/${SavinglinkAt}`, estiTemp)
+      .post(`${ESTI_API_URL}/${linkid}/${SavinglinkAt}`, exprt)
       .then((res) => {
         if (res.data.success) {
           setEstiSaved(res.data?.esti || {});
