@@ -72,7 +72,6 @@ export default function JobJob({ user }) {
   const [elementz, setElementz] = useState([]);
 
   const [tabV, setTabV] = useState(0);
-  const [calEsti, CalculatEsti] = useState();
   const [estiOk, setEstiOk] = useState(false);
 
   const onSTR_ = onSTR(setJobTemp);
@@ -128,17 +127,13 @@ export default function JobJob({ user }) {
           bidres: bidresTot_,
           bidresInitial: bidresTot_,
         });
-
-        // console.log("db loaded", res.data);
-        const qtsComps = res.data.qtsComps;
-        const estiSaved = res.data.esti;
-        CalculatEsti(() => SumsOfQuot(qtsComps, estiSaved));
       })
       .catch(handleApiError)
       .finally(() => {
         setDBLoading(false);
       });
   }, [fileid, jobindex]);
+
   useEffect(() => {
     console.log("temp", jobTemp);
   }, [jobTemp]);
@@ -148,14 +143,11 @@ export default function JobJob({ user }) {
   }, [bidResTemp]);
 
   // useEffect(() => {
-  //   console.log("quotVals", calEsti);
-  // }, [calEsti]);
-  // useEffect(() => {
   //   console.log("sampleItems", sampleTemp);
   // }, [sampleTemp]);
-  // useEffect(() => {
-  //   console.log("deli", deliTemp);
-  // }, [deliTemp]);
+  useEffect(() => {
+    console.log("deli", deliTemp);
+  }, [deliTemp]);
   useEffect(() => {
     console.log("elemnt = ", elementz);
   }, [elementz]);
@@ -1108,15 +1100,7 @@ export default function JobJob({ user }) {
                     value={0}
                     onChange={onNUMProof}
                   />
-                  {/* <FormControlLabel
-                    control={<Checkbox />}
-                    label="Submitted"
-                    name="status"
-                    checked={jobsTemp?.proof?.status === 1}
-                    disabled={jobsSaved?.proof?.status >= 2}
-                    value={1}
-                    onChange={onNUMProof}
-                  /> */}
+
                   <FormControlLabel
                     control={<Checkbox color="success" />}
                     label="Approved"
@@ -1350,7 +1334,7 @@ export default function JobJob({ user }) {
                                   ? `${Number(
                                       s.deli_qty,
                                     ).toLocaleString()} Units ( ${(
-                                      (s.deli_qty / calEsti.unit_count) *
+                                      (s.deli_qty / inf?.unit_count) *
                                       100
                                     ).toFixed(2)} % )`
                                   : null,
