@@ -34,8 +34,8 @@ export default function RecJobTicket({ user }) {
     axios
       .get(`${RECORDS_API_URL}/nim/jticket/${safeFormID}`)
       .then((res) => {
-        setQualiJobs(res.data.qualiJobs || []);
-        setSelectedJob(res.data.selectedJ || []);
+        setQualiJobs(res.data.qualiJobs);
+        setSelectedJob(res.data.selectedJ);
       })
       .catch((err) => console.error("Error fetching papers:", err))
       .finally(() => SetDBLoading(false));
@@ -63,8 +63,14 @@ export default function RecJobTicket({ user }) {
           options={qualiJobs}
           value={selectedJob}
           onChange={(_, j) => {
-            const newId = j?.job_id ?? null;
-            if (newId) navigate(`/records/nim/jticket/${newId}`);
+            if (!j) {
+              setSelectedJob(null);
+              navigate(`/records/nim/jticket`);
+              return;
+            }
+
+            const newId = j.job_id;
+            navigate(`/records/nim/jticket/${newId}`);
           }}
           isOptionEqualToValue={(opt, val) => opt.job_id === val.job_id}
           getOptionLabel={(j) =>
@@ -76,8 +82,8 @@ export default function RecJobTicket({ user }) {
             <TextField {...params} label="Job" placeholder="Search job..." />
           )}
         />
-        <PrintOut paperSize="A3" j={selectedJob}>
-          <JobTicket />
+        <PrintOut paperSize="A3">
+          <JobTicket j={selectedJob} />
         </PrintOut>
       </MyFormBox>
     </Box>

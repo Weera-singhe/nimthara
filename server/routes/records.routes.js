@@ -48,15 +48,12 @@ router.get("/nim/jticket/:id", async (req, res) => {
         jj.*,
         jf.*,
         cs.cus_name_short,
-        cs.customer_name,
-        est.*
+        cs.customer_name
       FROM job_jobs     AS jj
       JOIN job_files    AS jf
         ON jf.file_id   = jj.jobfile_id AND jf.hide_file = FALSE
       JOIN customers    AS cs
         ON cs.id        = jf.customer_id
-      JOIN esti    AS est
-        ON est.link_id = jj.job_id::text AND est.link_at = 'jobs_pre'
       WHERE jj.hide_job = FALSE 
       AND jj.job_index <= jf.jobs_count
       AND jj.job_status>0 
