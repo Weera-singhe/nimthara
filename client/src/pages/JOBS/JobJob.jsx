@@ -25,6 +25,7 @@ import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlin
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import EditIcon from "@mui/icons-material/Edit";
 import deepEqual from "fast-deep-equal";
 import Num from "../../helpers/Num";
 
@@ -42,6 +43,8 @@ import {
   FormControlLabel,
   IconButton,
   InputLabel,
+  ListItem,
+  ListItemIcon,
   MenuItem,
   Paper,
   Select,
@@ -67,9 +70,10 @@ export default function JobJob({ user }) {
   const [theseJobs, setTheseJobs] = useState([]);
   const [sampleTemp, setSampleTemp] = useState([]);
   const [deliTemp, setDeliTemp] = useState([]);
-  const [bidResTemp, setBidResTemp] = useState([]);
+  //const [bidResTemp, setBidResTemp] = useState([]);
 
   const [elementz, setElementz] = useState([]);
+  const [extras, setExtras] = useState([]);
 
   const [tabV, setTabV] = useState(0);
   const [estiOk, setEstiOk] = useState(false);
@@ -105,7 +109,6 @@ export default function JobJob({ user }) {
 
         setSampleTemp(job.sample || {});
         setDeliTemp(job.delivery || {});
-        setBidResTemp(job.bid_result || {});
 
         setEstiOk(job?.job_info?.esti_ok);
         setTheseJobs(res.data.theseJobs || {});
@@ -137,10 +140,6 @@ export default function JobJob({ user }) {
   useEffect(() => {
     console.log("temp", jobTemp);
   }, [jobTemp]);
-
-  useEffect(() => {
-    console.log("bidResTemp", bidResTemp);
-  }, [bidResTemp]);
 
   // useEffect(() => {
   //   console.log("sampleItems", sampleTemp);
@@ -197,7 +196,7 @@ export default function JobJob({ user }) {
       }
       case 1: {
         const savedLog = jobSaved?.bid_result?.log ?? [];
-        const tempLog = bidResTemp?.log ?? [];
+        const tempLog = jobTemp?.bid_result?.log ?? [];
         return (
           same(jobTemp?.po?.status, jobSaved?.po?.status, "") &&
           same(jobTemp?.po?.when, jobSaved?.po?.when, 0) &&
@@ -205,11 +204,12 @@ export default function JobJob({ user }) {
           same(deliTemp?.deadline_type, jobSaved?.delivery?.deadline_type, 0) &&
           same(deliTemp?.deadline, jobSaved?.delivery?.deadline, "") &&
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
-          deepEqual(savedLog, tempLog) &&
-          same(jobSaved?.bid_result?.status, bidResTemp?.status, 0)
+          deepEqual(savedLog, tempLog)
         );
       }
-      case 2:
+      case 2: {
+        const savedSteps = jobSaved?.job_info?.steps ?? [];
+        const tempSteps = jobTemp?.job_info?.steps ?? [];
         return (
           same(jobTemp?.perfbond?.status, jobSaved?.perfbond?.status, 0) &&
           same(jobTemp?.proof?.status, jobSaved?.proof?.status, 0) &&
@@ -217,8 +217,10 @@ export default function JobJob({ user }) {
           same(jobTemp?.artwork?.ok_when, jobSaved?.artwork?.ok_when, "") &&
           same(jobTemp?.job_info?.start_at, jobSaved?.job_info?.start_at, "") &&
           same(jobTemp?.artwork?.status, jobSaved?.artwork?.status, 0) &&
-          same(jobTemp?.job_status, jobSaved?.job_status, 0)
+          same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
+          deepEqual(savedSteps, tempSteps)
         );
+      }
       case 3:
         return (
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
@@ -245,16 +247,13 @@ export default function JobJob({ user }) {
     switch (tab) {
       case 0: {
         const items = sampleTemp?.items ?? [];
-        if (!elementz?.samp) return true; // keep your current behavior
+        if (!elementz?.samp) return true;
         const last = items[elementz?.samp - 1];
         return Boolean(last?.type && last?.d1);
       }
 
       case 1: {
-        const logs = bidResTemp?.log ?? [];
-        if (!elementz?.bidres) return true;
-        const last = logs[elementz?.bidres - 1];
-        return Boolean(last?.v && last?.n);
+        return true;
       }
 
       case 2: {
@@ -302,7 +301,6 @@ export default function JobJob({ user }) {
       ...jobTemp,
       sample: sampleTemp,
       delivery: deliTemp,
-      bid_result: bidResTemp,
       ...base,
     };
 
@@ -312,7 +310,6 @@ export default function JobJob({ user }) {
         const job = res.data.thisJob;
         setSampleTemp(job?.sample || {});
         setDeliTemp(job?.delivery || {});
-        setBidResTemp(job?.bid_result || {});
         setJobSaved(job || {});
         setJobTemp(job || {});
       })
@@ -531,7 +528,6 @@ export default function JobJob({ user }) {
                   setTabV(v);
                   setSampleTemp(jobSaved?.sample || {});
                   setDeliTemp(jobSaved?.delivery || {});
-                  setBidResTemp(jobSaved?.bid_result || {});
                   setJobTemp(jobSaved || {});
 
                   setElementz((p) => ({
@@ -858,94 +854,78 @@ export default function JobJob({ user }) {
             {tabV === 1 && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
-                <Typography sx={{ pb: 3 }}>
-                  Bid Results
+                <Typography sx={{ pb: 3 }}>Bid Results</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <TextField
+                    sx={{ width: 150 }}
+                    size="small"
+                    label="Name"
+                    name="bidres_n"
+                    value={extras?.bidres_n || ""}
+                    onChange={onSTR(setExtras)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <Num
+                    label="Price"
+                    name="bidres_v"
+                    value={extras?.bidres_v || 0}
+                    onChange={onNUM(setExtras)}
+                    deci={2}
+                  />
                   <IconButton
-                    onClick={() =>
-                      setElementz((p) => ({
-                        ...p,
-                        bidres: p.bidres + 1,
-                      }))
-                    }
-                    disabled={elementz?.bidres && !form2Filled}
                     color="primary"
+                    disabled={!extras?.bidres_n || !extras?.bidres_v}
+                    onClick={() => {
+                      const neww = {
+                        n: extras?.bidres_n?.trim(),
+                        v: extras?.bidres_v || 0,
+                      };
+
+                      setJobTemp((p) => ({
+                        ...p,
+                        bid_result: {
+                          ...(p.bid_result || {}),
+                          log: [...(p.bid_result?.log || []), neww],
+                        },
+                      }));
+
+                      setExtras((p) => ({
+                        ...p,
+                        bidres_n: "",
+                        bidres_v: 0,
+                      }));
+                    }}
                   >
                     <AddCircleOutlineRoundedIcon />
                   </IconButton>
-                  <IconButton
-                    onClick={() => {
-                      const count = elementz?.bidres ?? 0;
-                      setBidResTemp((p) => ({
-                        ...p,
-                        log: Object.fromEntries(
-                          Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k !== String(count - 1),
-                          ),
-                        ),
-                      }));
+                </Stack>
 
-                      setElementz((p) => ({
-                        ...p,
-                        bidres: p.bidres - 1,
-                      }));
-                    }}
-                    disabled={(elementz?.bidres ?? 0) < 1}
-                  >
-                    <DeleteRoundedIcon />
-                  </IconButton>
-                </Typography>
-                {!!elementz?.bidres && (
-                  <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
-                    <TextField
-                      name="n"
-                      label="Name"
-                      size="small"
-                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.n || ""}
-                      onChange={onSTR_NN(
-                        setBidResTemp,
-                        "log",
-                        elementz?.bidres - 1,
-                      )}
-                    />
-                    <Num
-                      sx={{ width: 100 }}
-                      name="v"
-                      value={bidResTemp?.log?.[elementz?.bidres - 1]?.v}
-                      onChange={onNUM_NN(
-                        setBidResTemp,
-                        "log",
-                        elementz?.bidres - 1,
-                      )}
-                      label="Price"
-                    />
-                  </Stack>
-                )}
-                <List dense>
-                  {(() => {
-                    const lastKey = Object.keys(bidResTemp?.log ?? {}).slice(
-                      -1,
-                    )[0];
-
-                    return Object.entries(bidResTemp?.log ?? {})
-                      .filter(([, v]) => Boolean(v))
-                      .sort(
-                        (a, b) =>
-                          Number(a[1]?.v ?? Infinity) -
-                          Number(b[1]?.v ?? Infinity),
-                      )
-                      .map(([key, s], idx) => (
-                        <React.Fragment key={key}>
-                          <ListItemButton selected={key === lastKey}>
-                            <ListItemText
-                              primary={`${idx + 1} - ${s?.n || ""} - ${
-                                s?.v != null ? toLKR(s.v) : ""
-                              }`}
-                            />
-                          </ListItemButton>
-                          <Divider />
-                        </React.Fragment>
-                      ));
-                  })()}
+                <List dense sx={{ my: 1, maxWidth: 600 }}>
+                  {(jobTemp?.bid_result?.log || []).map((r, i) => (
+                    <ListItem
+                      key={i}
+                      sx={{ "&:hover": { bgcolor: "#f2f8ff" } }}
+                    >
+                      <ListItemText
+                        primary={`${i + 1}. ${r?.n} - ${toLKR(r?.v)}`}
+                      />
+                      <IconButton
+                        onClick={() => {
+                          setJobTemp((p) => ({
+                            ...p,
+                            bid_result: {
+                              ...(p.bid_result || {}),
+                              log: (p.bid_result?.log || []).filter(
+                                (_, idx) => idx !== i,
+                              ),
+                            },
+                          }));
+                        }}
+                      >
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </ListItem>
+                  ))}
                 </List>
                 <Divider sx={{ my: 2 }} />
                 <Typography sx={{ pb: 3 }}>Customer Decision</Typography>
@@ -1177,6 +1157,80 @@ export default function JobJob({ user }) {
                     />
                   )}
                 </Stack>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Others</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <TextField
+                    sx={{ width: 150 }}
+                    size="small"
+                    label="Type"
+                    name="stepstype"
+                    value={extras?.stepstype || ""}
+                    onChange={onSTR(setExtras)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <TextField
+                    size="small"
+                    label="Details"
+                    name="stepsdata"
+                    value={extras?.stepsdata || ""}
+                    onChange={onSTR(setExtras)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <IconButton
+                    color="primary"
+                    disabled={!extras?.stepstype || !extras?.stepsdata}
+                    onClick={() => {
+                      const neww = {
+                        ty: extras?.stepstype?.trim(),
+                        dt: extras?.stepsdata?.trim(),
+                      };
+
+                      setJobTemp((p) => ({
+                        ...p,
+                        job_info: {
+                          ...(p.job_info || {}),
+                          steps: [...(p.job_info?.steps || []), neww],
+                        },
+                      }));
+
+                      setExtras((p) => ({
+                        ...p,
+                        stepsdata: "",
+                        stepstype: "",
+                      }));
+                    }}
+                  >
+                    <AddCircleOutlineRoundedIcon />
+                  </IconButton>
+                </Stack>
+
+                <List dense sx={{ my: 1, maxWidth: 600 }}>
+                  {jobTemp?.job_info?.steps?.map((m, i) => (
+                    <ListItem
+                      key={i}
+                      sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
+                    >
+                      <ListItemText primary={`${i + 1}. ${m?.ty} - ${m?.dt}`} />
+                      <IconButton
+                        onClick={() => {
+                          setJobTemp((p) => ({
+                            ...p,
+                            job_info: {
+                              ...(p.job_info || {}),
+                              steps: (p.job_info?.steps || []).filter(
+                                (_, idx) => idx !== i,
+                              ),
+                            },
+                          }));
+                        }}
+                      >
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </ListItem>
+                  ))}
+                </List>
 
                 <Divider sx={{ my: 2 }} />
                 <Stack direction="row" gap={1} alignItems="center">

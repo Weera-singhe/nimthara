@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Divider, List, ListItemText, Typography } from "@mui/material";
 
 export default function JobTicket({ j }) {
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
@@ -8,6 +8,12 @@ export default function JobTicket({ j }) {
   const bd = { border: "1px solid black" };
   const bdt = { borderTop: "1px solid black" };
   const mid = { alignContent: "center" };
+  const blnk = {
+    color: "darkblue",
+    borderBottom: "1px solid black",
+    display: "inline-block",
+    minWidth: "100%",
+  };
 
   return (
     <Box
@@ -39,7 +45,7 @@ export default function JobTicket({ j }) {
           <Typography variant="h4" sx={{ mx: 2 }}>
             Qty
           </Typography>
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ color: "darkblue" }}>
             {inf?.unit_count?.toLocaleString?.() ?? ""}
           </Typography>
         </Box>
@@ -68,9 +74,16 @@ export default function JobTicket({ j }) {
             px: 5,
           }}
         >
-          <Typography sx={{ wordBreak: "break-all", overflowWrap: "anywhere" }}>
+          <Typography
+            sx={{
+              wordBreak: "break-all",
+              overflowWrap: "anywhere",
+              color: "darkblue",
+            }}
+          >
+            #
             {!!j?.file_id &&
-              `#${jobfileTag(j?.file_id)}_${j?.job_code || j?.job_index}`}
+              jobfileTag(j?.file_id) + "_" + (j?.job_code || j?.job_index)}
           </Typography>
         </Box>
       </Box>
@@ -84,15 +97,15 @@ export default function JobTicket({ j }) {
             sx={{
               height: "100%",
               display: "grid",
-              gridTemplateRows: "5% 5% 5% 5% 80%",
+              gridTemplateRows: "5% 5% 5% 85%",
             }}
           >
             <Box sx={{ ...bd, display: "flex" }}>
               <Box sx={{ px: 1, ...mid, flexShrink: 0 }}>
                 <Typography variant="h6">Customer : </Typography>
               </Box>
-              <Box sx={{ ...mid }}>
-                <Typography>
+              <Box sx={{ ...mid, flex: 1, pr: 1 }}>
+                <Typography sx={{ ...blnk }} id="cusomerName">
                   {j?.customer_id === 1
                     ? j?.unreg_customer || "Unregistered"
                     : j?.customer_name || j?.cus_name_short}
@@ -104,82 +117,108 @@ export default function JobTicket({ j }) {
                 <Typography variant="h6">PO No : </Typography>
               </Box>
               <Box sx={{ ...mid, flex: 1 }}>
-                <Typography>{j?.po?.code}</Typography>
+                <Typography sx={{ ...blnk }}>{j?.po?.code}</Typography>
               </Box>
               <Box sx={{ px: 1, ...mid, flexShrink: 0 }}>
                 <Typography variant="h6">PO Date : </Typography>
               </Box>
-              <Box sx={{ ...mid, pr: 1 }}>
-                <Typography>{j?.po?.when}</Typography>
+              <Box sx={{ ...mid, pr: 1, flex: 0.3 }}>
+                <Typography sx={{ ...blnk }}>{j?.po?.when}</Typography>
               </Box>
             </Box>
             <Box sx={{ ...bd, display: "flex" }}>
               <Box sx={{ px: 1, ...mid, flexShrink: 0 }}>
                 <Typography variant="h6">Size : </Typography>
               </Box>
-              <Box sx={{ ...mid }}>
-                <Typography>Finished : 9" x 4.5" Unfolded :9" x 9"</Typography>
+              <Box sx={{ ...mid, flex: 1, pr: 1 }}>
+                <Typography sx={{ ...blnk }}>
+                  Finished : 9" x 4.5" Unfolded :9" x 9"
+                </Typography>
               </Box>
             </Box>
             {/* rest of lef*/}
             <Box
               sx={{
+                height: "100%",
+                overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                height: "100%",
-                minHeight: 0,
               }}
             >
-              <Box sx={{ display: "flex" }}>
-                <Box sx={{ ...mid, px: 1 }}>
+              <Box sx={{ display: "flex", minHeight: "15%" }}>
+                <Box sx={{ p: 1 }}>
                   <Typography variant="h6">Materials : </Typography>
                 </Box>
-                <Box sx={{ ...mid }}>
-                  <Typography></Typography>
+                <Box sx={{ flex: 1, pt: 1.5, pr: 1 }}>
+                  <List sx={{ p: 0 }}>
+                    <ListItemText sx={{ m: 0, ...blnk }}> mate 1</ListItemText>
+                    <ListItemText sx={{ m: 0, ...blnk }}>
+                      {"\u00A0"}
+                    </ListItemText>
+                    <ListItemText sx={{ m: 0, ...blnk }}>
+                      {"\u00A0"}
+                    </ListItemText>
+                    <ListItemText sx={{ m: 0, ...blnk }}>
+                      {"\u00A0"}
+                    </ListItemText>
+                    <ListItemText sx={{ m: 0, ...blnk }}>
+                      {"\u00A0"}
+                    </ListItemText>
+                  </List>
                 </Box>
               </Box>
 
-              <Box sx={{ ...bdt, display: "flex" }}>
-                <Box sx={{ ...mid, px: 1 }}>
+              <Box sx={{ ...bdt, display: "flex", minHeight: "10%" }}>
+                <Box sx={{ p: 1 }}>
                   <Typography variant="h6">Print : </Typography>
                 </Box>
-                <Box sx={{ ...mid }}>
+                <Box sx={{ pt: 1.5, flex: 1 }}>
                   <Typography></Typography>
                 </Box>
               </Box>
-              <Box sx={{ ...bdt, display: "flex" }}>
-                <Box sx={{ ...mid, px: 1 }}>
+              <Box sx={{ ...bdt, display: "flex", minHeight: "15%" }}>
+                <Box sx={{ p: 1 }}>
                   <Typography variant="h6">Finishing : </Typography>
                 </Box>
-                <Box
-                  id="kkk"
-                  sx={{
-                    ...mid,
-                    bgcolor: "red",
-                    flex: "0 0 40%",
-                    overflow: "hidden",
-                    flex: 1,
-                    minHeight: 0,
-                  }}
-                >
+                <Box sx={{ pt: 1.5, flex: 1 }}>
                   <Typography></Typography>
                 </Box>
               </Box>
-              <Box sx={{ ...bdt, display: "flex", px: 1 }}>
+              <Box sx={{ ...bdt, display: "flex", px: 1, height: "3%" }}>
                 <Typography variant="h6">Others : </Typography>
               </Box>
-              <Box sx={{ display: "flex", p: 1 }}>
-                <Typography></Typography>
-              </Box>
-              <Box sx={{ display: "flex", px: 1, ...bdt }}>
-                <Typography variant="h6">Stock Log : </Typography>
-              </Box>
+
               <Box
                 sx={{
                   display: "flex",
-                  p: 1,
+                  px: 1,
+                  flex: 1,
+                  minHeight: 0,
+                  overflow: "auto",
                 }}
-              ></Box>
+              >
+                <Typography></Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", px: 1, ...bdt, height: "3%" }}>
+                <Typography variant="h6">Stock Log : </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  px: 1,
+                  minHeight: "30%",
+                }}
+              >
+                <List sx={{ p: 0 }}>
+                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
+                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
+                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
+                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
+                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
+                </List>
+              </Box>
             </Box>
           </Box>
         </Box>
