@@ -567,9 +567,13 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         proof = $2,
         artwork = $3,
         job_status = $4,
-        job_info = jsonb_set( jsonb_set(COALESCE(job_info, '{}'::jsonb),'{start_at}',to_jsonb($5::text),true),'{steps}',COALESCE($6::jsonb, '[]'::jsonb), true)
-        WHERE jobfile_id = $7
-          AND job_index  = $8
+        job_info = jsonb_set( jsonb_set(  jsonb_set( jsonb_set(COALESCE(job_info, '{}'::jsonb),
+            '{start_at}',to_jsonb($5::text),true),
+            '{others}',COALESCE($6::jsonb, '[]'::jsonb), true),
+            '{finishing}',COALESCE($7::jsonb, '[]'::jsonb), true), 
+            '{machine}',COALESCE($8::jsonb, '[]'::jsonb), true)
+        WHERE jobfile_id = $9
+          AND job_index  = $10
         `,
         [
           pbStatusNow,
@@ -577,7 +581,9 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
           artwork,
           jobStatusNow,
           job_info.start_at,
-          JSON.stringify(job_info?.steps ?? []),
+          JSON.stringify(job_info?.others ?? []),
+          JSON.stringify(job_info?.finishing ?? []),
+          JSON.stringify(job_info?.machine ?? []),
           fileid,
           jobindex,
         ],

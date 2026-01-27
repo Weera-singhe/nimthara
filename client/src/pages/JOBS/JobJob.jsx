@@ -208,8 +208,12 @@ export default function JobJob({ user }) {
         );
       }
       case 2: {
-        const savedSteps = jobSaved?.job_info?.steps ?? [];
-        const tempSteps = jobTemp?.job_info?.steps ?? [];
+        const savedOther = jobSaved?.job_info?.other ?? [];
+        const tempOther = jobTemp?.job_info?.other ?? [];
+        const savedFin = jobSaved?.job_info?.finishing ?? [];
+        const tempFin = jobTemp?.job_info?.finishing ?? [];
+        const savedMach = jobSaved?.job_info?.machine ?? [];
+        const tempMach = jobTemp?.job_info?.machine ?? [];
         return (
           same(jobTemp?.perfbond?.status, jobSaved?.perfbond?.status, 0) &&
           same(jobTemp?.proof?.status, jobSaved?.proof?.status, 0) &&
@@ -218,7 +222,9 @@ export default function JobJob({ user }) {
           same(jobTemp?.job_info?.start_at, jobSaved?.job_info?.start_at, "") &&
           same(jobTemp?.artwork?.status, jobSaved?.artwork?.status, 0) &&
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
-          deepEqual(savedSteps, tempSteps)
+          deepEqual(savedOther, tempOther) &&
+          deepEqual(savedMach, tempMach) &&
+          deepEqual(savedFin, tempFin)
         );
       }
       case 3:
@@ -1159,46 +1165,59 @@ export default function JobJob({ user }) {
                 </Stack>
 
                 <Divider sx={{ my: 2 }} />
-                <Typography sx={{ pb: 3 }}>Others</Typography>
+                <Typography sx={{ pb: 3 }}>Machine Work</Typography>
                 <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <InputLabel>Type</InputLabel>
+                    <Select
+                      name="machtype"
+                      value={extras?.machtype || ""}
+                      onChange={onSTR(setExtras)}
+                      MenuProps={{
+                        PaperProps: { style: { maxHeight: 200 } },
+                      }}
+                      label="Type"
+                    >
+                      <MenuItem value="">-</MenuItem>
+                      <MenuItem value="OffsetPrint">Print Offset</MenuItem>
+                      <MenuItem value="DigitalPrint">Print Digital</MenuItem>
+                      <MenuItem value="Numbering">Numbering</MenuItem>
+                      <MenuItem value="Perforation">Perforation</MenuItem>
+                      <MenuItem value="Creasing">Creasing</MenuItem>
+                      <MenuItem value="DiyCut">DiyCut</MenuItem>
+                      <MenuItem value="PerfectBind">PerfectBind</MenuItem>
+                    </Select>
+                  </FormControl>
                   <TextField
-                    sx={{ width: 150 }}
-                    size="small"
-                    label="Type"
-                    name="stepstype"
-                    value={extras?.stepstype || ""}
-                    onChange={onSTR(setExtras)}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  <TextField
+                    sx={{ width: 300 }}
                     size="small"
                     label="Details"
-                    name="stepsdata"
-                    value={extras?.stepsdata || ""}
+                    name="machdata"
+                    value={extras?.machdata || ""}
                     onChange={onSTR(setExtras)}
                     InputLabelProps={{ shrink: true }}
                   />
                   <IconButton
                     color="primary"
-                    disabled={!extras?.stepstype || !extras?.stepsdata}
+                    disabled={!extras?.machtype}
                     onClick={() => {
                       const neww = {
-                        ty: extras?.stepstype?.trim(),
-                        dt: extras?.stepsdata?.trim(),
+                        ty: extras?.machtype?.trim(),
+                        dt: extras?.machdata?.trim(),
                       };
 
                       setJobTemp((p) => ({
                         ...p,
                         job_info: {
                           ...(p.job_info || {}),
-                          steps: [...(p.job_info?.steps || []), neww],
+                          machine: [...(p.job_info?.machine || []), neww],
                         },
                       }));
 
                       setExtras((p) => ({
                         ...p,
-                        stepsdata: "",
-                        stepstype: "",
+                        machtype: "",
+                        machdata: "",
                       }));
                     }}
                   >
@@ -1206,8 +1225,8 @@ export default function JobJob({ user }) {
                   </IconButton>
                 </Stack>
 
-                <List dense sx={{ my: 1, maxWidth: 600 }}>
-                  {jobTemp?.job_info?.steps?.map((m, i) => (
+                <List dense sx={{ my: 1, maxWidth: 500 }}>
+                  {jobTemp?.job_info?.machine?.map((m, i) => (
                     <ListItem
                       key={i}
                       sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
@@ -1219,7 +1238,169 @@ export default function JobJob({ user }) {
                             ...p,
                             job_info: {
                               ...(p.job_info || {}),
-                              steps: (p.job_info?.steps || []).filter(
+                              machine: (p.job_info?.machine || []).filter(
+                                (_, idx) => idx !== i,
+                              ),
+                            },
+                          }));
+                        }}
+                      >
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </ListItem>
+                  ))}
+                </List>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Finishing</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <InputLabel>Type</InputLabel>
+                    <Select
+                      name="fintype"
+                      value={extras?.fintype || ""}
+                      onChange={onSTR(setExtras)}
+                      MenuProps={{
+                        PaperProps: { style: { maxHeight: 200 } },
+                      }}
+                      label="Type"
+                    >
+                      <MenuItem value="">-</MenuItem>
+                      <MenuItem value="Binding">Binding</MenuItem>
+                      <MenuItem value="Padding">Padding</MenuItem>
+                      <MenuItem value="Numbering">Numbering</MenuItem>
+                      <MenuItem value="Gathering">Gathering</MenuItem>
+                      <MenuItem value="Pasting">Pasting</MenuItem>
+                      <MenuItem value="Folding">Folding</MenuItem>
+                      <MenuItem value="Packing">Packing</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    sx={{ width: 300 }}
+                    size="small"
+                    label="Details"
+                    name="findata"
+                    value={extras?.findata || ""}
+                    onChange={onSTR(setExtras)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <IconButton
+                    color="primary"
+                    disabled={!extras?.findata || !extras?.fintype}
+                    onClick={() => {
+                      const neww = {
+                        ty: extras?.fintype?.trim(),
+                        dt: extras?.findata?.trim(),
+                      };
+
+                      setJobTemp((p) => ({
+                        ...p,
+                        job_info: {
+                          ...(p.job_info || {}),
+                          finishing: [...(p.job_info?.finishing || []), neww],
+                        },
+                      }));
+
+                      setExtras((p) => ({
+                        ...p,
+                        findata: "",
+                        fintype: "",
+                      }));
+                    }}
+                  >
+                    <AddCircleOutlineRoundedIcon />
+                  </IconButton>
+                </Stack>
+
+                <List dense sx={{ my: 1, maxWidth: 500 }}>
+                  {jobTemp?.job_info?.finishing?.map((m, i) => (
+                    <ListItem
+                      key={i}
+                      sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
+                    >
+                      <ListItemText primary={`${i + 1}. ${m?.ty} - ${m?.dt}`} />
+                      <IconButton
+                        onClick={() => {
+                          setJobTemp((p) => ({
+                            ...p,
+                            job_info: {
+                              ...(p.job_info || {}),
+                              finishing: (p.job_info?.finishing || []).filter(
+                                (_, idx) => idx !== i,
+                              ),
+                            },
+                          }));
+                        }}
+                      >
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </ListItem>
+                  ))}
+                </List>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ pb: 3 }}>Others</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <TextField
+                    sx={{ width: 150 }}
+                    size="small"
+                    label="Type"
+                    name="otherstype"
+                    value={extras?.otherstype || ""}
+                    onChange={onSTR(setExtras)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <TextField
+                    sx={{ width: 300 }}
+                    size="small"
+                    label="Details"
+                    name="othersdata"
+                    value={extras?.othersdata || ""}
+                    onChange={onSTR(setExtras)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <IconButton
+                    color="primary"
+                    disabled={!extras?.otherstype || !extras?.othersdata}
+                    onClick={() => {
+                      const neww = {
+                        ty: extras?.otherstype?.trim(),
+                        dt: extras?.othersdata?.trim(),
+                      };
+
+                      setJobTemp((p) => ({
+                        ...p,
+                        job_info: {
+                          ...(p.job_info || {}),
+                          others: [...(p.job_info?.others || []), neww],
+                        },
+                      }));
+
+                      setExtras((p) => ({
+                        ...p,
+                        othersdata: "",
+                        otherstype: "",
+                      }));
+                    }}
+                  >
+                    <AddCircleOutlineRoundedIcon />
+                  </IconButton>
+                </Stack>
+
+                <List dense sx={{ my: 1, maxWidth: 500 }}>
+                  {jobTemp?.job_info?.others?.map((m, i) => (
+                    <ListItem
+                      key={i}
+                      sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
+                    >
+                      <ListItemText primary={`${i + 1}. ${m?.ty} - ${m?.dt}`} />
+                      <IconButton
+                        onClick={() => {
+                          setJobTemp((p) => ({
+                            ...p,
+                            job_info: {
+                              ...(p.job_info || {}),
+                              others: (p.job_info?.others || []).filter(
                                 (_, idx) => idx !== i,
                               ),
                             },

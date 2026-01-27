@@ -17,7 +17,6 @@ import { RECORDS_API_URL } from "../../api/urls";
 import MyFormBox from "../../helpers/MyFormBox";
 import PrintOut from "../../helpers/PrintOut";
 import JobTicket from "../../forms/JobTicket";
-import MaterialsForm from "./MaterialsForm";
 
 export default function RecJobTicket({ user }) {
   const { id } = useParams();
@@ -87,7 +86,6 @@ export default function RecJobTicket({ user }) {
           <JobTicket j={selectedJob} />
         </PrintOut>
       </MyFormBox>
-      <MaterialsForm />
     </Box>
   );
 }

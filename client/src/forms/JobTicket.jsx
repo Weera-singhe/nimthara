@@ -131,9 +131,7 @@ export default function JobTicket({ j }) {
                 <Typography variant="h6">Size : </Typography>
               </Box>
               <Box sx={{ ...mid, flex: 1, pr: 1 }}>
-                <Typography sx={{ ...blnk }}>
-                  Finished : 9" x 4.5" Unfolded :9" x 9"
-                </Typography>
+                <Typography sx={{ ...blnk }}></Typography>
               </Box>
             </Box>
             {/* rest of lef*/}
@@ -151,7 +149,7 @@ export default function JobTicket({ j }) {
                 </Box>
                 <Box sx={{ flex: 1, pt: 1.5, pr: 1 }}>
                   <List sx={{ p: 0 }}>
-                    <ListItemText sx={{ m: 0, ...blnk }}> mate 1</ListItemText>
+                    {/* <ListItemText sx={{ m: 0, ...blnk }}> mate 1</ListItemText>
                     <ListItemText sx={{ m: 0, ...blnk }}>
                       {"\u00A0"}
                     </ListItemText>
@@ -163,17 +161,25 @@ export default function JobTicket({ j }) {
                     </ListItemText>
                     <ListItemText sx={{ m: 0, ...blnk }}>
                       {"\u00A0"}
-                    </ListItemText>
+                    </ListItemText> */}
                   </List>
                 </Box>
               </Box>
 
-              <Box sx={{ ...bdt, display: "flex", minHeight: "10%" }}>
+              <Box sx={{ ...bdt, display: "flex", minHeight: "15%" }}>
                 <Box sx={{ p: 1 }}>
-                  <Typography variant="h6">Print : </Typography>
+                  <Typography variant="h6">Machine : </Typography>
                 </Box>
                 <Box sx={{ pt: 1.5, flex: 1 }}>
-                  <Typography></Typography>
+                  <Typography sx={{ color: "darkblue" }}>
+                    {inf?.machine?.map((j, i) => (
+                      <span key={i}>
+                        <b>{j.ty}</b>
+                        {j.dt && " - " + j.dt}
+                        {i < inf.machine.length - 1 && " | "}
+                      </span>
+                    ))}
+                  </Typography>
                 </Box>
               </Box>
               <Box sx={{ ...bdt, display: "flex", minHeight: "15%" }}>
@@ -181,23 +187,42 @@ export default function JobTicket({ j }) {
                   <Typography variant="h6">Finishing : </Typography>
                 </Box>
                 <Box sx={{ pt: 1.5, flex: 1 }}>
-                  <Typography></Typography>
+                  <Typography sx={{ color: "darkblue" }}>
+                    {inf?.finishing?.map((j, i) => (
+                      <span key={i}>
+                        <b>{j.ty}</b>
+                        {j.dt && " - " + j.dt}
+                        {i < inf.finishing.length - 1 && " | "}
+                      </span>
+                    ))}
+                  </Typography>
                 </Box>
-              </Box>
-              <Box sx={{ ...bdt, display: "flex", px: 1, height: "3%" }}>
-                <Typography variant="h6">Others : </Typography>
               </Box>
 
               <Box
                 sx={{
+                  ...bdt,
                   display: "flex",
-                  px: 1,
                   flex: 1,
                   minHeight: 0,
                   overflow: "auto",
                 }}
               >
-                <Typography></Typography>
+                <Box sx={{ p: 1 }}>
+                  <Typography variant="h6">Others : </Typography>
+                </Box>
+
+                <Box sx={{ pt: 1.5, flex: 1 }}>
+                  <Typography sx={{ color: "darkblue" }}>
+                    {inf?.others?.map((j, i) => (
+                      <span key={i}>
+                        <b>{j.ty}</b>
+                        {j.dt && " - " + j.dt}
+                        {i < inf.others.length - 1 && " | "}
+                      </span>
+                    ))}
+                  </Typography>
+                </Box>
               </Box>
 
               <Box sx={{ display: "flex", px: 1, ...bdt, height: "3%" }}>
@@ -211,13 +236,7 @@ export default function JobTicket({ j }) {
                   minHeight: "30%",
                 }}
               >
-                <List sx={{ p: 0 }}>
-                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
-                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
-                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
-                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
-                  <ListItemText sx={{ m: 0 }}>bank paper</ListItemText>
-                </List>
+                <List sx={{ p: 0 }}></List>
               </Box>
             </Box>
           </Box>
