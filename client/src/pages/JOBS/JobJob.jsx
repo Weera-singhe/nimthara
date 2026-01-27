@@ -201,6 +201,7 @@ export default function JobJob({ user }) {
         return (
           same(jobTemp?.po?.status, jobSaved?.po?.status, "") &&
           same(jobTemp?.po?.when, jobSaved?.po?.when, 0) &&
+          same(jobTemp?.po?.code, jobSaved?.po?.code, 0) &&
           same(deliTemp?.deadline_type, jobSaved?.delivery?.deadline_type, 0) &&
           same(deliTemp?.deadline, jobSaved?.delivery?.deadline, "") &&
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
@@ -1000,16 +1001,26 @@ export default function JobJob({ user }) {
                         onChange={onNUMPO}
                       />
                       {jobTemp?.po?.status === 2 && (
-                        <TextField
-                          type="date"
-                          sx={{ width: 150 }}
-                          size="small"
-                          label="PO Date"
-                          name="when"
-                          value={jobTemp?.po?.when || ""}
-                          onChange={onSTRPO}
-                          InputLabelProps={{ shrink: true }}
-                        />
+                        <>
+                          <TextField
+                            type="date"
+                            sx={{ width: 150 }}
+                            size="small"
+                            label="PO Date"
+                            name="when"
+                            value={jobTemp?.po?.when || ""}
+                            onChange={onSTRPO}
+                            InputLabelProps={{ shrink: true }}
+                          />
+                          <TextField
+                            size="small"
+                            label="PO ID"
+                            name="code"
+                            value={jobTemp?.po?.code || ""}
+                            onChange={onSTRPO}
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        </>
                       )}
                     </Stack>
 

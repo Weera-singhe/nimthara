@@ -521,16 +521,18 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         SET 
         job_status = $1,
         delivery = jsonb_set(jsonb_set(COALESCE(delivery, '{}'::jsonb),'{deadline_type}',to_jsonb($2::int),true),'{deadline}',to_jsonb($3::text),true),
-        po =jsonb_set( COALESCE(po, '{}'::jsonb),'{status}',to_jsonb($4::int),true),
-        bid_result = $5
-        WHERE jobfile_id = $6
-          AND job_index  = $7
+        po =jsonb_set( jsonb_set( jsonb_set( COALESCE(po, '{}'::jsonb),'{status}',to_jsonb($4::int),true), '{when}', to_jsonb($5::text),true), '{code}', to_jsonb($6::text),true),
+        bid_result = $7
+        WHERE jobfile_id = $8
+          AND job_index  = $9
         `,
         [
           jobStatusNow,
           delivery?.deadline_type ?? 0,
-          delivery?.deadline ?? "",
+          delivery?.deadline ?? null,
           poStatusNow,
+          po?.when ?? null,
+          po?.code ?? "",
           bid_result,
           fileid,
           jobindex,
