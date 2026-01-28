@@ -454,7 +454,6 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
       jobindex,
       fileid,
       tabV,
-      sample,
       po,
       delivery,
       job_payment,
@@ -491,20 +490,19 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
 
     if (tab === 0) {
       await pool.query(
-        `
-        UPDATE job_jobs
-        SET sample = $1
+        ` UPDATE job_jobs
+        SET job_info = jsonb_set(  COALESCE(job_info, '{}'::jsonb),'{mate}', COALESCE($1::jsonb, '[]'::jsonb),  true)
         WHERE jobfile_id = $2
-          AND job_index  = $3
-        `,
-        [sample, fileid, jobindex],
+          AND job_index  = $3 `,
+
+        [JSON.stringify(job_info?.mate ?? []), fileid, jobindex],
       );
     } else if (![1, 2, 3, 4].includes(bidSubMethod)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid job_status" });
     }
-    if (tab === 1 && jobStatusNow) {
+    if (tab === 1) {
       const poStatusBefore = Number(beforeUpdate?.po?.status) || 0;
       const poStatusNow = Number(po?.status) || 0;
 
@@ -514,9 +512,9 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
           message: `Invalid  po status`,
         });
       }
-
-      await pool.query(
-        `
+      if (jobStatusNow) {
+        await pool.query(
+          `
         UPDATE job_jobs
         SET 
         job_status = $1,
@@ -526,18 +524,29 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
         WHERE jobfile_id = $8
           AND job_index  = $9
         `,
-        [
-          jobStatusNow,
-          delivery?.deadline_type ?? 0,
-          delivery?.deadline ?? null,
-          poStatusNow,
-          po?.when ?? null,
-          po?.code ?? "",
-          bid_result,
-          fileid,
-          jobindex,
-        ],
-      );
+          [
+            jobStatusNow,
+            delivery?.deadline_type ?? 0,
+            delivery?.deadline ?? null,
+            poStatusNow,
+            po?.when ?? null,
+            po?.code ?? "",
+            bid_result,
+            fileid,
+            jobindex,
+          ],
+        );
+      } else {
+        await pool.query(
+          `
+        UPDATE job_jobs
+        SET bid_result = $1
+        WHERE jobfile_id = $2
+          AND job_index  = $3
+        `,
+          [bid_result, fileid, jobindex],
+        );
+      }
     }
     if (tab === 2 && jobStatusNow) {
       const pbStatusBefore = Number(beforeUpdate?.perfbond?.status) || 0;

@@ -25,6 +25,7 @@ import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlin
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import CheckIcon from "@mui/icons-material/Check";
 import EditIcon from "@mui/icons-material/Edit";
 import deepEqual from "fast-deep-equal";
 import Num from "../../helpers/Num";
@@ -68,7 +69,6 @@ export default function JobJob({ user }) {
   const [jobSaved, setJobSaved] = useState([]);
   const [jobTemp, setJobTemp] = useState([]);
   const [theseJobs, setTheseJobs] = useState([]);
-  const [sampleTemp, setSampleTemp] = useState([]);
   const [deliTemp, setDeliTemp] = useState([]);
   //const [bidResTemp, setBidResTemp] = useState([]);
 
@@ -81,7 +81,6 @@ export default function JobJob({ user }) {
   const onSTR_ = onSTR(setJobTemp);
   const onSTRCode_ = onSTRCode(setJobTemp);
   const onNUM_ = onNUM(setJobTemp);
-  const onNUMSample = onNUM_N(setSampleTemp, "data");
   const onNUMPO = onNUM_N(setJobTemp, "po");
   const onSTRPO = onSTR_N(setJobTemp, "po");
   const onNUMPerfBond = onNUM_N(setJobTemp, "perfbond");
@@ -107,7 +106,6 @@ export default function JobJob({ user }) {
         setJobTemp(job);
         setTabV(job?.bid_submit?.method ? (job?.job_status || 0) + 1 : 0);
 
-        setSampleTemp(job.sample || {});
         setDeliTemp(job.delivery || {});
 
         setEstiOk(job?.job_info?.esti_ok);
@@ -138,12 +136,9 @@ export default function JobJob({ user }) {
   }, [fileid, jobindex]);
 
   useEffect(() => {
-    console.log("temp", jobTemp);
+    console.log("temp", jobTemp?.job_info);
   }, [jobTemp]);
 
-  // useEffect(() => {
-  //   console.log("sampleItems", sampleTemp);
-  // }, [sampleTemp]);
   useEffect(() => {
     console.log("deli", deliTemp);
   }, [deliTemp]);
@@ -179,20 +174,16 @@ export default function JobJob({ user }) {
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }
-  /////////////////////////////////////////////
 
   const tab = tabV ?? 0; // treat null/undefined as 0
 
   const isForm2Same = () => {
     switch (tabV) {
       case 0: {
-        const savedItems = jobSaved?.sample?.items ?? [];
-        const tempItems = sampleTemp?.items ?? [];
+        const savedItems = jobSaved?.job_info?.mate ?? [];
+        const tempItems = jobTemp?.job_info?.mate ?? [];
 
-        return (
-          deepEqual(savedItems, tempItems) &&
-          same(jobSaved?.sample?.data?.status, sampleTemp?.data?.status, 0)
-        );
+        return deepEqual(savedItems, tempItems);
       }
       case 1: {
         const savedLog = jobSaved?.bid_result?.log ?? [];
@@ -252,10 +243,7 @@ export default function JobJob({ user }) {
   const isForm2Filled = () => {
     switch (tab) {
       case 0: {
-        const items = sampleTemp?.items ?? [];
-        if (!elementz?.samp) return true;
-        const last = items[elementz?.samp - 1];
-        return Boolean(last?.type && last?.d1);
+        return true;
       }
 
       case 1: {
@@ -281,9 +269,6 @@ export default function JobJob({ user }) {
 
       case 5:
         return true;
-      // ...
-      // case 7:
-      //   return ...;
 
       default:
         return false;
@@ -305,7 +290,6 @@ export default function JobJob({ user }) {
     const base = { fileid, jobindex, tabV: tab };
     const fullForm = {
       ...jobTemp,
-      sample: sampleTemp,
       delivery: deliTemp,
       ...base,
     };
@@ -314,7 +298,6 @@ export default function JobJob({ user }) {
       .post(`${JOBS_API_URL}/job/form2`, fullForm)
       .then((res) => {
         const job = res.data.thisJob;
-        setSampleTemp(job?.sample || {});
         setDeliTemp(job?.delivery || {});
         setJobSaved(job || {});
         setJobTemp(job || {});
@@ -532,9 +515,9 @@ export default function JobJob({ user }) {
                 value={tabV}
                 onChange={(_, v) => {
                   setTabV(v);
-                  setSampleTemp(jobSaved?.sample || {});
                   setDeliTemp(jobSaved?.delivery || {});
                   setJobTemp(jobSaved || {});
+                  setExtras([]);
 
                   setElementz((p) => ({
                     ...p,
@@ -702,157 +685,130 @@ export default function JobJob({ user }) {
                 )}
                 <Box sx={{ width: "100%", overflow: "hidden" }}>
                   <Divider sx={{ my: 2 }} />
-                  <Typography sx={{ pb: 3 }}>
-                    Samples / Materials
+                  <Typography sx={{ pb: 3 }}>Materials</Typography>
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                    <TextField
+                      sx={{ width: 150 }}
+                      size="small"
+                      label="Item/Part"
+                      placeholder="top/mid/cover.."
+                      name="mateitem"
+                      value={extras?.mateitem || ""}
+                      onChange={onSTR(setExtras)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                      <InputLabel>Type</InputLabel>
+                      <Select
+                        name="matetype"
+                        value={extras?.matetype || ""}
+                        onChange={onSTR(setExtras)}
+                        label="Type"
+                      >
+                        <MenuItem value="">{"\u00A0"}</MenuItem>
+                        <MenuItem value="Paper">Paper/Board</MenuItem>
+                        <MenuItem value="Metal">Metal</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <TextField
+                      sx={{ width: 300 }}
+                      size="small"
+                      label="Details"
+                      name="matedata"
+                      value={extras?.matedata || ""}
+                      onChange={onSTR(setExtras)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      sx={{ width: 150 }}
+                      size="small"
+                      label="Supplier"
+                      name="matesup"
+                      value={extras?.matesup || ""}
+                      onChange={onSTR(setExtras)}
+                      InputLabelProps={{ shrink: true }}
+                    />
                     <IconButton
-                      onClick={() =>
-                        setElementz((p) => ({
-                          ...p,
-                          samp: p.samp + 1,
-                        }))
-                      }
-                      disabled={elementz?.samp && !form2Filled}
                       color="primary"
-                    >
-                      <AddCircleOutlineRoundedIcon />
-                    </IconButton>
-                    <IconButton
+                      disabled={!extras?.matetype || !extras?.matedata}
                       onClick={() => {
-                        const count = elementz?.samp ?? 0;
-                        setSampleTemp((p) => ({
+                        const neww = {
+                          ty: extras?.matetype?.trim(),
+                          dt: extras?.matedata?.trim(),
+                          item: extras?.mateitem?.trim(),
+                          sup: extras?.matesup?.trim(),
+                        };
+
+                        setJobTemp((p) => ({
                           ...p,
-                          items: Object.fromEntries(
-                            Object.entries(p?.items ?? {}).filter(
-                              ([k]) => k !== String(count - 1),
-                            ),
-                          ),
-                          data: {
-                            ...(p?.data ?? {}),
-                            status: count <= 1 ? 0 : (p.data?.status ?? 0),
+                          job_info: {
+                            ...(p.job_info || {}),
+                            mate: [...(p.job_info?.mate || []), neww],
                           },
                         }));
 
-                        setElementz((p) => ({
+                        setExtras((p) => ({
                           ...p,
-                          samp: Math.max((p.samp ?? 0) - 1, 0),
+                          matetype: "",
+                          matedata: "",
+                          matesup: "",
+                          mateitem: "",
                         }));
                       }}
-                      disabled={(elementz?.samp ?? 0) < 1}
                     >
-                      <DeleteRoundedIcon />
+                      <AddCircleOutlineRoundedIcon />
                     </IconButton>
-                  </Typography>
-                  <List dense>
-                    {Array.from({ length: elementz?.samp }).map((_, idx) => {
-                      const s = sampleTemp?.items?.[idx] || {};
+                  </Stack>
 
-                      return (
-                        <React.Fragment key={idx}>
-                          <ListItemButton selected={idx === elementz?.samp - 1}>
-                            <ListItemText
-                              primary={`${idx + 1} - ${
-                                sample_types[s?.type] || "-"
-                              }`}
-                              secondary={
-                                ["d1", "d2", "d3", "d4", "d5", "d6"]
-                                  .map((k) => s?.[k])
-                                  .filter(Boolean)
-                                  .join(" • ") || "-"
-                              }
-                            />
-                          </ListItemButton>
-                          <Divider />
-                        </React.Fragment>
-                      );
-                    })}
-                  </List>
-                  {!!elementz?.samp && (
-                    <Stack direction="row" flexWrap="wrap" gap={1}>
-                      <FormControl size="small" sx={{ minWidth: 150 }}>
-                        <Select
-                          name="type"
-                          value={
-                            sampleTemp?.items?.[elementz?.samp - 1]?.type || ""
-                          }
-                          onChange={onSTR_NN(
-                            setSampleTemp,
-                            "items",
-                            elementz?.samp - 1,
-                          )}
-                          MenuProps={{
-                            PaperProps: { style: { maxHeight: 300 } },
+                  <List dense sx={{ my: 1, maxWidth: 835 }}>
+                    {(jobTemp?.job_info?.mate || []).map((r, i) => (
+                      <ListItem
+                        key={i}
+                        sx={{ "&:hover": { bgcolor: "#f2f8ff" } }}
+                      >
+                        <ListItemText
+                          primary={[r.item, r?.ty, r?.dt, r.sup]
+                            .filter(Boolean)
+                            .join(" - ")}
+                        />
+                        <IconButton
+                          onClick={() => {
+                            setJobTemp((p) => ({
+                              ...p,
+                              job_info: {
+                                ...(p.job_info || {}),
+                                mate: (p.job_info?.mate || []).filter(
+                                  (_, idx) => idx !== i,
+                                ),
+                              },
+                            }));
                           }}
                         >
-                          <MenuItem value="">-</MenuItem>
+                          <DeleteRoundedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => {
+                            setJobTemp((p) => ({
+                              ...p,
+                              job_info: {
+                                ...(p.job_info || {}),
+                                mate: (p.job_info?.mate || []).map((m, idx) =>
+                                  idx === i ? { ...m, done: !m?.done } : m,
+                                ),
+                              },
+                            }));
+                          }}
+                        >
+                          <CheckIcon
+                            fontSize="small"
+                            color={r?.done ? "success" : "action"}
+                          />
+                        </IconButton>
+                      </ListItem>
+                    ))}
+                  </List>
 
-                          {Object.entries(sample_types).map(
-                            ([value, label]) => (
-                              <MenuItem key={value} value={value}>
-                                {label}
-                              </MenuItem>
-                            ),
-                          )}
-                        </Select>
-                      </FormControl>
-
-                      {["d1", "d2", "d3", "d4", "d5", "d6"].map((name) => (
-                        <TextField
-                          key={name}
-                          size="small"
-                          sx={{ width: 100 }}
-                          name={name}
-                          value={
-                            sampleTemp?.items?.[elementz?.samp - 1]?.[name] ||
-                            ""
-                          }
-                          onChange={onSTR_NN(
-                            setSampleTemp,
-                            "items",
-                            elementz?.samp - 1,
-                          )}
-                        />
-                      ))}
-                    </Stack>
-                  )}
-                  <Divider sx={{ my: 2 }} />
-                  <Typography sx={{ pb: 3 }}>Sample Status</Typography>
-
-                  <Stack direction="row" flexWrap="wrap" gap={1}>
-                    <FormControlLabel
-                      control={<Checkbox />}
-                      label="not Ready"
-                      name="status"
-                      checked={!sampleTemp?.data?.status}
-                      value={0}
-                      onChange={onNUMSample}
-                    />
-                    <FormControlLabel
-                      control={<Checkbox />}
-                      label="Ready"
-                      disabled={!elementz?.samp}
-                      name="status"
-                      checked={sampleTemp?.data?.status === 1}
-                      value={1}
-                      onChange={onNUMSample}
-                    />
-                    <FormControlLabel
-                      control={<Checkbox color="success" />}
-                      label="Approved"
-                      disabled={!elementz?.samp}
-                      name="status"
-                      checked={sampleTemp?.data?.status === 2}
-                      value={2}
-                      onChange={onNUMSample}
-                    />
-                    <FormControlLabel
-                      control={<Checkbox />}
-                      label="Not Needed"
-                      name="status"
-                      checked={sampleTemp?.data?.status === 3}
-                      value={3}
-                      onChange={onNUMSample}
-                    />
-                  </Stack>
                   <Divider sx={{ mt: 2 }} />
                 </Box>
               </>
@@ -907,31 +863,33 @@ export default function JobJob({ user }) {
                 </Stack>
 
                 <List dense sx={{ my: 1, maxWidth: 600 }}>
-                  {(jobTemp?.bid_result?.log || []).map((r, i) => (
-                    <ListItem
-                      key={i}
-                      sx={{ "&:hover": { bgcolor: "#f2f8ff" } }}
-                    >
-                      <ListItemText
-                        primary={`${i + 1}. ${r?.n} - ${toLKR(r?.v)}`}
-                      />
-                      <IconButton
-                        onClick={() => {
-                          setJobTemp((p) => ({
-                            ...p,
-                            bid_result: {
-                              ...(p.bid_result || {}),
-                              log: (p.bid_result?.log || []).filter(
-                                (_, idx) => idx !== i,
-                              ),
-                            },
-                          }));
-                        }}
+                  {(jobTemp?.bid_result?.log || [])
+                    .sort((a, b) => (a?.v || 0) - (b?.v || 0))
+                    .map((r, i) => (
+                      <ListItem
+                        key={i}
+                        sx={{ "&:hover": { bgcolor: "#f2f8ff" } }}
                       >
-                        <DeleteRoundedIcon fontSize="small" />
-                      </IconButton>
-                    </ListItem>
-                  ))}
+                        <ListItemText
+                          primary={`${i + 1}. ${r?.n} - ${toLKR(r?.v)}`}
+                        />
+                        <IconButton
+                          onClick={() => {
+                            setJobTemp((p) => ({
+                              ...p,
+                              bid_result: {
+                                ...(p.bid_result || {}),
+                                log: (p.bid_result?.log || []).filter(
+                                  (_, idx) => idx !== i,
+                                ),
+                              },
+                            }));
+                          }}
+                        >
+                          <DeleteRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </ListItem>
+                    ))}
                 </List>
                 <Divider sx={{ my: 2 }} />
                 <Typography sx={{ pb: 3 }}>Customer Decision</Typography>

@@ -135,15 +135,27 @@ export default function PaperLog({ user }) {
       .catch(handleApiError)
       .finally(() => SetDBLoading(false));
   }
-  const plus_types = {
+  const gts_plus = {
     lby: "Buy Local",
-    shp: "Shipment",
+    shp: "import",
+    rtn: "Return",
     fix: "Correction",
   };
 
-  const min_types = {
+  const gts_minus = {
     vsl: "Sell VAT",
     nsl: "Sell noVAT",
+    fix: "Correction",
+  };
+  const nim_plus = {
+    vby: "Buy Vat",
+    vby: "Buy noVat",
+    rtn: "Return",
+    fix: "Correction",
+  };
+
+  const nim_minus = {
+    job: "Job",
     fix: "Correction",
   };
   const isTrans = !form?.direction;
@@ -369,7 +381,7 @@ export default function PaperLog({ user }) {
               }}
             >
               <MenuItem value="">-</MenuItem>
-              {Object.entries(isPlus ? plus_types : min_types).map(
+              {Object.entries(isPlus ? gts_plus : gts_minus).map(
                 ([code, label]) => (
                   <MenuItem key={code} value={code}>
                     {label}

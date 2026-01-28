@@ -247,7 +247,17 @@ export default function JobTicket({ j }) {
       </Box>
 
       {/* Bottom */}
-      <Box sx={{ ...bd, flex: 1, mx: 3, mb: 3 }} />
+      <Box
+        sx={{
+          ...bd,
+          flex: 1,
+          mx: 3,
+          mb: 3,
+          backgroundSize: "4mm 4mm",
+          backgroundImage:
+            "linear-gradient(to right, #c0d4ff 1px, transparent 1px), linear-gradient(to bottom, #c0d4ff 1px, transparent 1px)",
+        }}
+      />
     </Box>
   );
 }
