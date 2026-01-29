@@ -6,7 +6,8 @@ function getUserID(req) {
 
 function requiredLogged(req, res, next) {
   if (req.isAuthenticated?.() && req.user) return next();
-  return res.status(400).json({
+
+  return res.status(401).json({
     success: false,
     message: "Please Log In",
   });

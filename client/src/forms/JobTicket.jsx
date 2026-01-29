@@ -149,19 +149,16 @@ export default function JobTicket({ j }) {
                 </Box>
                 <Box sx={{ flex: 1, pt: 1.5, pr: 1 }}>
                   <List sx={{ p: 0 }}>
-                    {/* <ListItemText sx={{ m: 0, ...blnk }}> mate 1</ListItemText>
-                    <ListItemText sx={{ m: 0, ...blnk }}>
-                      {"\u00A0"}
-                    </ListItemText>
-                    <ListItemText sx={{ m: 0, ...blnk }}>
-                      {"\u00A0"}
-                    </ListItemText>
-                    <ListItemText sx={{ m: 0, ...blnk }}>
-                      {"\u00A0"}
-                    </ListItemText>
-                    <ListItemText sx={{ m: 0, ...blnk }}>
-                      {"\u00A0"}
-                    </ListItemText> */}
+                    <Typography sx={{ color: "darkblue" }}>
+                      {inf?.mate?.map((j, i) => (
+                        <span key={i}>
+                          <b>{j.item}</b>
+                          {j.dt && j.item && " - "}
+                          {j.dt}
+                          {i < inf.mate.length - 1 && " | "}
+                        </span>
+                      ))}
+                    </Typography>
                   </List>
                 </Box>
               </Box>

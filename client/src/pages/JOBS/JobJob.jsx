@@ -16,6 +16,8 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Checkbox from "@mui/material/Checkbox";
+import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
+import ApprovalIcon from "@mui/icons-material/Approval";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -778,6 +780,24 @@ export default function JobJob({ user }) {
                               ...p,
                               job_info: {
                                 ...(p.job_info || {}),
+                                mate: (p.job_info?.mate || []).map((m, idx) =>
+                                  idx === i ? { ...m, done: !m?.done } : m,
+                                ),
+                              },
+                            }));
+                          }}
+                        >
+                          <ApprovalIcon
+                            fontSize="small"
+                            color={r?.done ? "primary" : "action"}
+                          />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => {
+                            setJobTemp((p) => ({
+                              ...p,
+                              job_info: {
+                                ...(p.job_info || {}),
                                 mate: (p.job_info?.mate || []).filter(
                                   (_, idx) => idx !== i,
                                 ),
@@ -786,24 +806,6 @@ export default function JobJob({ user }) {
                           }}
                         >
                           <DeleteRoundedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => {
-                            setJobTemp((p) => ({
-                              ...p,
-                              job_info: {
-                                ...(p.job_info || {}),
-                                mate: (p.job_info?.mate || []).map((m, idx) =>
-                                  idx === i ? { ...m, done: !m?.done } : m,
-                                ),
-                              },
-                            }));
-                          }}
-                        >
-                          <CheckIcon
-                            fontSize="small"
-                            color={r?.done ? "success" : "action"}
-                          />
                         </IconButton>
                       </ListItem>
                     ))}

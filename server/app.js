@@ -2,6 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
+const rateLimit = require("express-rate-limit");
+
+const pgSession = require("connect-pg-simple")(session);
+const pool = require("./Db/pool");
 
 require("./Auth/passport");
 
@@ -43,10 +47,21 @@ app.use(
     saveUninitialized: false,
     proxy: isProd,
 
+    store: isProd
+      ? new pgSession({
+          pool,
+          tableName: "user_sessions",
+          createTableIfMissing: true,
+        })
+      : undefined,
+
+    rolling: true,
+    unset: "destroy",
+
     cookie: {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      sameSite: "lax",
       domain: isProd ? ".nimthara.com" : undefined,
       path: "/",
       maxAge: 1000 * 60 * 60 * 4,
@@ -54,10 +69,17 @@ app.use(
   }),
 );
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/auth/login", loginLimiter);
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-// routes
 app.use("/jobs", jobsRoutes);
 app.use("/records", recordsRoutes);
 app.use("/papers", papersRoutes);

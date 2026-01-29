@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
 import { AUTH_API_URL } from "../api/urls";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
   Alert,
@@ -23,8 +23,12 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export default function Login({ user, setUser }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // 0 = Login, 1 = Register/Change PW
+  const fromPath = location.state?.from?.pathname || "/papers";
+  const fromSearch = location.state?.from?.search || "";
+  const fromHash = location.state?.from?.hash || "";
+
   const [tab, setTab] = useState(0);
 
   const [loginDetails, setLoginDetails] = useState({
@@ -62,7 +66,6 @@ export default function Login({ user, setUser }) {
   const pwMatches = regDetails.pwr === regDetails.pwrr;
 
   const setSafeMessage = (msg) => {
-    // Keep messages generic to avoid account enumeration hints
     setFormError(msg || "Something went wrong. Please try again.");
   };
 
@@ -122,11 +125,11 @@ export default function Login({ user, setUser }) {
         setUser(res.data.user);
 
         setTimeout(() => {
-          navigate("/papers", { replace: true });
+          navigate(`${fromPath}${fromSearch}${fromHash}`, { replace: true });
         }, 0);
       } else {
         setSafeMessage(
-          "Login failed. Please check your details and try again."
+          "Login failed. Please check your details and try again.",
         );
       }
     } catch (err) {
@@ -152,7 +155,6 @@ export default function Login({ user, setUser }) {
         pwrr: regDetails.pwrr,
       });
 
-      // Show server message but still keep UI safe/generic if needed
       setFormInfo(res?.data?.message || "Request completed.");
       setTab(0);
       setRegDetails({ display_name: "", regname: "", pwr: "", pwrr: "" });
@@ -162,11 +164,12 @@ export default function Login({ user, setUser }) {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (user?.loggedIn) {
-      navigate("/papers", { replace: true });
+      navigate(`${fromPath}${fromSearch}${fromHash}`, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, fromPath, fromSearch, fromHash]);
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 3, sm: 6 } }}>
@@ -206,7 +209,7 @@ export default function Login({ user, setUser }) {
         {tab === 0 ? (
           <Box component="form" onSubmit={userLogin} noValidate>
             <Grid container spacing={2}>
-              <Grid>
+              <Grid item xs={12}>
                 <TextField
                   label="Username"
                   name="username"
@@ -219,7 +222,7 @@ export default function Login({ user, setUser }) {
                 />
               </Grid>
 
-              <Grid>
+              <Grid item xs={12}>
                 <TextField
                   label="Password"
                   name="password"
@@ -245,7 +248,7 @@ export default function Login({ user, setUser }) {
                 />
               </Grid>
 
-              <Grid>
+              <Grid item xs={12}>
                 <Button
                   type="submit"
                   variant="contained"
@@ -262,7 +265,7 @@ export default function Login({ user, setUser }) {
         ) : (
           <Box component="form" onSubmit={userRegister} noValidate>
             <Grid container spacing={2}>
-              <Grid>
+              <Grid item xs={12}>
                 <TextField
                   label="Name"
                   name="display_name"
@@ -275,7 +278,7 @@ export default function Login({ user, setUser }) {
                 />
               </Grid>
 
-              <Grid>
+              <Grid item xs={12}>
                 <TextField
                   label="Username"
                   name="regname"
@@ -288,7 +291,7 @@ export default function Login({ user, setUser }) {
                 />
               </Grid>
 
-              <Grid>
+              <Grid item xs={12}>
                 <TextField
                   label="New Password"
                   name="pwr"
@@ -315,7 +318,7 @@ export default function Login({ user, setUser }) {
                 />
               </Grid>
 
-              <Grid>
+              <Grid item xs={12}>
                 <TextField
                   label="Repeat Password"
                   name="pwrr"
@@ -347,7 +350,7 @@ export default function Login({ user, setUser }) {
                 />
               </Grid>
 
-              <Grid>
+              <Grid item xs={12}>
                 <Button
                   type="submit"
                   variant="contained"

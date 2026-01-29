@@ -85,7 +85,7 @@ router.post("/logout", (req, res, next) => {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: "lax",
         domain:
           process.env.NODE_ENV === "production" ? ".nimthara.com" : undefined,
       });

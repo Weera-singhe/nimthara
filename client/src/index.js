@@ -38,7 +38,7 @@ const App = () => {
   const authApi = useMemo(() => {
     return axios.create({
       baseURL: AUTH_API_URL,
-      //withCredentials: true,
+      withCredentials: true,
       timeout: 15000,
       headers: { "Content-Type": "application/json" },
     });
