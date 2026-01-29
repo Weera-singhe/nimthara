@@ -1,5 +1,5 @@
 import { JOBS_API_URL } from "../../api/urls";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
@@ -15,14 +15,18 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import WorkOutlineRoundedIcon from "@mui/icons-material/WorkOutlineRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import PrintIcon from "@mui/icons-material/Print";
+
+import { useReactToPrint } from "react-to-print";
 
 import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import { handleApiError } from "../../helpers/HandleChange";
-import { InputAdornment, TextField } from "@mui/material";
+import { Fab, InputAdornment, TextField } from "@mui/material";
 
 export default function JobsHome({ user }) {
+  const printRef = useRef(null);
   const [dbLoading, setDbloading] = useState(true);
   const [qualiJobs, setQualiJobs] = useState([]);
   const [allJobsSearch, setAllJobsSearch] = useState([]);
@@ -57,6 +61,11 @@ export default function JobsHome({ user }) {
     return () => clearTimeout(t);
   }, [searchTxt]);
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "jobs list",
+  });
+
   const CustomerName = (j) =>
     j?.customer_id === 1
       ? j?.unreg_customer || "Unregistered"
@@ -72,6 +81,27 @@ export default function JobsHome({ user }) {
         minHeight: 0,
       }}
     >
+      <Fab
+        color="primary"
+        size="small"
+        onClick={handlePrint}
+        disabled={dbLoading}
+        sx={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 1200,
+          "@media print": {
+            display: "none",
+          },
+        }}
+      >
+        {dbLoading ? (
+          <CircularProgress size={20} sx={{ color: "white" }} />
+        ) : (
+          <PrintIcon />
+        )}
+      </Fab>
       <Box
         sx={{
           display: "flex",
@@ -151,7 +181,7 @@ export default function JobsHome({ user }) {
         }}
       >
         {tabV === 1 && (
-          <Box>
+          <Box ref={printRef}>
             <List
               component="div"
               disablePadding
@@ -408,7 +438,7 @@ export default function JobsHome({ user }) {
         )}
 
         {tabV === 2 && (
-          <Box>
+          <Box ref={printRef}>
             <List
               component="div"
               disablePadding

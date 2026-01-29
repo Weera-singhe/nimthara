@@ -381,13 +381,19 @@ export default function PaperLog({ user }) {
               }}
             >
               <MenuItem value="">-</MenuItem>
-              {Object.entries(isPlus ? gts_plus : gts_minus).map(
-                ([code, label]) => (
-                  <MenuItem key={code} value={code}>
-                    {label}
-                  </MenuItem>
-                ),
-              )}
+              {Object.entries(
+                isGts && isPlus
+                  ? gts_plus
+                  : isGts && !isPlus
+                    ? gts_minus
+                    : !isGts && isPlus
+                      ? nim_plus
+                      : nim_minus,
+              ).map(([code, label]) => (
+                <MenuItem key={code} value={code}>
+                  {label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         )}

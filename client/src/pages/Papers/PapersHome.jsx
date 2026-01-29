@@ -22,6 +22,7 @@ import {
   Fab,
   FormControl,
   Grow,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -35,6 +36,7 @@ import { useReactToPrint } from "react-to-print";
 import MyFormBox from "../../helpers/MyFormBox";
 import { handleApiError, onNUM, onSTRCode } from "../../helpers/HandleChange";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 export default function PapersHome({ user }) {
   const { bsns } = useParams();
   const navigate = useNavigate();
@@ -51,6 +53,10 @@ export default function PapersHome({ user }) {
   const printRef = useRef(null);
 
   const [specs, setSpecs] = useState([]);
+
+  const [searchTxt, setSearchTxt] = useState("");
+  const [searchTxtDeb, setSearchTxtDeb] = useState("");
+  const LIMIT = 10;
 
   useEffect(() => {
     SetDBLoading(true);
@@ -97,21 +103,10 @@ export default function PapersHome({ user }) {
       .catch(handleApiError)
       .finally(() => SetDBLoading(false));
   }
-
-  function SubmitNewSpec() {
-    SetDBLoading(true);
-
-    axios
-      .post(`${PAPERS_API_URL}/${bsns}/addspec/`, form)
-      .then((res) => {
-        if (res.data.success) {
-          setSpecs(res.data.specs || {});
-          setForm(defForm);
-        }
-      })
-      .catch(handleApiError)
-      .finally(() => SetDBLoading(false));
-  }
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTxtDeb(searchTxt), 200);
+    return () => clearTimeout(t);
+  }, [searchTxt]);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -202,130 +197,234 @@ export default function PapersHome({ user }) {
               add
             </Button>
           </Stack>
+          <Collapse in={addPanel} unmountOnExit>
+            <MyFormBox
+              label={"New Paper"}
+              clickable={form1Filled && lvl1Ok}
+              onPress={() => SubmitNewPaper()}
+              user={user}
+              sx={{ mt: 1 }}
+            >
+              <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
+                <InputLabel>Type</InputLabel>
+                <Select
+                  name="type"
+                  value={form?.type || 0}
+                  label="Type"
+                  onChange={onNUM(setForm)}
+                  MenuProps={{
+                    PaperProps: { style: { maxHeight: 300 } },
+                  }}
+                >
+                  <MenuItem value={0}>
+                    <em>-</em>
+                  </MenuItem>
+
+                  {specs?.types?.map((ty) => (
+                    <MenuItem key={ty?.id} value={ty?.id}>
+                      {ty?.type}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <ToggleButtonGroup
+                value={form?.den_unit}
+                exclusive
+                onChange={(e, v) => {
+                  v !== null && setForm((p) => ({ ...p, den_unit: v }));
+                }}
+                size="small"
+                color="primary"
+              >
+                {specs?.den_units?.map((du) => (
+                  <ToggleButton key={du?.id} value={du?.id}>
+                    {du?.denunit}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+              <Num
+                label={form?.den_unit === 1 ? "gsm" : "mm"}
+                onChange={onNUM(setForm)}
+                value={form?.den}
+                name="den"
+              />
+              <Num
+                label="Length"
+                onChange={onNUM(setForm)}
+                value={form?.size_h}
+                name="size_h"
+              />
+              <Num
+                label="Width"
+                onChange={onNUM(setForm)}
+                value={form?.size_w}
+                name="size_w"
+              />
+              <FormControl sx={{ minWidth: 130, maxWidth: "80%" }} size="small">
+                <InputLabel>Brand</InputLabel>
+                <Select
+                  name="brand"
+                  value={form?.brand}
+                  label="brand"
+                  onChange={onNUM(setForm)}
+                  MenuProps={{
+                    PaperProps: { style: { maxHeight: 300 } },
+                  }}
+                >
+                  {specs?.brands?.map((br) => (
+                    <MenuItem key={br?.id} value={br?.id}>
+                      {br?.brand || "\u00A0"}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl sx={{ minWidth: 110, maxWidth: "80%" }} size="small">
+                <InputLabel>Color</InputLabel>
+                <Select
+                  name="color"
+                  value={form?.color || 0}
+                  label="Color"
+                  onChange={onNUM(setForm)}
+                  MenuProps={{
+                    PaperProps: { style: { maxHeight: 300 } },
+                  }}
+                >
+                  {specs?.colors?.map((cl) => (
+                    <MenuItem key={cl?.id} value={cl?.id}>
+                      {cl?.color || "\u00A0"}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <ToggleButtonGroup
+                value={form?.unit_type}
+                exclusive
+                onChange={(e, v) => {
+                  v !== null && setForm((p) => ({ ...p, unit_type: v }));
+                }}
+                size="small"
+                color="primary"
+              >
+                {specs?.unit_types?.map((ut) => (
+                  <ToggleButton key={ut?.id} value={ut?.id}>
+                    {ut?.unit_type}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+              <Num
+                label={form?.unit_type === 1 ? "sheets" : "KG"}
+                onChange={onNUM(setForm)}
+                value={form?.unit_val}
+                name="unit_val"
+              />
+            </MyFormBox>
+          </Collapse>
+          <Accordion defaultExpanded={false} sx={{ mb: 1 }}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreRoundedIcon />}
+              sx={{ backgroundColor: "#e0f2f1" }}
+            >
+              <Typography component="span" fontWeight={450}>
+                Search
+              </Typography>
+            </AccordionSummary>
+            <Divider />
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search..."
+              value={searchTxt}
+              onChange={(e) => setSearchTxt(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {DBLoading ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <SearchRoundedIcon />
+                    )}
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ my: 2 }}
+            />
+            {paperList
+              .filter((pp) => {
+                const q = searchTxtDeb
+                  .toLowerCase()
+                  .replace(/[\s\-_()]+/g, " ")
+                  .trim();
+
+                if (!q) return false;
+
+                const hay = (pp.display_as || "")
+                  .toLowerCase()
+                  .replace(/[\s\-_()]+/g, " ")
+                  .trim();
+                return q.split(" ").every((t) => hay.includes(t));
+              })
+              .slice(0, LIMIT)
+              .map((pp) => (
+                <Box
+                  key={pp?.id}
+                  sx={{
+                    "&:hover": {
+                      bgcolor: "#e4eded",
+                    },
+                  }}
+                >
+                  <AccordionDetails
+                    sx={{
+                      py: 1,
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" width="100%">
+                      <Typography sx={{ flexGrow: 1, mr: 0.5 }}>
+                        {pp?.display_as}
+                      </Typography>
+
+                      <Stack direction="row" gap={1}>
+                        {isGts && (
+                          <Button
+                            size="small"
+                            sx={{ whiteSpace: "nowrap", fontWeight: 500 }}
+                            component={user?.loggedIn && Link}
+                            to={`/papers/${bsns}/price/${pp?.id}`}
+                          >
+                            {toDeci(pp?.last_price)}
+                            <small>&nbsp;/{pp?.unit_val}</small>
+                          </Button>
+                        )}
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          sx={{ minWidth: 80 }}
+                          component={user?.loggedIn && Link}
+                          to={`/papers/${bsns}/log/${pp?.id}`}
+                        >
+                          {`${
+                            (isGts ? pp?.stock_gts : pp?.stock_nim) < 0
+                              ? "- "
+                              : ""
+                          }${
+                            Math.floor(
+                              Math.abs(isGts ? pp?.stock_gts : pp?.stock_nim) /
+                                pp?.unit_val,
+                            ) || 0
+                          } | ${
+                            Math.abs(isGts ? pp?.stock_gts : pp?.stock_nim) %
+                              pp?.unit_val || 0
+                          }`}
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </AccordionDetails>
+                  <Divider sx={{ mx: 1 }} />
+                </Box>
+              ))}
+          </Accordion>
         </>
       )}
-      <Collapse in={addPanel} unmountOnExit>
-        <MyFormBox
-          label={"New Paper"}
-          clickable={form1Filled && lvl1Ok}
-          onPress={() => SubmitNewPaper()}
-          user={user}
-          sx={{ mt: 1 }}
-        >
-          <FormControl sx={{ minWidth: 150, maxWidth: "80%" }} size="small">
-            <InputLabel>Type</InputLabel>
-            <Select
-              name="type"
-              value={form?.type || 0}
-              label="Type"
-              onChange={onNUM(setForm)}
-              MenuProps={{
-                PaperProps: { style: { maxHeight: 300 } },
-              }}
-            >
-              <MenuItem value={0}>
-                <em>-</em>
-              </MenuItem>
-
-              {specs?.types?.map((ty) => (
-                <MenuItem key={ty?.id} value={ty?.id}>
-                  {ty?.type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <ToggleButtonGroup
-            value={form?.den_unit}
-            exclusive
-            onChange={(e, v) => {
-              v !== null && setForm((p) => ({ ...p, den_unit: v }));
-            }}
-            size="small"
-            color="primary"
-          >
-            {specs?.den_units?.map((du) => (
-              <ToggleButton key={du?.id} value={du?.id}>
-                {du?.denunit}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-          <Num
-            label={form?.den_unit === 1 ? "gsm" : "mm"}
-            onChange={onNUM(setForm)}
-            value={form?.den}
-            name="den"
-          />
-          <Num
-            label="Length"
-            onChange={onNUM(setForm)}
-            value={form?.size_h}
-            name="size_h"
-          />
-          <Num
-            label="Width"
-            onChange={onNUM(setForm)}
-            value={form?.size_w}
-            name="size_w"
-          />
-          <FormControl sx={{ minWidth: 130, maxWidth: "80%" }} size="small">
-            <InputLabel>Brand</InputLabel>
-            <Select
-              name="brand"
-              value={form?.brand}
-              label="brand"
-              onChange={onNUM(setForm)}
-              MenuProps={{
-                PaperProps: { style: { maxHeight: 300 } },
-              }}
-            >
-              {specs?.brands?.map((br) => (
-                <MenuItem key={br?.id} value={br?.id}>
-                  {br?.brand || "\u00A0"}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 110, maxWidth: "80%" }} size="small">
-            <InputLabel>Color</InputLabel>
-            <Select
-              name="color"
-              value={form?.color || 0}
-              label="Color"
-              onChange={onNUM(setForm)}
-              MenuProps={{
-                PaperProps: { style: { maxHeight: 300 } },
-              }}
-            >
-              {specs?.colors?.map((cl) => (
-                <MenuItem key={cl?.id} value={cl?.id}>
-                  {cl?.color || "\u00A0"}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <ToggleButtonGroup
-            value={form?.unit_type}
-            exclusive
-            onChange={(e, v) => {
-              v !== null && setForm((p) => ({ ...p, unit_type: v }));
-            }}
-            size="small"
-            color="primary"
-          >
-            {specs?.unit_types?.map((ut) => (
-              <ToggleButton key={ut?.id} value={ut?.id}>
-                {ut?.unit_type}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-          <Num
-            label={form?.unit_type === 1 ? "sheets" : "KG"}
-            onChange={onNUM(setForm)}
-            value={form?.unit_val}
-            name="unit_val"
-          />
-        </MyFormBox>
-      </Collapse>
 
       <Box ref={printRef}>
         {specs?.types?.map((ty) => (

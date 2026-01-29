@@ -71,7 +71,9 @@ const App = () => {
           alt="Nimthara"
           sx={{
             maxWidth: 220,
-            width: "70%",
+            width: "60%",
+            height: "auto",
+            objectFit: "contain",
           }}
         />
 
