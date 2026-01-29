@@ -32,7 +32,7 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
-import PrintOut from "../../helpers/PrintOut";
+import PrintViewer from "../../helpers/PrintViewer";
 import VatInvoice from "../../forms/VatInvoice";
 
 export default function PaperLog({ user }) {

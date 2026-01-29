@@ -4,7 +4,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PrintIcon from "@mui/icons-material/Print";
 import { useReactToPrint } from "react-to-print";
 
-export default function PrintOut({ children, paperSize = "A5" }) {
+export default function PrintViewer({ children, paperSize = "A5", docName }) {
   const [printOpened, setPrintOpened] = useState(false);
   const printRef = useRef(null);
   const PAPER = {
@@ -17,7 +17,7 @@ export default function PrintOut({ children, paperSize = "A5" }) {
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: "Paper Price List",
+    documentTitle: docName || "print_document",
     pageStyle: `
       @page { size: ${paperSize}; margin: 0; }
       html, body { margin: 0; padding: 0; }
@@ -45,24 +45,34 @@ export default function PrintOut({ children, paperSize = "A5" }) {
             position: "fixed",
             inset: "100px 15px 15px 15px",
             overflow: "auto",
-            display: "flex",
-            justifyContent: "center",
             backgroundColor: "grey",
+            display: "block",
+            WebkitOverflowScrolling: "touch",
           },
         }}
       >
         <Box
-          ref={printRef}
           sx={{
-            width,
-            height,
-            flexShrink: 0,
-            boxSizing: "border-box",
-            p: 1,
-            backgroundColor: "white",
+            display: "inline-flex",
+            minWidth: "100%",
+            minHeight: "100%",
+            justifyContent: "center",
+            alignItems: "flex-start",
           }}
         >
-          {children}
+          <Box
+            ref={printRef}
+            sx={{
+              width,
+              height,
+              flexShrink: 0,
+              boxSizing: "border-box",
+              p: 1,
+              backgroundColor: "white",
+            }}
+          >
+            {children}
+          </Box>
         </Box>
         <Fab
           color="error"

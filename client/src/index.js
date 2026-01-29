@@ -20,6 +20,7 @@ import Esti from "./pages/Esti/Esti";
 import PaperLog from "./pages/Papers/PaperLog";
 import RecordsHome from "./pages/Records/RecordsHome";
 import RecJobTicket from "./pages/Records/RecJobTicket";
+import LongLogo from "./assests/long_logo.svg";
 
 axios.defaults.withCredentials = true;
 
@@ -54,13 +55,33 @@ const App = () => {
 
   if (!authChecked) {
     return (
-      <Box sx={{ p: 2 }}>
+      <Box
+        sx={{
+          height: "100dvh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 2,
+        }}
+      >
+        <Box
+          component="img"
+          src={LongLogo}
+          alt="Nimthara"
+          sx={{
+            maxWidth: 220,
+            width: "70%",
+          }}
+        />
+
         <Button loading loadingPosition="end">
           Loading...
         </Button>
       </Box>
     );
   }
+
   return (
     <BrowserRouter>
       <Box

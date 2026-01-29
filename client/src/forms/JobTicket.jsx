@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Divider, List, ListItemText, Typography } from "@mui/material";
+import QRCode from "react-qr-code";
 
 export default function JobTicket({ j }) {
   const jobfileTag = (i) => String(i || 0).padStart(5, "0");
@@ -68,10 +69,10 @@ export default function JobTicket({ j }) {
         <Box
           sx={{
             ...bd,
-            flex: "0 0 30%",
+            flex: 1,
             display: "flex",
             alignItems: "center",
-            px: 5,
+            pl: 5,
           }}
         >
           <Typography
@@ -85,6 +86,28 @@ export default function JobTicket({ j }) {
             {!!j?.file_id &&
               jobfileTag(j?.file_id) + "_" + (j?.job_code || j?.job_index)}
           </Typography>
+
+          <Box
+            sx={{
+              ml: "auto",
+              height: "100%",
+              aspectRatio: "1 / 1",
+              border: "2px solid black",
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              p: 0.5,
+              bgcolor: "white",
+            }}
+          >
+            {j?.jobfile_id && j?.job_index && (
+              <QRCode
+                value={`https://www.nimthara.com/jobs/job/${j?.file_id}/${j?.job_index}`}
+                style={{ width: "100%", height: "100%" }}
+              />
+            )}
+          </Box>
         </Box>
       </Box>
 

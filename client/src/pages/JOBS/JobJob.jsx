@@ -1011,6 +1011,20 @@ export default function JobJob({ user }) {
             {tabV === 2 && isSubmittedBid && !!jobSaved?.job_status && (
               <Box sx={{ width: "100%", overflow: "hidden" }}>
                 <Divider sx={{ my: 2 }} />
+                <Stack direction="row" gap={1} alignItems="center">
+                  <Typography>Job Ticket</Typography>
+                  <IconButton
+                    color="primary"
+                    component={Link}
+                    to={`/records/nim/jticket/${jobSaved?.job_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <AddLinkRoundedIcon />
+                  </IconButton>
+                </Stack>
+
+                <Divider sx={{ my: 2 }} />
                 <FormControlLabel
                   label="Performance Bond"
                   labelPlacement="start"
@@ -1372,20 +1386,6 @@ export default function JobJob({ user }) {
                     </ListItem>
                   ))}
                 </List>
-
-                <Divider sx={{ my: 2 }} />
-                <Stack direction="row" gap={1} alignItems="center">
-                  <Typography>Job Ticket</Typography>
-                  <IconButton
-                    color="primary"
-                    component={Link}
-                    to={`/records/nim/jticket/${jobSaved?.job_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <AddLinkRoundedIcon />
-                  </IconButton>
-                </Stack>
 
                 <Divider sx={{ my: 2 }} />
                 <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 2 }}>

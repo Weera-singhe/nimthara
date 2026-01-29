@@ -15,7 +15,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { RECORDS_API_URL } from "../../api/urls";
 import MyFormBox from "../../helpers/MyFormBox";
-import PrintOut from "../../helpers/PrintOut";
+import PrintViewer from "../../helpers/PrintViewer";
 import JobTicket from "../../forms/JobTicket";
 
 export default function RecJobTicket({ user }) {
@@ -82,9 +82,12 @@ export default function RecJobTicket({ user }) {
             <TextField {...params} label="Job" placeholder="Search job..." />
           )}
         />
-        <PrintOut paperSize="A3">
+        <PrintViewer
+          paperSize="A3"
+          docName={`job_ticket_#${jobfileTag(selectedJob?.jobfile_id)}_${selectedJob?.job_code || selectedJob?.job_index}`}
+        >
           <JobTicket j={selectedJob} />
-        </PrintOut>
+        </PrintViewer>
       </MyFormBox>
     </Box>
   );
