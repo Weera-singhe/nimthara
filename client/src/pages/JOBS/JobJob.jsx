@@ -1,7 +1,7 @@
 import { JOBS_API_URL } from "../../api/urls";
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { SumsOfQuot, toLKR } from "../../helpers/cal";
+import { toLKR } from "../../helpers/cal";
 
 import axios from "axios";
 import Box from "@mui/material/Box";
@@ -16,7 +16,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Checkbox from "@mui/material/Checkbox";
-import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import ApprovalIcon from "@mui/icons-material/Approval";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
@@ -25,12 +24,14 @@ import DocUpload from "../../helpers/DocUpload";
 import MyFormBox from "../../helpers/MyFormBox";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
 import AddLinkRoundedIcon from "@mui/icons-material/AddLinkRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import CheckIcon from "@mui/icons-material/Check";
-import EditIcon from "@mui/icons-material/Edit";
 import deepEqual from "fast-deep-equal";
 import Num from "../../helpers/Num";
+//import CheckIcon from "@mui/icons-material/Check";
+//import EditIcon from "@mui/icons-material/Edit";
+//import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 
 import {
   onNUM,
@@ -47,7 +48,6 @@ import {
   IconButton,
   InputLabel,
   ListItem,
-  ListItemIcon,
   MenuItem,
   Paper,
   Select,
@@ -71,14 +71,13 @@ export default function JobJob({ user }) {
   const [jobSaved, setJobSaved] = useState([]);
   const [jobTemp, setJobTemp] = useState([]);
   const [theseJobs, setTheseJobs] = useState([]);
-  const [deliTemp, setDeliTemp] = useState([]);
-  //const [bidResTemp, setBidResTemp] = useState([]);
 
-  const [elementz, setElementz] = useState([]);
   const [extras, setExtras] = useState([]);
 
   const [tabV, setTabV] = useState(0);
-  const [estiOk, setEstiOk] = useState(false);
+
+  const [stockForm, setStockForm] = useState([]);
+  const [allPapers, setAllPapers] = useState([]);
 
   const onSTR_ = onSTR(setJobTemp);
   const onSTRCode_ = onSTRCode(setJobTemp);
@@ -108,28 +107,8 @@ export default function JobJob({ user }) {
         setJobTemp(job);
         setTabV(job?.bid_submit?.method ? (job?.job_status || 0) + 1 : 0);
 
-        setDeliTemp(job.delivery || {});
-
-        setEstiOk(job?.job_info?.esti_ok);
-        setTheseJobs(res.data.theseJobs || {});
-
-        const keysSamp = Object.keys(job?.sample?.items ?? {}).map(Number);
-        const sampItemTot_ = keysSamp.length ? Math.max(...keysSamp) + 1 : 0;
-
-        const keysDeli = Object.keys(job?.delivery?.log ?? {}).map(Number);
-        const deliLogTot_ = keysDeli.length ? Math.max(...keysDeli) + 1 : 0;
-
-        const keysBidres = Object.keys(job?.bid_result?.log ?? {}).map(Number);
-        const bidresTot_ = keysBidres.length ? Math.max(...keysBidres) + 1 : 0;
-
-        setElementz({
-          samp: sampItemTot_,
-          sampInitial: sampItemTot_,
-          deli: deliLogTot_,
-          deliInitial: deliLogTot_,
-          bidres: bidresTot_,
-          bidresInitial: bidresTot_,
-        });
+        setTheseJobs(res.data.theseJobs || []);
+        setAllPapers(res.data.allPapers || []);
       })
       .catch(handleApiError)
       .finally(() => {
@@ -137,16 +116,15 @@ export default function JobJob({ user }) {
       });
   }, [fileid, jobindex]);
 
-  useEffect(() => {
-    console.log("temp", jobTemp?.job_info);
-  }, [jobTemp]);
+  const infTmp = jobTemp?.job_info;
+  const infSvd = jobSaved?.job_info;
 
   useEffect(() => {
-    console.log("deli", deliTemp);
-  }, [deliTemp]);
+    console.log("temp", jobTemp);
+  }, [jobTemp]);
   useEffect(() => {
-    console.log("elemnt = ", elementz);
-  }, [elementz]);
+    console.log("infTmp", infTmp);
+  }, [infTmp]);
 
   const isSavedJob = jobSaved?.job_index;
   const isSavedFile = jobSaved?.file_id;
@@ -155,8 +133,6 @@ export default function JobJob({ user }) {
   );
 
   const same = (a, b, e) => (a || e) === (b || e);
-
-  const inf = jobTemp?.job_info;
 
   const form1Same =
     same(jobSaved?.job_name, jobTemp.job_name, "") &&
@@ -177,15 +153,18 @@ export default function JobJob({ user }) {
       .finally(() => setDBLoading(false));
   }
 
-  const tab = tabV ?? 0; // treat null/undefined as 0
+  const tab = tabV ?? 0;
 
   const isForm2Same = () => {
     switch (tabV) {
       case 0: {
-        const savedItems = jobSaved?.job_info?.mate ?? [];
-        const tempItems = jobTemp?.job_info?.mate ?? [];
+        const savedItems = infSvd?.mate ?? [];
+        const tempItems = infTmp?.mate ?? [];
 
-        return deepEqual(savedItems, tempItems);
+        return (
+          deepEqual(savedItems, tempItems) &&
+          same(infTmp?.esti_ok, infSvd?.esti_ok, false)
+        );
       }
       case 1: {
         const savedLog = jobSaved?.bid_result?.log ?? [];
@@ -194,25 +173,29 @@ export default function JobJob({ user }) {
           same(jobTemp?.po?.status, jobSaved?.po?.status, "") &&
           same(jobTemp?.po?.when, jobSaved?.po?.when, 0) &&
           same(jobTemp?.po?.code, jobSaved?.po?.code, 0) &&
-          same(deliTemp?.deadline_type, jobSaved?.delivery?.deadline_type, 0) &&
-          same(deliTemp?.deadline, jobSaved?.delivery?.deadline, "") &&
+          same(
+            jobTemp?.delivery?.deadline_type,
+            jobSaved?.delivery?.deadline_type,
+            0,
+          ) &&
+          same(jobTemp?.delivery?.deadline, jobSaved?.delivery?.deadline, "") &&
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
           deepEqual(savedLog, tempLog)
         );
       }
       case 2: {
-        const savedOther = jobSaved?.job_info?.other ?? [];
-        const tempOther = jobTemp?.job_info?.other ?? [];
-        const savedFin = jobSaved?.job_info?.finishing ?? [];
-        const tempFin = jobTemp?.job_info?.finishing ?? [];
-        const savedMach = jobSaved?.job_info?.machine ?? [];
-        const tempMach = jobTemp?.job_info?.machine ?? [];
+        const savedOther = infSvd?.other ?? [];
+        const tempOther = infTmp?.other ?? [];
+        const savedFin = infSvd?.finishing ?? [];
+        const tempFin = infTmp?.finishing ?? [];
+        const savedMach = infSvd?.machine ?? [];
+        const tempMach = infTmp?.machine ?? [];
         return (
           same(jobTemp?.perfbond?.status, jobSaved?.perfbond?.status, 0) &&
           same(jobTemp?.proof?.status, jobSaved?.proof?.status, 0) &&
           same(jobTemp?.proof?.ok_when, jobSaved?.proof?.ok_when, "") &&
           same(jobTemp?.artwork?.ok_when, jobSaved?.artwork?.ok_when, "") &&
-          same(jobTemp?.job_info?.start_at, jobSaved?.job_info?.start_at, "") &&
+          same(infTmp?.start_at, infSvd?.start_at, "") &&
           same(jobTemp?.artwork?.status, jobSaved?.artwork?.status, 0) &&
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
           deepEqual(savedOther, tempOther) &&
@@ -223,11 +206,11 @@ export default function JobJob({ user }) {
       case 3:
         return (
           same(jobTemp?.job_status, jobSaved?.job_status, 0) &&
-          same(jobTemp?.job_info?.finish_at, jobSaved?.job_info?.finish_at, "")
+          same(infTmp?.finish_at, infSvd?.finish_at, "")
         );
       case 4: {
         const savedLog = jobSaved?.delivery?.log ?? [];
-        const tempLog = deliTemp?.log ?? [];
+        const tempLog = jobTemp?.delivery?.log ?? [];
 
         return (
           deepEqual(savedLog, tempLog) &&
@@ -253,20 +236,15 @@ export default function JobJob({ user }) {
       }
 
       case 2: {
-        const needDate =
-          jobTemp?.job_status >= 2 ? !!jobTemp?.job_info?.start_at : true;
+        const needDate = jobTemp?.job_status >= 2 ? !!infTmp?.start_at : true;
         return needDate;
       }
       case 3: {
-        const needDate =
-          jobTemp?.job_status >= 2 ? !!jobTemp?.job_info?.finish_at : true;
+        const needDate = jobTemp?.job_status >= 2 ? !!infTmp?.finish_at : true;
         return needDate;
       }
       case 4: {
-        const logs = deliTemp?.log ?? [];
-        if (!elementz?.deli) return true; // keep your current behavior
-        const last = logs[elementz?.deli - 1];
-        return Boolean(last?.deli_meth && last?.deli_qty && last?.deli_date);
+        return true;
       }
 
       case 5:
@@ -292,7 +270,6 @@ export default function JobJob({ user }) {
     const base = { fileid, jobindex, tabV: tab };
     const fullForm = {
       ...jobTemp,
-      delivery: deliTemp,
       ...base,
     };
 
@@ -300,22 +277,9 @@ export default function JobJob({ user }) {
       .post(`${JOBS_API_URL}/job/form2`, fullForm)
       .then((res) => {
         const job = res.data.thisJob;
-        setDeliTemp(job?.delivery || {});
         setJobSaved(job || {});
         setJobTemp(job || {});
       })
-      .catch(handleApiError)
-      .finally(() => setDBLoading(false));
-  }
-
-  function EstiDeploy() {
-    setDBLoading(true);
-
-    const form_ = { fileid, jobindex, job_info: jobSaved?.job_info };
-
-    axios
-      .post(`${JOBS_API_URL}/job/estiDeploy`, form_)
-      .then((res) => res.data.success && setEstiOk(true))
       .catch(handleApiError)
       .finally(() => setDBLoading(false));
   }
@@ -517,16 +481,8 @@ export default function JobJob({ user }) {
                 value={tabV}
                 onChange={(_, v) => {
                   setTabV(v);
-                  setDeliTemp(jobSaved?.delivery || {});
                   setJobTemp(jobSaved || {});
                   setExtras([]);
-
-                  setElementz((p) => ({
-                    ...p,
-                    samp: p.sampInitial,
-                    deli: p.deliInitial,
-                    bidres: p.bidresInitial,
-                  }));
                 }}
                 variant="scrollable"
                 scrollButtons="auto"
@@ -629,10 +585,29 @@ export default function JobJob({ user }) {
                       rel="noopener noreferrer"
                     >
                       <AddLinkRoundedIcon />
+                    </IconButton>{" "}
+                    <IconButton
+                      disabled={user?.level_jobs < 3}
+                      onClick={() =>
+                        setJobTemp((p) => ({
+                          ...p,
+                          job_info: {
+                            ...(p.job_info || {}),
+                            esti_ok: !(p.job_info?.esti_ok ?? false),
+                          },
+                        }))
+                      }
+                      color="primary"
+                    >
+                      {infTmp?.esti_ok ? (
+                        <RemoveCircleOutlineRoundedIcon />
+                      ) : (
+                        <AddCircleOutlineRoundedIcon />
+                      )}
                     </IconButton>
                   </Typography>
                 </Box>
-                {estiOk ? (
+                {!!infTmp?.esti_ok && (
                   <TableContainer component={Paper} sx={{ width: 600 }}>
                     <Table size="small">
                       <TableHead>
@@ -646,45 +621,39 @@ export default function JobJob({ user }) {
                       <TableBody>
                         <TableRow>
                           <TableCell>
-                            {inf?.unit_count.toLocaleString()}
+                            {infTmp?.unit_count.toLocaleString()}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(inf?.unit_count * inf?.unit_price)}
+                            {toLKR(infTmp?.unit_count * infTmp?.unit_price)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(inf?.unit_count * inf?.unit_price * 0.18)}
+                            {toLKR(
+                              infTmp?.unit_count * infTmp?.unit_price * 0.18,
+                            )}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(inf?.unit_count * inf?.unit_price * 1.18)}
+                            {toLKR(
+                              infTmp?.unit_count * infTmp?.unit_price * 1.18,
+                            )}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell>1</TableCell>
                           <TableCell align="right">
-                            {toLKR(inf?.unit_price)}
+                            {toLKR(infTmp?.unit_price)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(inf?.unit_price * 0.18)}
+                            {toLKR(infTmp?.unit_price * 0.18)}
                           </TableCell>
                           <TableCell align="right">
-                            {toLKR(inf?.unit_price * 1.18)}
+                            {toLKR(infTmp?.unit_price * 1.18)}
                           </TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
                   </TableContainer>
-                ) : (
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <IconButton
-                      disabled={!(user?.level_jobs >= 3)}
-                      onClick={EstiDeploy}
-                      color="primary"
-                    >
-                      <AddCircleOutlineRoundedIcon />
-                    </IconButton>
-                    <Typography color="error">Pending ...</Typography>
-                  </Stack>
                 )}
+
                 <Box sx={{ width: "100%", overflow: "hidden" }}>
                   <Divider sx={{ my: 2 }} />
                   <Typography sx={{ pb: 3 }}>Materials</Typography>
@@ -764,7 +733,7 @@ export default function JobJob({ user }) {
                   </Stack>
 
                   <List dense sx={{ my: 1, maxWidth: 835 }}>
-                    {(jobTemp?.job_info?.mate || []).map((r, i) => (
+                    {(infTmp?.mate || []).map((r, i) => (
                       <ListItem
                         key={i}
                         sx={{ "&:hover": { bgcolor: "#f2f8ff" } }}
@@ -978,27 +947,27 @@ export default function JobJob({ user }) {
                         <InputLabel>Date Type</InputLabel>
                         <Select
                           name="deadline_type"
-                          value={deliTemp?.deadline_type || 0}
+                          value={jobTemp?.delivery?.deadline_type || 0}
                           MenuProps={{
                             PaperProps: { style: { maxHeight: 300 } },
                           }}
                           label="Date Type"
-                          onChange={onNUM(setDeliTemp)}
+                          onChange={onNUM_N(setJobTemp, "delivery")}
                         >
                           <MenuItem value={0}>Pending</MenuItem>
                           <MenuItem value={1}>Fixed</MenuItem>
                           <MenuItem value={2}>Flexible</MenuItem>
                         </Select>
                       </FormControl>
-                      {deliTemp?.deadline_type === 1 && (
+                      {jobTemp?.delivery?.deadline_type === 1 && (
                         <TextField
                           type="date"
                           sx={{ width: 150 }}
                           size="small"
                           label="Date"
                           name="deadline"
-                          value={deliTemp?.deadline || ""}
-                          onChange={onSTR(setDeliTemp)}
+                          value={jobTemp?.delivery?.deadline || ""}
+                          onChange={onSTR_N(setJobTemp, "delivery")}
                           InputLabelProps={{ shrink: true }}
                         />
                       )}
@@ -1200,7 +1169,7 @@ export default function JobJob({ user }) {
                 </Stack>
 
                 <List dense sx={{ my: 1, maxWidth: 500 }}>
-                  {jobTemp?.job_info?.machine?.map((m, i) => (
+                  {infTmp?.machine?.map((m, i) => (
                     <ListItem
                       key={i}
                       sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
@@ -1287,7 +1256,7 @@ export default function JobJob({ user }) {
                 </Stack>
 
                 <List dense sx={{ my: 1, maxWidth: 500 }}>
-                  {jobTemp?.job_info?.finishing?.map((m, i) => (
+                  {infTmp?.finishing?.map((m, i) => (
                     <ListItem
                       key={i}
                       sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
@@ -1362,7 +1331,7 @@ export default function JobJob({ user }) {
                 </Stack>
 
                 <List dense sx={{ my: 1, maxWidth: 500 }}>
-                  {jobTemp?.job_info?.others?.map((m, i) => (
+                  {infTmp?.others?.map((m, i) => (
                     <ListItem
                       key={i}
                       sx={{ "&:hover": { bgcolor: "#f2f8ff" }, p: 0 }}
@@ -1415,7 +1384,7 @@ export default function JobJob({ user }) {
                       size="small"
                       label="Started Date"
                       name="start_at"
-                      value={jobTemp?.job_info?.start_at || ""}
+                      value={infTmp?.start_at || ""}
                       onChange={onSTRInfo}
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1451,7 +1420,7 @@ export default function JobJob({ user }) {
                       size="small"
                       label="Finished Date"
                       name="finish_at"
-                      value={jobTemp?.job_info?.finish_at || ""}
+                      value={infTmp?.finish_at || ""}
                       onChange={onSTRInfo}
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1466,14 +1435,15 @@ export default function JobJob({ user }) {
                 <Divider sx={{ my: 2 }} />
                 <Stack direction="row" flexWrap="wrap" gap={1} sx={{ py: 1 }}>
                   <FormControlLabel
-                    label="Fully Delivered"
+                    label="Fully Delivered "
                     labelPlacement="start"
                     sx={{ ml: 0, mr: 1 }}
                     control={
                       <Switch
                         checked={jobTemp?.job_status >= 4}
                         disabled={
-                          (jobSaved?.job_status || 0) !== 3 || !elementz?.deli
+                          (jobSaved?.job_status || 0) !== 3 ||
+                          !jobSaved?.delivery?.log?.length
                         }
                         value={jobTemp?.job_status === 4 ? 3 : 4}
                         name="job_status"
@@ -1483,132 +1453,119 @@ export default function JobJob({ user }) {
                     }
                   />
                 </Stack>
+
                 <Divider sx={{ my: 2 }} />
-                <Typography sx={{ pb: 3 }}>
-                  Delivery Log
+                <Typography sx={{ pb: 3 }}>Delivery Log</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <Select
+                      name="deli_meth"
+                      value={extras?.deli_meth || 0}
+                      onChange={onNUM(setExtras)}
+                    >
+                      <MenuItem value={0}>-</MenuItem>
+                      {Object.entries(deli_methods).map(([value, label]) => (
+                        <MenuItem key={value} value={value}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    type="date"
+                    sx={{ width: 150 }}
+                    name="deli_date"
+                    size="small"
+                    value={extras?.deli_date || ""}
+                    onChange={onSTR(setExtras)}
+                  />
+                  <Num
+                    sx={{ width: 100 }}
+                    name="deli_qty"
+                    value={extras?.deli_qty || 0}
+                    onChange={onNUM(setExtras)}
+                    label={`Units ${infTmp?.unit_count ? Math.round(((extras?.deli_qty || 0) / jobSaved.job_info.unit_count) * 100) : 0}%`}
+                    max={infTmp?.unit_count}
+                  />
+
                   <IconButton
-                    onClick={() =>
-                      setElementz((p) => ({
-                        ...p,
-                        deli: p.deli + 1,
-                      }))
-                    }
-                    disabled={elementz?.deli && !form2Filled}
                     color="primary"
+                    disabled={
+                      !extras?.deli_date ||
+                      !extras?.deli_meth ||
+                      !extras?.deli_qty
+                    }
+                    onClick={() => {
+                      const neww = {
+                        deli_meth: extras?.deli_meth,
+                        deli_date: extras?.deli_date,
+                        deli_qty: extras?.deli_qty,
+                      };
+
+                      setJobTemp((p) => ({
+                        ...p,
+                        delivery: {
+                          ...(p.delivery || {}),
+                          log: [...(p.delivery?.log || []), neww],
+                        },
+                      }));
+
+                      setExtras((p) => ({
+                        ...p,
+                        deli_meth: 0,
+                        deli_date: "",
+                        deli_qty: 0,
+                      }));
+                    }}
                   >
                     <AddCircleOutlineRoundedIcon />
                   </IconButton>
-                  <IconButton
-                    onClick={() => {
-                      const count = elementz?.deli ?? 0;
-                      setDeliTemp((p) => ({
-                        ...p,
-                        log: Object.fromEntries(
-                          Object.entries(p?.log ?? {}).filter(
-                            ([k]) => k !== String(count - 1),
-                          ),
-                        ),
-                      }));
-
-                      setElementz((p) => ({
-                        ...p,
-                        deli: Math.max((p?.deli ?? 0) - 1, 0),
-                      }));
-                      jobTemp?.job_status === 4 &&
-                        count <= 1 &&
-                        setJobTemp((p) => ({ ...p, job_status: 3 }));
-                    }}
-                    disabled={(elementz?.deli ?? 0) < 1}
-                  >
-                    <DeleteRoundedIcon />
-                  </IconButton>
-                </Typography>
-                <List dense>
-                  {Array.from({ length: elementz?.deli }).map((_, idx) => {
-                    const s = deliTemp?.log?.[idx] || {};
-
-                    return (
-                      <React.Fragment key={idx}>
-                        <ListItemButton selected={idx === elementz?.deli - 1}>
-                          <ListItemText
-                            primary={`${idx + 1} - ${
-                              deli_methods[s?.deli_meth] || "-"
-                            }`}
-                            secondary={
-                              [
-                                s?.deli_qty != null
-                                  ? `${Number(
-                                      s.deli_qty,
-                                    ).toLocaleString()} Units ( ${(
-                                      (s.deli_qty / inf?.unit_count) *
-                                      100
-                                    ).toFixed(2)} % )`
-                                  : null,
-                                s?.deli_date,
-                              ]
-                                .filter(Boolean)
-                                .join(" • ") || "-"
-                            }
-                          />
-                        </ListItemButton>
-                        <Divider />
-                      </React.Fragment>
-                    );
-                  })}
-                </List>
-                {!!elementz?.deli && (
-                  <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
-                      <Select
-                        name="deli_meth"
-                        value={
-                          deliTemp?.log?.[elementz?.deli - 1]?.deli_meth || 0
+                </Stack>
+                <List dense sx={{ my: 1, maxWidth: 835 }}>
+                  {(jobTemp?.delivery?.log || []).map((s, i) => (
+                    <ListItem
+                      key={i}
+                      sx={{ "&:hover": { bgcolor: "#f2f8ff" } }}
+                    >
+                      <ListItemText
+                        primary={`${i + 1} - ${
+                          deli_methods[s?.deli_meth] || "-"
+                        }`}
+                        secondary={
+                          [
+                            s?.deli_qty != null
+                              ? `${Number(
+                                  s.deli_qty,
+                                ).toLocaleString()} Units ( ${(
+                                  (s.deli_qty / infTmp?.unit_count) *
+                                  100
+                                ).toFixed(2)} % )`
+                              : null,
+                            s?.deli_date,
+                          ]
+                            .filter(Boolean)
+                            .join(" • ") || "-"
                         }
-                        onChange={onNUM_NN(
-                          setDeliTemp,
-                          "log",
-                          elementz?.deli - 1,
-                        )}
-                        MenuProps={{
-                          PaperProps: { style: { maxHeight: 300 } },
+                      />
+
+                      <IconButton
+                        onClick={() => {
+                          setJobTemp((p) => ({
+                            ...p,
+                            delivery: {
+                              ...(p.delivery || {}),
+                              log: (p.delivery?.log || []).filter(
+                                (_, idx) => idx !== i,
+                              ),
+                            },
+                          }));
                         }}
                       >
-                        <MenuItem value={0}>-</MenuItem>
-
-                        {Object.entries(deli_methods).map(([value, label]) => (
-                          <MenuItem key={value} value={value}>
-                            {label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <TextField
-                      type="date"
-                      sx={{ width: 150 }}
-                      name="deli_date"
-                      size="small"
-                      value={
-                        deliTemp?.log?.[elementz?.deli - 1]?.deli_date || ""
-                      }
-                      onChange={onSTR_NN(
-                        setDeliTemp,
-                        "log",
-                        elementz?.deli - 1,
-                      )}
-                    />
-                    <Num
-                      sx={{ width: 100 }}
-                      name="deli_qty"
-                      value={deliTemp?.log?.[elementz?.deli - 1]?.deli_qty}
-                      onChange={onNUM_NN(
-                        setDeliTemp,
-                        "log",
-                        elementz?.deli - 1,
-                      )}
-                      label="Units"
-                    />
-                  </Stack>
-                )}
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </ListItem>
+                  ))}
+                </List>
 
                 <Divider sx={{ mt: 2 }} />
               </Box>
@@ -1639,6 +1596,54 @@ export default function JobJob({ user }) {
                 <Divider sx={{ mt: 2 }} />
               </Box>
             )}
+          </MyFormBox>
+
+          <MyFormBox
+            label={"Stock Log"}
+            //clickable={passedForm3}
+            //onPress={() => SubmitForm3(jobTemp)}
+            user={user}
+          >
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                name="type"
+                value={stockForm?.type || ""}
+                onChange={onSTR(setStockForm)}
+                label="Type"
+              >
+                <MenuItem value="">{"\u00A0"}</MenuItem>
+                <MenuItem value="Paper">Paper/Board</MenuItem>
+                <MenuItem value="Metal">Metal</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 250 }}>
+              <InputLabel>Paper</InputLabel>
+              <Select
+                name="paper"
+                value={stockForm?.paper || ""}
+                onChange={onNUM(setStockForm)}
+                label="Paper"
+                MenuProps={{
+                  PaperProps: { style: { maxHeight: 300 } },
+                }}
+              >
+                <MenuItem value={0}>-</MenuItem>
+                {allPapers.map((pp) => (
+                  <MenuItem value={pp?.id} key={pp?.id}>
+                    {pp?.display_as}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Num
+              name="change"
+              value={stockForm?.change ?? 0}
+              onChange={onNUM(setStockForm)}
+              label="Sheets"
+              deci={0}
+            />
           </MyFormBox>
         </>
       )}

@@ -47,28 +47,23 @@ router.post("/:bsns/add", requiredLogged, async (req, res) => {
       size_w,
       unit_val,
       type,
-      // new_brand,
+      new_brand,
+      new_color,
     } = req.body;
     const { bsns } = req.params;
     const isGts = bsns === "gts";
     const levelKey = isGts ? "level_paper" : "level_stock";
-
-    // console.log(req.body);
-    // console.log("bsns", bsns);
-    // console.log("reqbody done");
 
     const longside = size_h >= size_w ? size_h : size_w;
     const shortside = size_h >= size_w ? size_w : size_h;
 
     const requiredFields = [
       "type",
-      "color",
       "den_unit",
       "unit_type",
       "den",
       "size_w",
       "unit_val",
-      "brand",
     ];
 
     // check presence + > 0
@@ -83,7 +78,47 @@ router.post("/:bsns/add", requiredLogged, async (req, res) => {
       }
     }
 
-    if (!requiredLevel(req, res, levelKey, 1)) return;
+    if (!requiredLevel(req, res, levelKey, 2)) return;
+
+    const fillFirstNullSpecSql = (col) => `
+        UPDATE paper_specs SET ${col} = $1
+        WHERE id = ( SELECT id FROM paper_specs WHERE ${col} IS NULL ORDER BY id LIMIT 1)
+        RETURNING id;`;
+
+    const insertSpecSql = (col) =>
+      `INSERT INTO paper_specs (${col}) VALUES ($1) RETURNING id;`;
+
+    let brandId = Number(brand);
+    let colorId = Number(color);
+
+    const newbrand = new_brand?.trim();
+    const newcolor = new_color?.trim();
+
+    if (brandId <= 0 && !newbrand)
+      return res
+        .status(400)
+        .json({ success: false, message: "new brand required" });
+
+    if (colorId <= 0 && !newcolor)
+      return res
+        .status(400)
+        .json({ success: false, message: "new color required" });
+
+    if (brandId <= 0) {
+      const r = await pool.query(fillFirstNullSpecSql("p_brand"), [newbrand]);
+      brandId =
+        r.rowCount > 0
+          ? r.rows[0].id
+          : (await pool.query(insertSpecSql("p_brand"), [newbrand])).rows[0].id;
+    }
+
+    if (colorId <= 0) {
+      const r = await pool.query(fillFirstNullSpecSql("p_color"), [newcolor]);
+      colorId =
+        r.rowCount > 0
+          ? r.rows[0].id
+          : (await pool.query(insertSpecSql("p_color"), [newcolor])).rows[0].id;
+    }
 
     const insertSql = `
       INSERT INTO paper_list
@@ -100,11 +135,11 @@ router.post("/:bsns/add", requiredLogged, async (req, res) => {
 
     const params = [
       type,
-      color,
+      colorId,
       den,
       shortside,
       longside,
-      brand,
+      brandId,
       unit_val,
       unit_type,
       den_unit,

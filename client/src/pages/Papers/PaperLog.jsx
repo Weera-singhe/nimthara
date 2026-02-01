@@ -397,6 +397,22 @@ export default function PaperLog({ user }) {
             </Select>
           </FormControl>
         )}
+        {form?.type === "job" && (
+          <FormControl sx={{ minWidth: 120, maxWidth: "80%" }} size="small">
+            <InputLabel>Select Job</InputLabel>
+            <Select
+              name="type"
+              value={form?.type_data?.job_id || ""}
+              label="Select Job"
+              //  onChange={onSTR(setForm)}
+              MenuProps={{
+                PaperProps: { style: { maxHeight: 300 } },
+              }}
+            >
+              <MenuItem value="">-</MenuItem>
+            </Select>
+          </FormControl>
+        )}
       </MyFormBox>
       <List>
         <Stack

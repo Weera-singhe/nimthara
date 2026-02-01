@@ -21,6 +21,7 @@ import PaperLog from "./pages/Papers/PaperLog";
 import RecordsHome from "./pages/Records/RecordsHome";
 import RecJobTicket from "./pages/Records/RecJobTicket";
 import LongLogo from "./assests/long_logo.svg";
+import RecNimPPVouch from "./pages/Records/RecNimPPVouch";
 
 axios.defaults.withCredentials = true;
 
@@ -101,9 +102,7 @@ const App = () => {
             path="/login"
             element={<Login user={user} setUser={setUser} />}
           />
-
           <Route path="/records" element={<RecordsHome user={user} />} />
-
           <Route
             path="/records/nim/jticket/:id"
             element={<RecJobTicket user={user} />}
@@ -111,11 +110,17 @@ const App = () => {
           <Route
             path="/records/nim/jticket"
             element={<RecJobTicket user={user} />}
+          />{" "}
+          <Route
+            path="/records/nim/vouchppr/:id"
+            element={<RecNimPPVouch user={user} />}
           />
-
+          <Route
+            path="/records/nim/vouchppr"
+            element={<RecNimPPVouch user={user} />}
+          />
           <Route path="/papers" element={<PapersHome user={user} />} />
           <Route path="/papers/:bsns" element={<PapersHome user={user} />} />
-
           <Route
             path="/papers/:bsns/price/:id"
             element={
@@ -132,7 +137,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/papers/:bsns/log/:id"
             element={
@@ -149,7 +153,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/jobs"
             element={
@@ -182,7 +185,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/esti/:linkid/:linkat"
             element={
@@ -191,7 +193,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/audit"
             element={

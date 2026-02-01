@@ -26,6 +26,7 @@ router.get("/nim/jticket/:id", async (req, res) => {
         jj.job_id,
         jj.jobfile_id,
         jj.job_index,
+        jj.job_code,
         jf.customer_id,
         jf.unreg_customer,
         cs.cus_name_short,

@@ -8,6 +8,7 @@ import PrintIcon from "@mui/icons-material/Print";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 import {
   Accordion,
@@ -97,6 +98,10 @@ export default function PapersHome({ user }) {
             size_h: 0,
             size_w: 0,
             den: 0,
+            color: 1,
+            brand: 1,
+            new_brand: "",
+            new_color: "",
           }));
         }
       })
@@ -114,10 +119,18 @@ export default function PapersHome({ user }) {
   });
 
   const isGts = bsns === "gts";
-  const form1Filled = form?.type && form?.den && form?.size_w && form?.unit_val;
+  const brandNull = !form?.brand && !form.new_brand;
+  const colNull = !form?.color && !form.new_color;
+  const form1Filled =
+    form?.type &&
+    form?.den &&
+    form?.size_w &&
+    form?.unit_val &&
+    !brandNull &&
+    !colNull;
   const lvl1Ok = isGts
-    ? user?.level_paper >= 1 && user?.loggedIn
-    : user?.level_stock >= 1 && user?.loggedIn;
+    ? user?.level_paper >= 2 && user?.loggedIn
+    : user?.level_stock >= 2 && user?.loggedIn;
 
   const makeItLoad = DBLoading;
   return (
@@ -276,8 +289,25 @@ export default function PapersHome({ user }) {
                       {br?.brand || "\u00A0"}
                     </MenuItem>
                   ))}
+                  <MenuItem value={0}>
+                    {form?.brand ? (
+                      <AddCircleOutlineIcon sx={{ fontSize: 20 }} />
+                    ) : (
+                      "New"
+                    )}
+                  </MenuItem>
                 </Select>
               </FormControl>
+              {!form?.brand && (
+                <TextField
+                  size="small"
+                  label="New Brand"
+                  onChange={onSTRCode(setForm)}
+                  value={form?.new_brand}
+                  name="new_brand"
+                />
+              )}
+
               <FormControl sx={{ minWidth: 110, maxWidth: "80%" }} size="small">
                 <InputLabel>Color</InputLabel>
                 <Select
@@ -294,8 +324,24 @@ export default function PapersHome({ user }) {
                       {cl?.color || "\u00A0"}
                     </MenuItem>
                   ))}
+                  <MenuItem value={0}>
+                    {form?.color ? (
+                      <AddCircleOutlineIcon sx={{ fontSize: 20 }} />
+                    ) : (
+                      "New"
+                    )}
+                  </MenuItem>
                 </Select>
               </FormControl>
+              {!form?.color && (
+                <TextField
+                  size="small"
+                  label="New Color"
+                  onChange={onSTRCode(setForm)}
+                  value={form?.new_color}
+                  name="new_color"
+                />
+              )}
               <ToggleButtonGroup
                 value={form?.unit_type}
                 exclusive

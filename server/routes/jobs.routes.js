@@ -8,7 +8,11 @@ const {
   getUserID,
 } = require("../Auth/authcheck");
 const { dateTimeInpCon } = require("../Helpers/dates");
-const { RecActivity, WhatzChanged } = require("../Helpers/dbFunc");
+const {
+  RecActivity,
+  WhatzChanged,
+  GetPapersFullData,
+} = require("../Helpers/dbFunc");
 
 router.get("/", requiredLogged, async (req, res) => {
   try {
@@ -372,8 +376,9 @@ router.get("/job/:fileid/:jobindex", requiredLogged, async (req, res) => {
 
     const thisJob = await GetJobJob(fileid, jobindex);
     const theseJobs = await GetJobsUnderFile(fileid);
+    const allPapers = await GetPapersFullData();
 
-    return res.json({ thisJob, theseJobs });
+    return res.json({ thisJob, theseJobs, allPapers });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ success: false, message: err.message });
@@ -486,16 +491,27 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
       });
     }
 
+    const estiStsBefore = beforeUpdate?.job_info?.esti_ok || false;
+    const estiStsNow = job_info?.esti_ok || false;
+    if (estiStsBefore !== estiStsNow) {
+      if (!requiredLevel(req, res, "level_jobs", 3)) return;
+    }
+
     const bidSubMethod = Number(beforeUpdate?.bid_submit?.method) || 0;
 
     if (tab === 0) {
       await pool.query(
         ` UPDATE job_jobs
-        SET job_info = jsonb_set(  COALESCE(job_info, '{}'::jsonb),'{mate}', COALESCE($1::jsonb, '[]'::jsonb),  true)
-        WHERE jobfile_id = $2
-          AND job_index  = $3 `,
+        SET job_info = jsonb_set( jsonb_set( COALESCE(job_info, '{}'::jsonb), '{mate}', COALESCE($1::jsonb, '[]'::jsonb), true ), '{esti_ok}', to_jsonb(COALESCE($2::boolean, false)), true )
+        WHERE jobfile_id = $3
+          AND job_index  = $4 `,
 
-        [JSON.stringify(job_info?.mate ?? []), fileid, jobindex],
+        [
+          JSON.stringify(job_info?.mate ?? []),
+          job_info?.esti_ok ?? false,
+          fileid,
+          jobindex,
+        ],
       );
     } else if (![1, 2, 3, 4].includes(bidSubMethod)) {
       return res
@@ -515,15 +531,15 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
       if (jobStatusNow) {
         await pool.query(
           `
-        UPDATE job_jobs
-        SET 
-        job_status = $1,
-        delivery = jsonb_set(jsonb_set(COALESCE(delivery, '{}'::jsonb),'{deadline_type}',to_jsonb($2::int),true),'{deadline}',to_jsonb($3::text),true),
-        po =jsonb_set( jsonb_set( jsonb_set( COALESCE(po, '{}'::jsonb),'{status}',to_jsonb($4::int),true), '{when}', to_jsonb($5::text),true), '{code}', to_jsonb($6::text),true),
-        bid_result = $7
-        WHERE jobfile_id = $8
-          AND job_index  = $9
-        `,
+          UPDATE job_jobs
+          SET 
+            job_status = $1,
+            delivery = jsonb_set( jsonb_set( COALESCE(delivery, '{}'::jsonb), '{deadline_type}', to_jsonb($2::int), true ), '{deadline}', to_jsonb($3::text), true ),
+            po = jsonb_set( jsonb_set( jsonb_set( COALESCE(po, '{}'::jsonb), '{status}', to_jsonb($4::int), true ), '{when}', to_jsonb($5::text), true ), '{code}', to_jsonb($6::text), true ),
+            bid_result = $7
+          WHERE jobfile_id = $8
+            AND job_index  = $9
+          `,
           [
             jobStatusNow,
             delivery?.deadline_type ?? 0,
@@ -620,17 +636,16 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
       );
     }
 
-    if (tab === 4 && jobStatusNow > 1) {
+    if (tab === 4 && jobStatusNow >= 2) {
+      const safeLog = Array.isArray(delivery?.log) ? delivery.log : [];
       await pool.query(
-        `
-        UPDATE job_jobs
-        SET 
-        job_status = $1,
-        delivery = jsonb_set(COALESCE(delivery, '{}'::jsonb),'{log}',COALESCE($2::jsonb, 'null'::jsonb),true)
-        WHERE jobfile_id = $3
-          AND job_index  = $4
-        `,
-        [jobStatusNow, delivery?.log ?? null, fileid, jobindex],
+        `UPDATE job_jobs
+          SET 
+            job_status = $1,
+            delivery = jsonb_set( COALESCE(delivery, '{}'::jsonb), '{log}', $2::jsonb, true )
+          WHERE jobfile_id = $3 AND job_index  = $4
+          `,
+        [jobStatusNow, JSON.stringify(safeLog), fileid, jobindex],
       );
     }
 
@@ -674,62 +689,62 @@ router.post("/job/form2", requiredLogged, async (req, res) => {
   }
 });
 
-router.post("/job/estiDeploy", requiredLogged, async (req, res) => {
-  try {
-    const { jobindex, fileid } = req.body;
+// router.post("/job/estiDeploy", requiredLogged, async (req, res) => {
+//   try {
+//     const { jobindex, fileid } = req.body;
 
-    const user_id = getUserID(req);
+//     const user_id = getUserID(req);
 
-    if (!requiredLevel(req, res, "level_jobs", 3)) return;
+//     if (!requiredLevel(req, res, "level_jobs", 3)) return;
 
-    const beforeRes = await pool.query(
-      "SELECT job_info FROM job_jobs WHERE jobfile_id = $1 AND job_index = $2",
-      [fileid, jobindex],
-    );
+//     const beforeRes = await pool.query(
+//       "SELECT job_info FROM job_jobs WHERE jobfile_id = $1 AND job_index = $2",
+//       [fileid, jobindex],
+//     );
 
-    const beforeUpdate = beforeRes.rows[0] || {};
+//     const beforeUpdate = beforeRes.rows[0] || {};
 
-    const sql = `
-        UPDATE job_jobs
-        SET job_info = jsonb_set(
-          COALESCE(job_info, '{}'::jsonb),
-          '{esti_ok}',
-          'true'::jsonb,
-          true
-        )
-        WHERE jobfile_id = $1
-          AND job_index = $2
-        RETURNING job_info
-        `;
+//     const sql = `
+//         UPDATE job_jobs
+//         SET job_info = jsonb_set(
+//           COALESCE(job_info, '{}'::jsonb),
+//           '{esti_ok}',
+//           'true'::jsonb,
+//           true
+//         )
+//         WHERE jobfile_id = $1
+//           AND job_index = $2
+//         RETURNING job_info
+//         `;
 
-    const { rows: rowsAfter, rowCount: rowCountAfter } = await pool.query(sql, [
-      fileid,
-      jobindex,
-    ]);
+//     const { rows: rowsAfter, rowCount: rowCountAfter } = await pool.query(sql, [
+//       fileid,
+//       jobindex,
+//     ]);
 
-    const afterUpdate = rowsAfter[0];
+//     const afterUpdate = rowsAfter[0];
 
-    if (rowCountAfter > 0) {
-      const { old_v, new_v } = WhatzChanged(beforeUpdate, afterUpdate);
-      await RecActivity(
-        user_id,
-        "update",
-        old_v,
-        new_v,
-        "/jobs/job/estiDeploy",
-        fileid,
-        jobindex,
-        "estiDeploy",
-        null,
-        "job_jobs",
-      );
-    }
+//     if (rowCountAfter > 0) {
+//       const { old_v, new_v } = WhatzChanged(beforeUpdate, afterUpdate);
+//       await RecActivity(
+//         user_id,
+//         "update",
+//         old_v,
+//         new_v,
+//         "/jobs/job/estiDeploy",
+//         fileid,
+//         jobindex,
+//         "estiDeploy",
+//         null,
+//         "job_jobs",
+//       );
+//     }
 
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+//     res.status(200).json({ success: true });
+//   } catch (err) {
+//     console.error("Error:", err.message);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// });
 
 module.exports = router;
